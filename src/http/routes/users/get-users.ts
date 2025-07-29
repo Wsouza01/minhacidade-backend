@@ -3,15 +3,16 @@ import { db } from "../../../db/connection.ts";
 import { schema } from "../../../db/schema/index.ts";
 
 export const getUsersRoute: FastifyPluginCallbackZod = (app) => {
-  app.get('/users', async () => {
+  app.get("/users", async (request, reply) => {
     const results = await db
       .select({
         id: schema.usuarios.usu_id,
-        name: schema.usuarios.usu_nome,
+        nome: schema.usuarios.usu_nome,
+        email: schema.usuarios.usu_email,
+        cpf: schema.usuarios.usu_cpf,
       })
-      .from(schema.usuarios)
-      .orderBy(schema.usuarios.usu_criado)
+      .from(schema.usuarios);
 
-    return results
-  })
-}
+    reply.send(results);
+  });
+};

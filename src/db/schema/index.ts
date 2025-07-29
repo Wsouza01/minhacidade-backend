@@ -1,11 +1,11 @@
-import { usuarios } from "./usuarios.ts";
-import { departamentos } from "./departamentos.ts";
-import { funcionarios } from "./funcionarios.ts";
-import { categorias } from "./categorias.ts";
-import { chamados } from "./chamados.ts";
-import { etapas } from "./etapas.ts";
-import { anexos } from "./anexos.ts";
-import { notificacoes } from "./notificacoes.ts";
+import { usuarios } from "./usuarios";
+import { departamentos } from "./departamentos";
+import { funcionarios } from "./funcionarios";
+import { categorias } from "./categorias";
+import { chamados } from "./chamados";
+import { etapas } from "./etapas";
+import { anexos } from "./anexos";
+import { notificacoes } from "./notificacoes";
 
 export const schema = {
   usuarios,
