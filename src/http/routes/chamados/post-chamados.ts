@@ -1,7 +1,7 @@
 // postChamadosRoute.ts
 import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
-import { db } from "../../../db/connection";
-import { schema } from "../../../db/schema";
+import { db } from "../../../db/connection.ts";
+import { schema } from "../../../db/schema/index.ts";
 import { z } from "zod";
 
 export const postChamadosRoute: FastifyPluginCallbackZod = (app) => {

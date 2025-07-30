@@ -15,6 +15,13 @@
       "when": 1753225586761,
       "tag": "0001_concerned_outlaw_kid",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1753842233644,
+      "tag": "0002_happy_gauntlet",
+      "breakpoints": true
     }
   ]
 }

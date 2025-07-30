@@ -1,7 +1,7 @@
 // postEtapasRoute.ts
 import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
-import { db } from "../../../db/connection";
-import { schema } from "../../../db/schema";
+import { db } from "../../../db/connection.ts";
+import { schema } from "../../../db/schema/index.ts";
 import { z } from "zod";
 
 export const postEtapasRoute: FastifyPluginCallbackZod = (app) => {
@@ -25,8 +25,8 @@ export const postEtapasRoute: FastifyPluginCallbackZod = (app) => {
       await db.insert(schema.etapas).values({
         eta_nome: nome,
         eta_descricao: descricao,
-        eta_data_inicio: new Date(data_inicio),
-        eta_data_fim: new Date(data_fim),
+        eta_data_inicio: data_inicio, // String ISO
+        eta_data_fim: data_fim,       // String ISO
         cha_id: chamado_id,
       });
 

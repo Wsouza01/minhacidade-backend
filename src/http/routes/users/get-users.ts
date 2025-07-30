@@ -1,18 +1,35 @@
-import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
+import type { FastifyPluginCallback } from "fastify";
+import { z } from "zod";
 import { db } from "../../../db/connection.ts";
-import { schema } from "../../../db/schema/index.ts";
+import { usuarios } from "../../../db/schema/usuarios.ts";
 
-export const getUsersRoute: FastifyPluginCallbackZod = (app) => {
-  app.get("/users", async (request, reply) => {
+// Schema de resposta
+const GetUsersResponse = z.object({
+  id: z.string(),
+  nome: z.string(),
+  email: z.string(),
+  cpf: z.string(),
+});
+
+const GetUsersResponseArray = z.array(GetUsersResponse);
+
+export const getUsersRoute: FastifyPluginCallback = (app) => {
+  app.get("/users", {
+    schema: {
+      response: {
+        200: GetUsersResponseArray,
+      },
+    },
+  }, async (request, reply) => {
     const results = await db
       .select({
-        id: schema.usuarios.usu_id,
-        nome: schema.usuarios.usu_nome,
-        email: schema.usuarios.usu_email,
-        cpf: schema.usuarios.usu_cpf,
+        id: usuarios.usu_id,
+        nome: usuarios.usu_nome,
+        email: usuarios.usu_email,
+        cpf: usuarios.usu_cpf,
       })
-      .from(schema.usuarios);
+      .from(usuarios);
 
-    reply.send(results);
+    return reply.send(results);
   });
 };

@@ -1,9 +1,9 @@
-import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
+import type { FastifyPluginCallback } from "fastify";
 import { db } from "../../../db/connection.ts";
-import { schema } from "../../../db/schema/index.ts";
+import { usuarios } from "../../../db/schema/usuarios.ts";
 import { z } from "zod";
 
-export const postUsersRoute: FastifyPluginCallbackZod = (app) => {
+export const postUsersRoute: FastifyPluginCallback = (app) => {
   app.post(
     "/users",
     {
@@ -13,28 +13,33 @@ export const postUsersRoute: FastifyPluginCallbackZod = (app) => {
           cpf: z.string().min(11).max(14),
           email: z.string().email(),
           senha: z.string().min(6),
-          criado_em: z.string().datetime(), // ajustar conforme o tipo da coluna
+          login: z.string().min(3, "Login é obrigatório"),
+          data_nascimento: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Formato deve ser YYYY-MM-DD"),
+          // Removido criado_em - será preenchido automaticamente
         }),
       },
     },
     async (request, reply) => {
-      const { nome, cpf, email, senha, criado_em } = request.body as {
+      const { nome, cpf, email, senha, login, data_nascimento } = request.body as {
         nome: string;
         cpf: string;
         email: string;
         senha: string;
-        criado_em: string;
+        login: string;
+        data_nascimento: string;
       };
 
-      await db.insert(schema.usuarios).values({
+      await db.insert(usuarios).values({
         usu_nome: nome,
         usu_cpf: cpf,
         usu_email: email,
         usu_senha: senha,
-        usu_criado: criado_em,
+        usu_login: login,
+        usu_data_nascimento: data_nascimento, // String no formato "YYYY-MM-DD"
+        // usu_criado será preenchido automaticamente pelo .defaultNow()
       });
 
-      reply.status(201).send({ message: "Usuário criado com sucesso" });
+      return reply.status(201).send({ message: "Usuário criado com sucesso" });
     }
   );
 };

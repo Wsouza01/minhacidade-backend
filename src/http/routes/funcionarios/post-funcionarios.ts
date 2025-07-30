@@ -34,7 +34,7 @@ export const postFuncionariosRoute: FastifyPluginCallbackZod = (app) => {
         fun_nome: nome,
         fun_email: email,
         fun_cpf: cpf,
-        fun_data_nascimento: new Date(data_nascimento),
+        fun_data_nascimento: data_nascimento, // String, não Date
         fun_login: login,
         fun_senha: senha,
         dep_id: departamento_id,
