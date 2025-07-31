@@ -1,5 +1,5 @@
 // routes/getCategorias.ts
-import { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
+import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
 import { db } from "../../../db/connection.ts";
 import { categorias } from "../../../db/schema/categorias.ts";
 

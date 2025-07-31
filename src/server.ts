@@ -1,18 +1,31 @@
+import { fastifyCors } from '@fastify/cors'
 import { fastify } from 'fastify'
-import { 
+import {
   serializerCompiler,
   validatorCompiler,
-  type ZodTypeProvider
- } from 'fastify-type-provider-zod'
-import { fastifyCors } from '@fastify/cors'
+  type ZodTypeProvider,
+} from 'fastify-type-provider-zod'
 import { env } from './env.ts'
-import { getUsersRoute } from './http/routes/users/get-users.ts'
+import { getAnexosRoute } from './http/routes/anexos/get-anexos.ts'
+import { postAnexosRoute } from './http/routes/anexos/post-anexos.ts'
+import { getCategoriasRoute } from './http/routes/categorias/get-categorias.ts'
+import { postCategoriasRoute } from './http/routes/categorias/post-categorias.ts'
+import { getChamadosRoute } from './http/routes/chamados/get-chamados.ts'
+import { postChamadosRoute } from './http/routes/chamados/post-chamados.ts'
+import { getDepartamentosRoute } from './http/routes/departamento/get-departamentos.ts'
+import { postDepartamentosRoute } from './http/routes/departamento/post-departamentos.ts'
+import { getEtapasRoute } from './http/routes/etapas/get-etapas.ts'
+import { postEtapasRoute } from './http/routes/etapas/post-etapas.ts'
+import { getFuncionariosRoute } from './http/routes/funcionarios/get-funcionarios.ts'
+import { postFuncionariosRoute } from './http/routes/funcionarios/post-funcionarios.ts'
+import { loginRoute } from './http/routes/login/login.ts'
 import { postUsersRoute } from './http/routes/users/post-users.ts'
+import { getCidadesRoute } from './http/routes/cidades/get-cidades.ts'
 
 const app = fastify().withTypeProvider<ZodTypeProvider>()
 
 app.register(fastifyCors, {
-  origin: 'localhost:5173',
+  origin: '*',
 })
 
 app.setSerializerCompiler(serializerCompiler)
@@ -22,7 +35,20 @@ app.get('/health', () => {
   return 'OK'
 })
 
-app.register(getUsersRoute)
+app.register(loginRoute)
 app.register(postUsersRoute)
+app.register(getCidadesRoute)
+app.register(getFuncionariosRoute)
+app.register(postFuncionariosRoute)
+app.register(getEtapasRoute)
+app.register(postEtapasRoute)
+app.register(getDepartamentosRoute)
+app.register(postDepartamentosRoute)
+app.register(getChamadosRoute)
+app.register(postChamadosRoute)
+app.register(getCategoriasRoute)
+app.register(postCategoriasRoute)
+app.register(getAnexosRoute)
+app.register(postAnexosRoute)
 
 app.listen({ port: env.PORT })
