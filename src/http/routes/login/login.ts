@@ -1,7 +1,6 @@
 import bcrypt from 'bcrypt';
 import { eq, or } from 'drizzle-orm';
 import type { FastifyPluginCallback } from 'fastify';
-import type { FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import { db } from '../../../db/connection.ts';
 import { usuarios } from '../../../db/schema/usuarios.ts';
@@ -13,7 +12,7 @@ export const loginRoute: FastifyPluginCallback = (app) => {
       schema: {
         body: z.object({
           login: z.string().min(3, 'Login deve ter pelo menos 3 caracteres'),
-          senha: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres'),
+          senha: z.string().min(8, 'Senha deve ter pelo menos 8 caracteres'),
           tipo: z.enum(['municipe', 'servidor']),
         }),
       },
@@ -80,7 +79,7 @@ export const loginRoute: FastifyPluginCallback = (app) => {
         
         if (!senhaCorreta) {
           const tentativas = (usuario.usu_tentativas_login || 0) + 1;
-          const bloquearAte = tentativas >= 3 ? new Date(agora.getTime() + 30 * 60 * 1000) : null;
+          const bloquearAte = tentativas >= 5 ? new Date(agora.getTime() + 30 * 60 * 1000) : null;
           
           await db.update(usuarios)
             .set({
@@ -90,9 +89,7 @@ export const loginRoute: FastifyPluginCallback = (app) => {
             .where(eq(usuarios.usu_id, usuario.usu_id));
 
           return reply.status(401).send({ 
-            message: tentativas >= 2 ? 
-              `Credenciais inválidas. ${3 - tentativas} tentativa(s) restante(s)` : 
-              'Credenciais inválidas',
+            message: `Credenciais inválidas. ${5 - tentativas} tentativa(s) restante(s)`,
             code: 'INVALID_CREDENTIALS'
           });
         }

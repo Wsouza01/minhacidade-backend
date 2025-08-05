@@ -12,6 +12,7 @@ import { getCategoriasRoute } from './http/routes/categorias/get-categorias.ts'
 import { postCategoriasRoute } from './http/routes/categorias/post-categorias.ts'
 import { getChamadosRoute } from './http/routes/chamados/get-chamados.ts'
 import { postChamadosRoute } from './http/routes/chamados/post-chamados.ts'
+import { getCidadesRoute } from './http/routes/cidades/get-cidades.ts'
 import { getDepartamentosRoute } from './http/routes/departamento/get-departamentos.ts'
 import { postDepartamentosRoute } from './http/routes/departamento/post-departamentos.ts'
 import { getEtapasRoute } from './http/routes/etapas/get-etapas.ts'
@@ -19,8 +20,8 @@ import { postEtapasRoute } from './http/routes/etapas/post-etapas.ts'
 import { getFuncionariosRoute } from './http/routes/funcionarios/get-funcionarios.ts'
 import { postFuncionariosRoute } from './http/routes/funcionarios/post-funcionarios.ts'
 import { loginRoute } from './http/routes/login/login.ts'
+import { getUsersRoute } from './http/routes/users/get-users.ts'
 import { postUsersRoute } from './http/routes/users/post-users.ts'
-import { getCidadesRoute } from './http/routes/cidades/get-cidades.ts'
 
 const app = fastify().withTypeProvider<ZodTypeProvider>()
 
@@ -50,5 +51,6 @@ app.register(getCategoriasRoute)
 app.register(postCategoriasRoute)
 app.register(getAnexosRoute)
 app.register(postAnexosRoute)
+app.register(getUsersRoute)
 
 app.listen({ port: env.PORT })
