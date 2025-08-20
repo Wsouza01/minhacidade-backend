@@ -1,148 +1,177 @@
-import bcrypt from 'bcrypt'
-import { db } from './connection.ts'
-import { anexos } from './schema/anexos.ts'
-import { categorias } from './schema/categorias.ts'
-import { chamados } from './schema/chamados.ts'
-import { cidades } from './schema/cidades.ts'
-import { departamentos } from './schema/departamentos.ts'
-import { etapas } from './schema/etapas.ts'
-import { funcionarios } from './schema/funcionarios.ts'
-import { notificacoes } from './schema/notificacoes.ts'
-import { usuarios } from './schema/usuarios.ts'
+import bcrypt from "bcrypt";
+import { db } from "./connection.ts";
+import { anexos } from "./schema/anexos.ts";
+import { categorias } from "./schema/categorias.ts";
+import { chamados } from "./schema/chamados.ts";
+import { cidades } from "./schema/cidades.ts";
+import { departamentos } from "./schema/departamentos.ts";
+import { etapas } from "./schema/etapas.ts";
+import { funcionarios } from "./schema/funcionarios.ts";
+import { notificacoes } from "./schema/notificacoes.ts";
+import { usuarios } from "./schema/usuarios.ts";
 
 // Função para gerar CPF válido
 function generateCPF(): string {
-  const rand = () => Math.floor(Math.random() * 9)
-  const base = Array.from({ length: 9 }, rand)
+  const rand = () => Math.floor(Math.random() * 9);
+  const base = Array.from({ length: 9 }, rand);
 
   const calcDigit = (arr: number[], factor: number) => {
-    const sum = arr.reduce((total, num, idx) => total + num * (factor - idx), 0)
-    const mod = sum % 11
-    return mod < 2 ? 0 : 11 - mod
-  }
+    const sum = arr.reduce(
+      (total, num, idx) => total + num * (factor - idx),
+      0
+    );
+    const mod = sum % 11;
+    return mod < 2 ? 0 : 11 - mod;
+  };
 
-  const digit1 = calcDigit(base, 10)
-  const digit2 = calcDigit([...base, digit1], 11)
-  return [...base, digit1, digit2].join('')
+  const digit1 = calcDigit(base, 10);
+  const digit2 = calcDigit([...base, digit1], 11);
+  return [...base, digit1, digit2].join("");
 }
 
 // Função para formatar datas no formato YYYY-MM-DD
 function formatDate(date: Date): string {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+// Função para pegar um motivo aleatório do array de motivos
+function getRandomMotivo(motivos: string[]): string {
+  const randomIndex = Math.floor(Math.random() * motivos.length);
+  return motivos[randomIndex];
 }
 
 async function runSeed() {
   try {
-    console.log('Iniciando seed...')
+    console.log("Iniciando seed...");
 
     // Limpar tabelas na ordem correta
-    await db.delete(anexos)
-    await db.delete(notificacoes)
-    await db.delete(chamados)
-    await db.delete(etapas)
-    await db.delete(categorias)
-    await db.delete(funcionarios)
-    await db.delete(usuarios)
-    await db.delete(departamentos)
-    await db.delete(cidades)
+    await db.delete(anexos);
+    await db.delete(notificacoes);
+    await db.delete(chamados);
+    await db.delete(etapas);
+    await db.delete(categorias);
+    await db.delete(funcionarios);
+    await db.delete(usuarios);
+    await db.delete(departamentos);
+    await db.delete(cidades);
 
-    console.log('Tabelas limpas')
+    console.log("Tabelas limpas");
 
     // Inserir cidades
     const [cidadePadrao] = await db
       .insert(cidades)
       .values([
         {
-          cid_nome: 'Santana de Parnaíba',
-          cid_estado: 'SP',
+          cid_nome: "Santana de Parnaíba",
+          cid_estado: "SP",
           cid_padrao: true,
           cid_ativo: true,
         },
         {
-          cid_nome: 'Barueri',
-          cid_estado: 'SP',
+          cid_nome: "Barueri",
+          cid_estado: "SP",
           cid_padrao: false,
           cid_ativo: true,
         },
         {
-          cid_nome: 'Osasco',
-          cid_estado: 'SP',
+          cid_nome: "Osasco",
+          cid_estado: "SP",
           cid_padrao: false,
           cid_ativo: true,
         },
       ])
-      .returning()
-
-    console.log('Cidades inseridas')
+      .returning();
+    console.log("Cidades inseridas");
 
     // Inserir departamentos
     const departamentosInseridos = await db
       .insert(departamentos)
       .values([
         {
-          dep_nome: 'Educação',
-          dep_descricao: 'Secretaria de Educação',
+          dep_nome: "Educação",
+          dep_descricao: "Secretaria de Educação",
+          dep_motivo: [
+            "Problema na infraestrutura das escolas",
+            "Solicitação de material didático",
+            "Falta de professores",
+            "Reclamação sobre a qualidade da merenda escolar",
+            "Problema com transporte escolar",
+          ],
         },
         {
-          dep_nome: 'Saúde',
-          dep_descricao: 'Secretaria de Saúde',
+          dep_nome: "Saúde",
+          dep_descricao: "Secretaria de Saúde",
+          dep_motivo: [
+            "Falta de medicamentos nos postos de saúde",
+            "Demora no atendimento médico",
+            "Queixa sobre atendimento de emergência",
+            "Problema no agendamento de consultas",
+            "Falta de profissionais em unidades de saúde",
+          ],
         },
         {
-          dep_nome: 'Obras',
-          dep_descricao: 'Secretaria de Obras',
+          dep_nome: "Infraestrutura",
+          dep_descricao: "Secretaria de Obras e Urbanismo",
+          dep_motivo: [
+            "Buraco na rua que precisa de reparo",
+            "Problema com a iluminação pública",
+            "Solicitação de pavimentação",
+            "Alagamento em via pública",
+            "Queixa sobre calçamento irregular",
+          ],
         },
         {
-          dep_nome: 'Segurança',
-          dep_descricao: 'Secretaria de Segurança',
+          dep_nome: "Segurança",
+          dep_descricao: "Secretaria de Segurança",
+          dep_motivo: [
+            "Aumento da criminalidade na área",
+            "Solicitação de ronda policial",
+            "Denúncia de tráfico de drogas",
+            "Queixa sobre falta de segurança em praças públicas",
+            "Problema com sinalização de trânsito",
+          ],
         },
         {
-          dep_nome: 'Meio Ambiente',
-          dep_descricao: 'Secretaria de Meio Ambiente',
+          dep_nome: "Meio Ambiente",
+          dep_descricao: "Secretaria de Meio Ambiente",
+          dep_motivo: [
+            "Denúncia de poluição do ar",
+            "Solicitação de limpeza de áreas verdes",
+            "Queixa sobre desmatamento ilegal",
+            "Problema com o descarte inadequado de lixo",
+            "Reclamação sobre animais soltos nas ruas",
+          ],
         },
       ])
-      .returning()
+      .returning();
+    console.log("Departamentos inseridos");
 
-    console.log('Departamentos inseridos')
-
-    // Inserir usuários
-    const usuariosInseridos = []
-    
-    // Criar um usuário de teste com CPF conhecido
-    const [usuarioTeste] = await db
-      .insert(usuarios)
-      .values({
-        usu_nome: 'Usuário Teste',
-        usu_email: 'teste@exemplo.com',
-        usu_cpf: '12345678901', // CPF de teste
-        usu_data_nascimento: formatDate(new Date(1990, 0, 1)),
-        usu_login: 'teste',
-        usu_senha: await bcrypt.hash('123456', 10),
-        usu_endereco: {
-          cep: '00000000',
-          logradouro: 'Rua Teste',
-          numero: '123',
-          complemento: '',
-          bairro: 'Centro',
-          cidade: cidadePadrao.cid_nome,
-          estado: cidadePadrao.cid_estado,
+    // Inserir categorias
+    const categoriasInseridas = await db
+      .insert(categorias)
+      .values([
+        {
+          cat_nome: "Urgente",
+          cat_descricao: "Categoria para chamados urgentes",
         },
-        cid_id: cidadePadrao.cid_id,
-        usu_tipo: 'municipe',
-        usu_ativo: true,
-      })
-      .returning()
+        {
+          cat_nome: "Normal",
+          cat_descricao: "Categoria para chamados não urgentes",
+        },
+      ])
+      .returning();
+    console.log("Categorias inseridas");
 
-    usuariosInseridos.push(usuarioTeste)
-    
-    for (let i = 0; i < 19; i++) {
-      const dataNascimento = new Date(
-        1980 + Math.floor(Math.random() * 25),
-        Math.floor(Math.random() * 12),
-        Math.floor(Math.random() * 28) + 1
-      )
+    // Inserir usuários (metade com senha criptografada e metade com senha em texto simples)
+    const usuariosInseridos = [];
+    for (let i = 0; i < 20; i++) {
+      const senha =
+        i < 10
+          ? await bcrypt.hash("senha123", 10) // Criptografada para os primeiros 10 usuários
+          : "senha123"; // Senha em texto simples para os últimos 10 usuários
 
       const [usuario] = await db
         .insert(usuarios)
@@ -150,57 +179,95 @@ async function runSeed() {
           usu_nome: `Usuário ${i + 1}`,
           usu_email: `usuario${i + 1}@exemplo.com`.toLowerCase(),
           usu_cpf: generateCPF(),
-          usu_data_nascimento: formatDate(dataNascimento),
+          usu_data_nascimento: formatDate(
+            new Date(
+              1980 + Math.floor(Math.random() * 25),
+              Math.floor(Math.random() * 12),
+              Math.floor(Math.random() * 28) + 1
+            )
+          ),
           usu_login: `user${i + 1}`,
-          usu_senha: await bcrypt.hash('senha123', 10),
+          usu_senha: senha,
           usu_endereco: {
-            cep: '00000000',
-            logradouro: 'Rua Exemplo',
+            cep: "00000000",
+            logradouro: "Rua Exemplo",
             numero: (i + 100).toString(),
-            complemento: '',
-            bairro: 'Centro',
+            complemento: "",
+            bairro: "Centro",
             cidade: cidadePadrao.cid_nome,
             estado: cidadePadrao.cid_estado,
           },
           cid_id: cidadePadrao.cid_id,
-          usu_tipo: 'municipe',
+          usu_tipo: "municipe",
           usu_ativo: true,
         })
-        .returning()
+        .returning();
 
-      usuariosInseridos.push(usuario)
+      usuariosInseridos.push(usuario);
     }
 
-    console.log('Usuários inseridos')
+    console.log("Usuários inseridos");
 
     // Inserir funcionários
+    const funcionariosInseridos = [];
     for (let i = 0; i < 10; i++) {
-      const dataNascimento = new Date(
-        1980 + Math.floor(Math.random() * 20),
-        Math.floor(Math.random() * 12),
-        Math.floor(Math.random() * 28) + 1
-      )
-
-      await db.insert(funcionarios).values({
-        fun_nome: `Funcionário ${i + 1}`,
-        fun_email: `funcionario${i + 1}@prefeitura.com`.toLowerCase(),
-        fun_cpf: generateCPF(),
-        fun_data_nascimento: formatDate(dataNascimento),
-        fun_login: `func${i + 1}`,
-        fun_senha: await bcrypt.hash('senha123', 10),
-        dep_id: departamentosInseridos[i % departamentosInseridos.length].dep_id,
-      })
+      const [funcionario] = await db
+        .insert(funcionarios)
+        .values({
+          fun_nome: `Funcionário ${i + 1}`,
+          fun_email: `funcionario${i + 1}@prefeitura.com`.toLowerCase(),
+          fun_cpf: generateCPF(),
+          fun_data_nascimento: formatDate(
+            new Date(
+              1980 + Math.floor(Math.random() * 20),
+              Math.floor(Math.random() * 12),
+              Math.floor(Math.random() * 28) + 1
+            )
+          ),
+          fun_login: `func${i + 1}`,
+          fun_senha: await bcrypt.hash("senha123", 10), // Senha criptografada
+          dep_id:
+            departamentosInseridos[i % departamentosInseridos.length].dep_id,
+        })
+        .returning();
+      funcionariosInseridos.push(funcionario);
     }
 
-    console.log('Funcionários inseridos')
+    console.log("Funcionários inseridos");
 
-    // Restante do seed permanece igual...
-    console.log('✅ Seed concluído com sucesso!')
+    // Inserir chamados com motivação aleatória do departamento
+    for (let i = 0; i < 10; i++) {
+      const departamento =
+        departamentosInseridos[i % departamentosInseridos.length];
+
+      // Converter dep_motivo para string[] e pegar um motivo aleatório
+      const motivos = departamento.dep_motivo as string[]; // Forçando para string[]
+      const motivoAleatorio = getRandomMotivo(motivos); // Pega um motivo aleatório
+
+      await db.insert(chamados).values({
+        cha_descricao: `Chamado de teste ${i + 1}`,
+        cha_nome: `Chamado ${i + 1}`,
+        cha_data_fechamento: new Date(2025, 5, 10), // Garantir que seja um objeto Date
+        cha_departamento: departamento.dep_id,
+        cha_responsavel:
+          funcionariosInseridos[i % funcionariosInseridos.length].fun_id,
+        cha_cep: "00000000",
+        cha_numero_endereco: "123",
+        cha_motivo: motivoAleatorio, // Usando motivo aleatório
+        cha_prioridade: "Alta",
+        usu_id: usuariosInseridos[i % usuariosInseridos.length].usu_id,
+        cat_id: categoriasInseridas[i % categoriasInseridas.length].cat_id,
+      });
+    }
+
+    console.log("Chamados inseridos");
+
+    console.log("✅ Seed concluído com sucesso!");
   } catch (error) {
-    console.error('❌ Erro ao executar seed:', error)
+    console.error("❌ Erro ao executar seed:", error);
   } finally {
-    process.exit(0)
+    process.exit(0);
   }
 }
 
-runSeed()
+runSeed();

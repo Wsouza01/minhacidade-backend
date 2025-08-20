@@ -1,0 +1,1 @@
+ALTER TABLE "chamado" ALTER COLUMN "cha_motivo:" SET DATA TYPE jsonb;

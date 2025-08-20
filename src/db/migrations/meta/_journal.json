@@ -43,6 +43,34 @@
       "when": 1753924378742,
       "tag": "0005_polite_sunspot",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1755133124637,
+      "tag": "0006_fearless_tattoo",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1755643960299,
+      "tag": "0007_certain_wraith",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1755644847078,
+      "tag": "0008_loud_banshee",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1755645951486,
+      "tag": "0009_funny_sunfire",
+      "breakpoints": true
     }
   ]
 }

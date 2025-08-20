@@ -1,0 +1,1 @@
+ALTER TABLE "chamado" RENAME COLUMN "cha_titulo" TO "cha_motivo:";
