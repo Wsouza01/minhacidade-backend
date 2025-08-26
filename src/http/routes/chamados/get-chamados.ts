@@ -1,7 +1,10 @@
 // getChamadosRoute.ts
-import { FastifyPluginCallback } from "fastify";
+import fastify from "fastify";
 import { db } from "../../../db/connection.ts";
 import { schema } from "../../../db/schema/index.ts";
+
+// Extrai a constante após importar o pacote
+const { FastifyPluginCallback } = fastify;
 
 export const getChamadosRoute: FastifyPluginCallback = (app) => {
   app.get("/chamados", async (_, reply) => {

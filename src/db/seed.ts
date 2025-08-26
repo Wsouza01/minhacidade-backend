@@ -86,64 +86,64 @@ async function runSeed() {
       .returning();
     console.log("Cidades inseridas");
 
-    // Inserir departamentos
+    // Inserir departamentos com motivos e prioridades
     const departamentosInseridos = await db
       .insert(departamentos)
       .values([
         {
           dep_nome: "Educação",
           dep_descricao: "Secretaria de Educação",
-          dep_motivo: [
-            "Problema na infraestrutura das escolas",
-            "Solicitação de material didático",
-            "Falta de professores",
-            "Reclamação sobre a qualidade da merenda escolar",
-            "Problema com transporte escolar",
-          ],
+          dep_motivo: JSON.stringify({
+            "Problema na infraestrutura das escolas": ["Alta", "Média"],
+            "Solicitação de material didático": ["Baixa"],
+            "Falta de professores": ["Alta", "Média"],
+            "Reclamação sobre a qualidade da merenda escolar": ["Média"],
+            "Problema com transporte escolar": ["Alta"],
+          }),
         },
         {
           dep_nome: "Saúde",
           dep_descricao: "Secretaria de Saúde",
-          dep_motivo: [
-            "Falta de medicamentos nos postos de saúde",
-            "Demora no atendimento médico",
-            "Queixa sobre atendimento de emergência",
-            "Problema no agendamento de consultas",
-            "Falta de profissionais em unidades de saúde",
-          ],
+          dep_motivo: JSON.stringify({
+            "Falta de medicamentos nos postos de saúde": ["Alta"],
+            "Demora no atendimento médico": ["Média", "Alta"],
+            "Queixa sobre atendimento de emergência": ["Alta"],
+            "Problema no agendamento de consultas": ["Média"],
+            "Falta de profissionais em unidades de saúde": ["Alta", "Média"],
+          }),
         },
         {
           dep_nome: "Infraestrutura",
           dep_descricao: "Secretaria de Obras e Urbanismo",
-          dep_motivo: [
-            "Buraco na rua que precisa de reparo",
-            "Problema com a iluminação pública",
-            "Solicitação de pavimentação",
-            "Alagamento em via pública",
-            "Queixa sobre calçamento irregular",
-          ],
+          dep_motivo: JSON.stringify({
+            "Buraco na rua que precisa de reparo": ["Alta", "Média"],
+            "Problema com a iluminação pública": ["Média"],
+            "Solicitação de pavimentação": ["Alta"],
+            "Alagamento em via pública": ["Alta"],
+            "Queixa sobre calçamento irregular": ["Média"],
+          }),
         },
         {
           dep_nome: "Segurança",
           dep_descricao: "Secretaria de Segurança",
-          dep_motivo: [
-            "Aumento da criminalidade na área",
-            "Solicitação de ronda policial",
-            "Denúncia de tráfico de drogas",
-            "Queixa sobre falta de segurança em praças públicas",
-            "Problema com sinalização de trânsito",
-          ],
+          dep_motivo: JSON.stringify({
+            "Aumento da criminalidade na área": ["Alta"],
+            "Solicitação de ronda policial": ["Média"],
+            "Denúncia de tráfico de drogas": ["Alta"],
+            "Queixa sobre falta de segurança em praças públicas": ["Média"],
+            "Problema com sinalização de trânsito": ["Média"],
+          }),
         },
         {
           dep_nome: "Meio Ambiente",
           dep_descricao: "Secretaria de Meio Ambiente",
-          dep_motivo: [
-            "Denúncia de poluição do ar",
-            "Solicitação de limpeza de áreas verdes",
-            "Queixa sobre desmatamento ilegal",
-            "Problema com o descarte inadequado de lixo",
-            "Reclamação sobre animais soltos nas ruas",
-          ],
+          dep_motivo: JSON.stringify({
+            "Denúncia de poluição do ar": ["Alta", "Média"],
+            "Solicitação de limpeza de áreas verdes": ["Baixa", "Média"],
+            "Queixa sobre desmatamento ilegal": ["Alta"],
+            "Problema com o descarte inadequado de lixo": ["Alta"],
+            "Reclamação sobre animais soltos nas ruas": ["Baixa"],
+          }),
         },
       ])
       .returning();
@@ -241,8 +241,9 @@ async function runSeed() {
         departamentosInseridos[i % departamentosInseridos.length];
 
       // Converter dep_motivo para string[] e pegar um motivo aleatório
-      const motivos = departamento.dep_motivo as string[]; // Forçando para string[]
-      const motivoAleatorio = getRandomMotivo(motivos); // Pega um motivo aleatório
+      const motivos = JSON.parse(departamento.dep_motivo); // Agora dep_motivo é JSON e precisa ser parseado
+      const motivoAleatorio = getRandomMotivo(Object.keys(motivos)); // Pega um motivo aleatório
+      const prioridadeAleatoria = getRandomMotivo(motivos[motivoAleatorio]); // Pega uma prioridade aleatória
 
       await db.insert(chamados).values({
         cha_descricao: `Chamado de teste ${i + 1}`,
@@ -254,7 +255,7 @@ async function runSeed() {
         cha_cep: "00000000",
         cha_numero_endereco: "123",
         cha_motivo: motivoAleatorio, // Usando motivo aleatório
-        cha_prioridade: "Alta",
+        cha_prioridade: prioridadeAleatoria, // Usando prioridade aleatória
         usu_id: usuariosInseridos[i % usuariosInseridos.length].usu_id,
         cat_id: categoriasInseridas[i % categoriasInseridas.length].cat_id,
       });
