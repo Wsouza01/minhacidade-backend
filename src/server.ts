@@ -22,6 +22,7 @@ import { postFuncionariosRoute } from './http/routes/funcionarios/post-funcionar
 import { loginRoute } from './http/routes/login/login.ts'
 import { getUsersRoute } from './http/routes/users/get-users.ts'
 import { postUsersRoute } from './http/routes/users/post-users.ts'
+import { getStatsRoute } from './http/routes/chamados/get-stats-route.ts'
 
 const app = fastify().withTypeProvider<ZodTypeProvider>()
 
@@ -46,6 +47,7 @@ app.register(postEtapasRoute)
 app.register(getDepartamentosRoute)
 app.register(postDepartamentosRoute)
 app.register(getChamadosRoute)
+app.register(getStatsRoute)
 app.register(postChamadosRoute)
 app.register(getCategoriasRoute)
 app.register(postCategoriasRoute)
