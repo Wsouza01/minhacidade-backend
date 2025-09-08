@@ -5,54 +5,23 @@ import { db } from '../../../db/connection.ts'
 import { cidades } from '../../../db/schema/cidades.ts'
 
 export const cidadesRoute: FastifyPluginCallback = (app) => {
-  // Listar todas as cidades (com filtros)
+  // Lista de cidades (público, com filtros)
   app.get(
     '/cidades',
     {
       schema: {
         querystring: z.object({
-          ativo: z.string().optional(),
-          estado: z.string().optional(),
+          ativo: z.string().optional(), // "true" | "false"
+          estado: z.string().length(2).optional(),
         }),
-      },
-    },
-    async (request, reply) => {
-      const { ativo, estado } = request.query
-
-      const query = db
-        .select({
-          cid_id: cidades.cid_id,
-          cid_nome: cidades.cid_nome,
-          cid_estado: cidades.cid_estado,
-          cid_ativo: cidades.cid_ativo,
-          cid_padrao: cidades.cid_padrao,
-        })
-        .from(cidades)
-
-      if (ativo !== undefined) {
-        query.where(eq(cidades.cid_ativo, ativo === 'true'))
-      }
-
-      if (estado) {
-        query.where(eq(cidades.cid_estado, estado))
-      }
-
-      const result = await query
-      return reply.send(result)
-    }
-  )
-
-  // Listar cidades permitidas (apenas ativas)
-  app.get(
-    '/cidades/permitidas',
-    {
-      schema: {
         response: {
           200: z.array(
             z.object({
-              cid_id: z.string().uuid(),
-              cid_nome: z.string(),
-              cid_estado: z.string().length(2),
+              id: z.string().uuid(),
+              nome: z.string(),
+              estado: z.string().length(2),
+              ativo: z.boolean(),
+              padrao: z.boolean(),
             })
           ),
         },
@@ -60,11 +29,64 @@ export const cidadesRoute: FastifyPluginCallback = (app) => {
     },
     async (request, reply) => {
       try {
+        const { ativo, estado } = request.query
+
+        // condições dinâmicas
+        const conditions = []
+        if (ativo !== undefined) {
+          conditions.push(eq(cidades.cid_ativo, ativo === 'true'))
+        }
+        if (estado) {
+          conditions.push(eq(cidades.cid_estado, estado))
+        }
+
         const result = await db
           .select({
-            cid_id: cidades.cid_id,
-            cid_nome: cidades.cid_nome,
-            cid_estado: cidades.cid_estado,
+            id: cidades.cid_id,
+            nome: cidades.cid_nome,
+            estado: cidades.cid_estado,
+            ativo: cidades.cid_ativo,
+            padrao: cidades.cid_padrao,
+          })
+          .from(cidades)
+          .where(conditions.length > 0 ? and(...conditions) : undefined)
+          .orderBy(cidades.cid_nome)
+
+        return reply.send(result)
+      } catch (error) {
+        console.error('Erro ao buscar cidades:', error)
+        return reply.status(500).send({
+          message: 'Erro ao buscar cidades',
+          error: error instanceof Error ? error.message : String(error),
+          code: 'CITIES_FETCH_ERROR',
+        })
+      }
+    }
+  )
+
+  // Lista somente cidades ativas (permitidas)
+  app.get(
+    '/cidades/permitidas',
+    {
+      schema: {
+        response: {
+          200: z.array(
+            z.object({
+              id: z.string().uuid(),
+              nome: z.string(),
+              estado: z.string().length(2),
+            })
+          ),
+        },
+      },
+    },
+    async (_, reply) => {
+      try {
+        const result = await db
+          .select({
+            id: cidades.cid_id,
+            nome: cidades.cid_nome,
+            estado: cidades.cid_estado,
           })
           .from(cidades)
           .where(eq(cidades.cid_ativo, true))
@@ -75,14 +97,14 @@ export const cidadesRoute: FastifyPluginCallback = (app) => {
         console.error('Erro ao buscar cidades permitidas:', error)
         return reply.status(500).send({
           message: 'Erro ao buscar cidades permitidas',
-          error: error.message,
+          error: error instanceof Error ? error.message : String(error),
           code: 'CITIES_FETCH_ERROR',
         })
       }
     }
   )
 
-  // Adicionar nova cidade (apenas admin)
+  // Adicionar cidade
   app.post(
     '/cidades',
     {
@@ -99,12 +121,8 @@ export const cidadesRoute: FastifyPluginCallback = (app) => {
       const { nome, estado, padrao, ativo } = request.body
 
       try {
-        // Se for cidade padrão, remove o padrão das outras
         if (padrao) {
-          await db
-            .update(cidades)
-            .set({ cid_padrao: false })
-            .where(eq(cidades.cid_padrao, true))
+          await db.update(cidades).set({ cid_padrao: false }).where(eq(cidades.cid_padrao, true))
         }
 
         const [novaCidade] = await db
@@ -112,7 +130,7 @@ export const cidadesRoute: FastifyPluginCallback = (app) => {
           .values({
             cid_nome: nome,
             cid_estado: estado,
-            cid_padrao: padrao,
+            cid_padrao: padrao ?? false,
             cid_ativo: ativo,
           })
           .returning()
@@ -122,21 +140,19 @@ export const cidadesRoute: FastifyPluginCallback = (app) => {
         console.error('Erro ao adicionar cidade:', error)
         return reply.status(400).send({
           message: 'Erro ao adicionar cidade',
-          error: error.message,
+          error: error instanceof Error ? error.message : String(error),
           code: 'CITY_CREATION_ERROR',
         })
       }
     }
   )
 
-  // Atualizar cidade (apenas admin)
+  // Atualizar cidade
   app.put(
     '/cidades/:id',
     {
       schema: {
-        params: z.object({
-          id: z.string().uuid(),
-        }),
+        params: z.object({ id: z.string().uuid() }),
         body: z.object({
           nome: z.string().min(3).optional(),
           estado: z.string().length(2).optional(),
@@ -151,10 +167,7 @@ export const cidadesRoute: FastifyPluginCallback = (app) => {
 
       try {
         if (padrao) {
-          await db
-            .update(cidades)
-            .set({ cid_padrao: false })
-            .where(eq(cidades.cid_padrao, true))
+          await db.update(cidades).set({ cid_padrao: false }).where(eq(cidades.cid_padrao, true))
         }
 
         const [cidadeAtualizada] = await db
@@ -173,26 +186,21 @@ export const cidadesRoute: FastifyPluginCallback = (app) => {
         console.error('Erro ao atualizar cidade:', error)
         return reply.status(400).send({
           message: 'Erro ao atualizar cidade',
-          error: error.message,
+          error: error instanceof Error ? error.message : String(error),
           code: 'CITY_UPDATE_ERROR',
         })
       }
     }
   )
 
-  // Remover cidade (apenas admin)
+  // Remover cidade
   app.delete(
     '/cidades/:id',
     {
-      schema: {
-        params: z.object({
-          id: z.string().uuid(),
-        }),
-      },
+      schema: { params: z.object({ id: z.string().uuid() }) },
     },
     async (request, reply) => {
       const { id } = request.params
-
       try {
         await db.delete(cidades).where(eq(cidades.cid_id, id))
         return reply.send({ message: 'Cidade removida com sucesso' })
@@ -200,7 +208,7 @@ export const cidadesRoute: FastifyPluginCallback = (app) => {
         console.error('Erro ao remover cidade:', error)
         return reply.status(400).send({
           message: 'Erro ao remover cidade',
-          error: error.message,
+          error: error instanceof Error ? error.message : String(error),
           code: 'CITY_DELETION_ERROR',
         })
       }

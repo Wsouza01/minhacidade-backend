@@ -1,8 +1,8 @@
 import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
-import { categorias } from "./categorias";
-import { departamentos } from "./departamentos";
-import { funcionarios } from "./funcionarios";
-import { usuarios } from "./usuarios";
+import { categorias } from "./categorias.ts";
+import { departamentos } from "./departamentos.ts";
+import { funcionarios } from "./funcionarios.ts";
+import { usuarios } from "./usuarios.ts";
 
 export const chamados = pgTable("chamado", {
   cha_id: uuid("cha_id").primaryKey().defaultRandom(),

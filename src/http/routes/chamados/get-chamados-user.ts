@@ -1,7 +1,7 @@
 // src/routes/getChamadosUserRoute.ts
 import fastify from "fastify";
-import { db } from "../../db/connection";
-import { schema } from "../../db/schema";
+import { db } from "../../../db/connection.ts";
+import { schema } from "../../../db/schema/index.ts";
 
 const { FastifyPluginCallback } = fastify;
 

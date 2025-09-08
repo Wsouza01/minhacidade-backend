@@ -1,12 +1,11 @@
-// Atualize este import para incluir a tabela de cidades
-import { eq } from 'drizzle-orm'
-import type { FastifyPluginCallback } from 'fastify'
-import { db } from '../../../db/connection.ts'
-import { cidades } from '../../../db/schema/cidades.ts' // <-- novo import
-import { usuarios } from '../../../db/schema/usuarios.ts'
+import { eq } from 'drizzle-orm';
+import type { FastifyPluginCallback } from 'fastify';
+import { db } from '../../../db/connection.ts';
+import { cidades } from '../../../db/schema/cidades.ts';
+import { usuarios } from '../../../db/schema/usuarios.ts';
 
 export const getUsersRoute: FastifyPluginCallback = (app) => {
-  app.get('/users', async (request, reply) => {
+  app.get('/users', async (_request, reply) => {
     try {
       const users = await db
         .select({
@@ -22,21 +21,21 @@ export const getUsersRoute: FastifyPluginCallback = (app) => {
           bloqueado_ate: usuarios.usu_bloqueado_ate,
           endereco: usuarios.usu_endereco,
           cid_id: usuarios.cid_id,
-          cidade_nome: cidades.cid_nome, // <- nome da cidade
+          cidade_nome: cidades.cid_nome,
           cidade_estado: cidades.cid_estado,
         })
         .from(usuarios)
         .leftJoin(cidades, eq(usuarios.cid_id, cidades.cid_id))
-        .where(eq(usuarios.usu_ativo, true))
+        .where(eq(usuarios.usu_ativo, true));
 
-      return reply.send(users)
+      return reply.send(users);
     } catch (error) {
-      console.error('Erro ao buscar usuários:', error)
+      console.error('Erro ao buscar usuários:', error);
       return reply.status(500).send({
         message: 'Erro interno no servidor',
         error: error instanceof Error ? error.message : 'Erro desconhecido',
         code: 'INTERNAL_SERVER_ERROR',
-      })
+      });
     }
-  })
-}
+  });
+};

@@ -4,8 +4,3 @@
 
 #Health Check
 GET {{baseURL}}/health
-
-###
-
-#Get rooms
-GET {{baseURL}}/rooms
