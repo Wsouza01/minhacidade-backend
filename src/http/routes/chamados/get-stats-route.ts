@@ -1,6 +1,6 @@
 // src/routes/getStatsRoute.ts
-import fastify from "fastify";
 import { and, isNotNull, isNull } from "drizzle-orm";
+import fastify from "fastify";
 import { db } from "../../../db/connection.ts";
 import { chamados } from "../../../db/schema/chamados.ts";
 
