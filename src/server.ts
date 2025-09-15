@@ -10,10 +10,15 @@ import { getAnexosRoute } from "./http/routes/anexos/get-anexos.ts";
 import { postAnexosRoute } from "./http/routes/anexos/post-anexos.ts";
 import { getCategoriasRoute } from "./http/routes/categorias/get-categorias.ts";
 import { postCategoriasRoute } from "./http/routes/categorias/post-categorias.ts";
+import { getCategoriasByDepartamentoRoute } from "./http/routes/categorias/get-categorias-by-departamento.ts";
+import { getPrioridadesByDepartamentoRoute } from "./http/routes/categorias/get-prioridades-by-departamento.ts";
 import { getChamadosRoute } from "./http/routes/chamados/get-chamados.ts";
 import { getChamadosUserRoute } from "./http/routes/chamados/get-chamados-user.ts";
 import { getStatsRoute } from "./http/routes/chamados/get-stats-route.ts";
+import { getDistributionRoute } from "./http/routes/chamados/get-distribution-route.ts";
+import { getTrendRoute } from "./http/routes/chamados/get-trend-route.ts";
 import { postChamadosRoute } from "./http/routes/chamados/post-chamados.ts";
+import { createTestChamadoRoute } from "./http/routes/chamados/create-test-chamado.ts";
 import { getDepartamentosRoute } from "./http/routes/departamento/get-departamentos.ts";
 import { postDepartamentosRoute } from "./http/routes/departamento/post-departamentos.ts";
 import { getEtapasRoute } from "./http/routes/etapas/get-etapas.ts";
@@ -23,8 +28,11 @@ import { postFuncionariosRoute } from "./http/routes/funcionarios/post-funcionar
 import { loginRoute } from "./http/routes/login/login.ts";
 import { checkCpfRoute } from "./http/routes/users/check-cpf.ts";
 import { getUsersRoute } from "./http/routes/users/get-users.ts";
+import { getUserByCpfRoute } from "./http/routes/users/get-user-by-cpf.ts";
+import { createTestUserRoute } from "./http/routes/users/create-test-user.ts";
 import { postUsersRoute } from "./http/routes/users/post-users.ts";
 import { cidadesRoute } from "./http/routes/cidades/cidades-route.ts";
+import { getNotificationsUserRoute } from "./http/routes/notificacoes/get-notifications-user.ts";
 
 const app = fastify().withTypeProvider<ZodTypeProvider>();
 
@@ -51,12 +59,20 @@ app.register(getDepartamentosRoute);
 app.register(postDepartamentosRoute);
 app.register(getChamadosRoute);
 app.register(getStatsRoute);
+app.register(getDistributionRoute);
+app.register(getTrendRoute);
 app.register(getChamadosUserRoute);
 app.register(postChamadosRoute);
+app.register(createTestChamadoRoute);
 app.register(getCategoriasRoute);
 app.register(postCategoriasRoute);
+app.register(getCategoriasByDepartamentoRoute);
+app.register(getPrioridadesByDepartamentoRoute);
 app.register(getAnexosRoute);
 app.register(postAnexosRoute);
 app.register(getUsersRoute);
+app.register(getUserByCpfRoute);
+app.register(createTestUserRoute);
+app.register(getNotificationsUserRoute);
 
 app.listen({ port: env.PORT });
