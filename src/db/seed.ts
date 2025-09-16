@@ -86,64 +86,29 @@ async function runSeed() {
       .returning();
     console.log("Cidades inseridas");
 
-    // Inserir departamentos com motivos e prioridades
+    // Inserir departamentos simplificados
     const departamentosInseridos = await db
       .insert(departamentos)
       .values([
         {
           dep_nome: "Educação",
           dep_descricao: "Secretaria de Educação",
-          dep_motivo: JSON.stringify({
-            "Problema na infraestrutura das escolas": ["Alta", "Média"],
-            "Solicitação de material didático": ["Baixa"],
-            "Falta de professores": ["Alta", "Média"],
-            "Reclamação sobre a qualidade da merenda escolar": ["Média"],
-            "Problema com transporte escolar": ["Alta"],
-          }),
         },
         {
           dep_nome: "Saúde",
           dep_descricao: "Secretaria de Saúde",
-          dep_motivo: JSON.stringify({
-            "Falta de medicamentos nos postos de saúde": ["Alta"],
-            "Demora no atendimento médico": ["Média", "Alta"],
-            "Queixa sobre atendimento de emergência": ["Alta"],
-            "Problema no agendamento de consultas": ["Média"],
-            "Falta de profissionais em unidades de saúde": ["Alta", "Média"],
-          }),
         },
         {
           dep_nome: "Infraestrutura",
           dep_descricao: "Secretaria de Obras e Urbanismo",
-          dep_motivo: JSON.stringify({
-            "Buraco na rua que precisa de reparo": ["Alta", "Média"],
-            "Problema com a iluminação pública": ["Média"],
-            "Solicitação de pavimentação": ["Alta"],
-            "Alagamento em via pública": ["Alta"],
-            "Queixa sobre calçamento irregular": ["Média"],
-          }),
         },
         {
           dep_nome: "Segurança",
           dep_descricao: "Secretaria de Segurança",
-          dep_motivo: JSON.stringify({
-            "Aumento da criminalidade na área": ["Alta"],
-            "Solicitação de ronda policial": ["Média"],
-            "Denúncia de tráfico de drogas": ["Alta"],
-            "Queixa sobre falta de segurança em praças públicas": ["Média"],
-            "Problema com sinalização de trânsito": ["Média"],
-          }),
         },
         {
           dep_nome: "Meio Ambiente",
           dep_descricao: "Secretaria de Meio Ambiente",
-          dep_motivo: JSON.stringify({
-            "Denúncia de poluição do ar": ["Alta", "Média"],
-            "Solicitação de limpeza de áreas verdes": ["Baixa", "Média"],
-            "Queixa sobre desmatamento ilegal": ["Alta"],
-            "Problema com o descarte inadequado de lixo": ["Alta"],
-            "Reclamação sobre animais soltos nas ruas": ["Baixa"],
-          }),
         },
       ])
       .returning();
@@ -165,13 +130,38 @@ async function runSeed() {
       .returning();
     console.log("Categorias inseridas");
 
-    // Inserir usuários (metade com senha criptografada e metade com senha em texto simples)
-    const usuariosInseridos = [];
-    for (let i = 0; i < 20; i++) {
+    // Inserir usuário específico (Silas)
+    const [usuarioSilas] = await db
+      .insert(usuarios)
+      .values({
+        usu_nome: "Silas Martins",
+        usu_email: "silas@email.com",
+        usu_cpf: "33640692047",
+        usu_data_nascimento: "1990-05-15",
+        usu_login: "silas",
+        usu_senha: await bcrypt.hash("Je@12345", 10),
+        usu_endereco: {
+          cep: "06543000",
+          logradouro: "Rua Principal",
+          numero: "123",
+          complemento: "Apto 45",
+          bairro: "Centro",
+          cidade: cidadePadrao.cid_nome,
+          estado: cidadePadrao.cid_estado,
+        },
+        cid_id: cidadePadrao.cid_id,
+        usu_tipo: "municipe",
+        usu_ativo: true,
+      })
+      .returning();
+
+    // Inserir usuários adicionais
+    const usuariosInseridos = [usuarioSilas];
+    for (let i = 0; i < 19; i++) {
       const senha =
         i < 10
-          ? await bcrypt.hash("senha123", 10) // Criptografada para os primeiros 10 usuários
-          : "senha123"; // Senha em texto simples para os últimos 10 usuários
+          ? await bcrypt.hash("senha123", 10)
+          : "senha123";
 
       const [usuario] = await db
         .insert(usuarios)
@@ -235,33 +225,106 @@ async function runSeed() {
 
     console.log("Funcionários inseridos");
 
-    // Inserir chamados com motivação aleatória do departamento
-    for (let i = 0; i < 10; i++) {
-      const departamento =
-        departamentosInseridos[i % departamentosInseridos.length];
+    // Inserir chamados
+    const chamadosInseridos = [];
+    const prioridades = ["Alta", "Média", "Baixa"];
+    const titulos = [
+      "Solicitação de reparo",
+      "Reclamação de serviço",
+      "Pedido de informação",
+      "Denúncia",
+      "Sugestão de melhoria"
+    ];
 
-      // Converter dep_motivo para string[] e pegar um motivo aleatório
-      const motivos = JSON.parse(departamento.dep_motivo); // Agora dep_motivo é JSON e precisa ser parseado
-      const motivoAleatorio = getRandomMotivo(Object.keys(motivos)); // Pega um motivo aleatório
-      const prioridadeAleatoria = getRandomMotivo(motivos[motivoAleatorio]); // Pega uma prioridade aleatória
+    // Criar 15 chamados para o usuário Silas
+    for (let i = 0; i < 15; i++) {
+      const departamento = departamentosInseridos[i % departamentosInseridos.length];
 
-      await db.insert(chamados).values({
-        cha_descricao: `Chamado de teste ${i + 1}`,
-        cha_nome: `Chamado ${i + 1}`,
-        cha_data_fechamento: new Date(2025, 5, 10), // Garantir que seja um objeto Date
+      const dataAbertura = new Date();
+      dataAbertura.setDate(dataAbertura.getDate() - Math.floor(Math.random() * 30));
+
+      const dataFechamento = i % 4 === 0 ? new Date(dataAbertura.getTime() + Math.random() * 7 * 24 * 60 * 60 * 1000) : null;
+
+      const [chamado] = await db.insert(chamados).values({
+        cha_descricao: `Chamado ${i + 1} do usuário Silas - ${titulos[i % titulos.length]}`,
+        cha_nome: `Chamado ${i + 1} - ${departamento.dep_nome}`,
+        cha_data_abertura: dataAbertura,
+        cha_data_fechamento: dataFechamento,
         cha_departamento: departamento.dep_id,
-        cha_responsavel:
-          funcionariosInseridos[i % funcionariosInseridos.length].fun_id,
-        cha_cep: "00000000",
-        cha_numero_endereco: "123",
-        cha_motivo: motivoAleatorio, // Usando motivo aleatório
-        cha_prioridade: prioridadeAleatoria, // Usando prioridade aleatória
-        usu_id: usuariosInseridos[i % usuariosInseridos.length].usu_id,
+        cha_responsavel: i % 2 === 0 ? funcionariosInseridos[i % funcionariosInseridos.length].fun_id : null,
+        cha_cep: "06543000",
+        cha_numero_endereco: String(100 + i),
+        cha_titulo: titulos[i % titulos.length],
+        cha_prioridade: prioridades[i % prioridades.length],
+        usu_id: usuarioSilas.usu_id,
         cat_id: categoriasInseridas[i % categoriasInseridas.length].cat_id,
-      });
+      }).returning();
+
+      chamadosInseridos.push(chamado);
+    }
+
+    // Criar chamados para outros usuários
+    for (let i = 0; i < 35; i++) {
+      const departamento = departamentosInseridos[i % departamentosInseridos.length];
+      const usuario = usuariosInseridos[1 + (i % (usuariosInseridos.length - 1))]; // Skip Silas
+
+      const dataAbertura = new Date();
+      dataAbertura.setDate(dataAbertura.getDate() - Math.floor(Math.random() * 60));
+
+      const dataFechamento = i % 3 === 0 ? new Date(dataAbertura.getTime() + Math.random() * 10 * 24 * 60 * 60 * 1000) : null;
+
+      const [chamado] = await db.insert(chamados).values({
+        cha_descricao: `Chamado ${i + 16} - ${titulos[i % titulos.length]}`,
+        cha_nome: `Chamado ${i + 16} - ${departamento.dep_nome}`,
+        cha_data_abertura: dataAbertura,
+        cha_data_fechamento: dataFechamento,
+        cha_departamento: departamento.dep_id,
+        cha_responsavel: i % 2 === 0 ? funcionariosInseridos[i % funcionariosInseridos.length].fun_id : null,
+        cha_cep: "06543000",
+        cha_numero_endereco: String(200 + i),
+        cha_titulo: titulos[i % titulos.length],
+        cha_prioridade: prioridades[i % prioridades.length],
+        usu_id: usuario.usu_id,
+        cat_id: categoriasInseridas[i % categoriasInseridas.length].cat_id,
+      }).returning();
+
+      chamadosInseridos.push(chamado);
     }
 
     console.log("Chamados inseridos");
+
+    // Inserir notificações para o usuário Silas
+    const tiposNotificacao = ["info", "success", "warning", "error"];
+    const titulosNotificacao = [
+      "Chamado atualizado",
+      "Novo chamado criado",
+      "Chamado finalizado",
+      "Atenção necessária",
+      "Prazo se aproxima"
+    ];
+    const mensagensNotificacao = [
+      "Seu chamado foi atualizado pelo responsável",
+      "Um novo chamado foi criado com sucesso",
+      "Seu chamado foi finalizado",
+      "Seu chamado necessita de informações adicionais",
+      "O prazo do seu chamado está se aproximando"
+    ];
+
+    for (let i = 0; i < 10; i++) {
+      const dataNotificacao = new Date();
+      dataNotificacao.setDate(dataNotificacao.getDate() - Math.floor(Math.random() * 15));
+
+      await db.insert(notificacoes).values({
+        not_titulo: titulosNotificacao[i % titulosNotificacao.length],
+        not_mensagem: mensagensNotificacao[i % mensagensNotificacao.length],
+        not_data_criacao: dataNotificacao,
+        not_lida: i % 3 === 0, // 1/3 das notificações já lidas
+        not_tipo: tiposNotificacao[i % tiposNotificacao.length],
+        usu_id: usuarioSilas.usu_id,
+      });
+    }
+
+    console.log("Notificações inseridas");
 
     console.log("✅ Seed concluído com sucesso!");
   } catch (error) {
