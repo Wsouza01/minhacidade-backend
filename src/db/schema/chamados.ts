@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, uuid, jsonb } from "drizzle-orm/pg-core";
 import { categorias } from "./categorias.ts";
 import { departamentos } from "./departamentos.ts";
 import { funcionarios } from "./funcionarios.ts";
@@ -20,6 +20,7 @@ export const chamados = pgTable("chamado", {
   cha_data_abertura: timestamp("cha_data_abertura").defaultNow().notNull(),
   cha_titulo: text("cha_titulo"),
   cha_prioridade: text("cha_prioridade"),
+  cha_motivo: jsonb("cha_motivo"), // ✅ corrige aqui
   usu_id: uuid("usu_id").references(() => usuarios.usu_id),
   cat_id: uuid("cat_id").references(() => categorias.cat_id),
 });

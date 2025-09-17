@@ -79,4 +79,4 @@ app.register(getUserByCpfRoute);
 app.register(createTestUserRoute);
 app.register(getNotificationsUserRoute);
 
-app.listen({ port: env.PORT });
+app.listen({ port: env.PORT, host: "0.0.0.0" });
