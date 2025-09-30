@@ -2,7 +2,10 @@
 import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
 import { db } from "../../../db/connection.ts";
 import { schema } from "../../../db/schema/index.ts";
+import { notificacoes } from "../../../db/schema/notificacoes.ts";
+import { chamados } from "../../../db/schema/chamados.ts";
 import { z } from "zod";
+import { eq } from "drizzle-orm";
 
 export const postEtapasRoute: FastifyPluginCallbackZod = (app) => {
   app.post(
@@ -29,6 +32,30 @@ export const postEtapasRoute: FastifyPluginCallbackZod = (app) => {
         eta_data_fim: data_fim,       // String ISO
         cha_id: chamado_id,
       });
+
+      // Buscar o chamado para obter o usuário
+      try {
+        const chamado = await db
+          .select()
+          .from(chamados)
+          .where(eq(chamados.cha_id, chamado_id))
+          .limit(1);
+
+        if (chamado.length > 0 && chamado[0].usu_id) {
+          // Criar notificação para o usuário
+          await db.insert(notificacoes).values({
+            not_titulo: "Atualização no seu chamado",
+            not_mensagem: `Nova etapa adicionada: "${nome}". ${descricao}`,
+            not_tipo: "info",
+            not_lida: false,
+            cha_id: chamado_id,
+            usu_id: chamado[0].usu_id,
+          });
+          console.log('✅ Notificação criada para atualização de etapa');
+        }
+      } catch (notifError) {
+        console.error('❌ Erro ao criar notificação de etapa:', notifError);
+      }
 
       reply.status(201).send({ message: "Etapa criada" });
     }

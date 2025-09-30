@@ -2,7 +2,7 @@ import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
 import { db } from "../../../db/connection.ts";
 import { chamados } from "../../../db/schema/chamados.ts";
 import { z } from "zod";
-import { eq, count, isNotNull, isNull } from "drizzle-orm";
+import { eq, count, isNotNull, isNull, and } from "drizzle-orm";
 
 export const getDepartamentoStatsRoute: FastifyPluginCallbackZod = (app) => {
   app.get(
@@ -33,8 +33,10 @@ export const getDepartamentoStatsRoute: FastifyPluginCallbackZod = (app) => {
           })
           .from(chamados)
           .where(
-            eq(chamados.cha_departamento, id),
-            isNotNull(chamados.cha_data_fechamento)
+            and(
+              eq(chamados.cha_departamento, id),
+              isNotNull(chamados.cha_data_fechamento)
+            )
           );
 
         // Buscar chamados em andamento (com responsável mas sem data de fechamento)
@@ -44,9 +46,11 @@ export const getDepartamentoStatsRoute: FastifyPluginCallbackZod = (app) => {
           })
           .from(chamados)
           .where(
-            eq(chamados.cha_departamento, id),
-            isNotNull(chamados.cha_responsavel),
-            isNull(chamados.cha_data_fechamento)
+            and(
+              eq(chamados.cha_departamento, id),
+              isNotNull(chamados.cha_responsavel),
+              isNull(chamados.cha_data_fechamento)
+            )
           );
 
         // Buscar chamados pendentes (sem responsável e sem data de fechamento)
@@ -56,9 +60,11 @@ export const getDepartamentoStatsRoute: FastifyPluginCallbackZod = (app) => {
           })
           .from(chamados)
           .where(
-            eq(chamados.cha_departamento, id),
-            isNull(chamados.cha_responsavel),
-            isNull(chamados.cha_data_fechamento)
+            and(
+              eq(chamados.cha_departamento, id),
+              isNull(chamados.cha_responsavel),
+              isNull(chamados.cha_data_fechamento)
+            )
           );
 
         const result = {

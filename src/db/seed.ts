@@ -198,9 +198,24 @@ async function runSeed() {
 
     console.log("Usuários inseridos");
 
-    // Inserir funcionários
-    const funcionariosInseridos = [];
-    for (let i = 0; i < 10; i++) {
+    // Inserir funcionário específico (João Silva - Servidor)
+    // CPF: 123.456.789-01 | Senha: Servidor@123
+    const [funcionarioJoao] = await db
+      .insert(funcionarios)
+      .values({
+        fun_nome: "João Silva",
+        fun_email: "joao.silva@prefeitura.com",
+        fun_cpf: "12345678901",
+        fun_data_nascimento: "1985-03-20",
+        fun_login: "joao.silva",
+        fun_senha: await bcrypt.hash("Servidor@123", 10),
+        dep_id: departamentosInseridos[0].dep_id, // Departamento de Educação
+      })
+      .returning();
+
+    // Inserir funcionários adicionais
+    const funcionariosInseridos = [funcionarioJoao];
+    for (let i = 0; i < 9; i++) {
       const [funcionario] = await db
         .insert(funcionarios)
         .values({

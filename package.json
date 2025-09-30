@@ -10,20 +10,20 @@
   "devDependencies": {
     "@biomejs/biome": "2.2.4",
     "@types/bcrypt": "^6.0.0",
-    "@types/node": "^24.4.0",
-    "drizzle-kit": "^0.31.4",
+    "@types/node": "^24.6.0",
+    "drizzle-kit": "^0.31.5",
     "drizzle-seed": "^0.3.1",
     "typescript": "^5.9.2",
-    "ultracite": "5.3.4"
+    "ultracite": "5.4.6"
   },
   "dependencies": {
     "@fastify/cors": "^11.1.0",
     "bcrypt": "^6.0.0",
     "drizzle-orm": "^0.44.5",
-    "fastify": "^5.6.0",
+    "fastify": "^5.6.1",
     "fastify-type-provider-zod": "^6.0.0",
     "postgres": "^3.4.7",
-    "zod": "^4.1.8"
+    "zod": "^4.1.11"
   },
-  "packageManager": "pnpm@10.16.1+sha512.0e155aa2629db8672b49e8475da6226aa4bdea85fdcdfdc15350874946d4f3c91faaf64cbdc4a5d1ab8002f473d5c3fcedcd197989cf0390f9badd3c04678706"
+  "packageManager": "pnpm@10.17.1"
 }

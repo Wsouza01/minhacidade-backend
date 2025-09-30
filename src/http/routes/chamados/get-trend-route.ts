@@ -33,13 +33,27 @@ export const getTrendRoute: FastifyPluginCallbackZod = (app) => {
             .groupBy(sql`EXTRACT(HOUR FROM ${chamados.cha_data_abertura})`)
             .orderBy(sql`EXTRACT(HOUR FROM ${chamados.cha_data_abertura})`);
 
-          const labels = Array.from({ length: 24 }, (_, i) => `${i}h`);
-          const values = Array.from({ length: 24 }, (_, hour) => {
-            const found = hoursData.find(d => d.hour === hour);
-            return found ? found.count : 0;
-          });
+          // Se há dados, mostrar apenas o range de horas com atividade
+          if (hoursData.length > 0) {
+            const minHour = Math.max(0, Math.min(...hoursData.map(d => d.hour)) - 1);
+            const maxHour = Math.min(23, Math.max(...hoursData.map(d => d.hour)) + 1);
 
-          trendData = { labels, values };
+            const labels: string[] = [];
+            const values: number[] = [];
+
+            for (let hour = minHour; hour <= maxHour; hour++) {
+              labels.push(`${hour}h`);
+              const found = hoursData.find(d => d.hour === hour);
+              values.push(found ? found.count : 0);
+            }
+
+            trendData = { labels, values };
+          } else {
+            // Se não há dados hoje, mostrar horário comercial vazio
+            const labels = ['8h', '9h', '10h', '11h', '12h', '13h', '14h', '15h', '16h', '17h', '18h'];
+            const values = Array(11).fill(0);
+            trendData = { labels, values };
+          }
 
         } else if (period === "semana") {
           // Buscar chamados dos últimos 7 dias
