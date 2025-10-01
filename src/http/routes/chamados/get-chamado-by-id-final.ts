@@ -38,15 +38,21 @@ export const getChamadoByIdFinalRoute: FastifyPluginCallbackZod = (app) => {
 
         const chamado = chamadoBase[0];
         console.log("✅ Chamado encontrado:", chamado.cha_titulo);
+        console.log("📋 Departamento ID:", chamado.cha_departamento);
+        console.log("👤 Usuário ID:", chamado.usu_id);
 
         // Buscar informações relacionadas de forma segura
         const [departamento, categoria, usuario, anexosList] = await Promise.allSettled([
           // Departamento
-          chamado.cha_departamento ?
-            db.select({ dep_nome: departamentos.dep_nome, dep_telefone: departamentos.dep_telefone })
+          chamado.cha_departamento ? (async () => {
+            console.log('🔍 Buscando departamento com ID:', chamado.cha_departamento);
+            const result = await db.select({ dep_nome: departamentos.dep_nome })
               .from(departamentos)
               .where(eq(departamentos.dep_id, chamado.cha_departamento))
-              .limit(1)
+              .limit(1);
+            console.log('📊 Resultado da busca de departamento:', result);
+            return result;
+          })()
             : Promise.resolve([]),
 
           // Categoria
@@ -58,16 +64,24 @@ export const getChamadoByIdFinalRoute: FastifyPluginCallbackZod = (app) => {
             : Promise.resolve([]),
 
           // Usuário
-          chamado.usu_id ?
-            db.select({
-              usu_nome: usuarios.usu_nome,
-              usu_email: usuarios.usu_email,
-              usu_telefone: usuarios.usu_telefone,
-              usu_cpf: usuarios.usu_cpf
-            })
-              .from(usuarios)
-              .where(eq(usuarios.usu_id, chamado.usu_id))
-              .limit(1)
+          chamado.usu_id ? (async () => {
+            try {
+              console.log('🔍 Buscando usuário com ID:', chamado.usu_id);
+              const result = await db.select({
+                usu_nome: usuarios.usu_nome,
+                usu_email: usuarios.usu_email,
+                usu_cpf: usuarios.usu_cpf
+              })
+                .from(usuarios)
+                .where(eq(usuarios.usu_id, chamado.usu_id))
+                .limit(1);
+              console.log('📊 Resultado da busca de usuário:', result);
+              return result;
+            } catch (err) {
+              console.error('❌ Erro ao buscar usuário:', err);
+              return [];
+            }
+          })()
             : Promise.resolve([]),
 
           // Anexos
@@ -86,18 +100,22 @@ export const getChamadoByIdFinalRoute: FastifyPluginCallbackZod = (app) => {
         const usuData = usuario.status === 'fulfilled' && usuario.value.length > 0 ? usuario.value[0] : null;
         const anexosData = anexosList.status === 'fulfilled' ? anexosList.value : [];
 
+        console.log("🏢 Departamento encontrado:", depData?.dep_nome || 'Nenhum');
+        console.log("👤 Usuário encontrado:", usuData?.usu_nome || 'Nenhum');
+        console.log("📂 Categoria encontrada:", catData?.cat_nome || 'Nenhum');
+
         // Montar resposta final
         const response = {
           ...chamado,
           // Dados do departamento
           departamento_nome: depData?.dep_nome || null,
-          departamento_telefone: depData?.dep_telefone || null,
+          departamento_telefone: null, // Campo não existe no banco ainda
           // Dados da categoria
           categoria_nome: catData?.cat_nome || null,
           // Dados do usuário solicitante
           usuario_nome: usuData?.usu_nome || null,
           usuario_email: usuData?.usu_email || null,
-          usuario_telefone: usuData?.usu_telefone || null,
+          usuario_telefone: null, // Campo não existe no banco ainda
           usuario_cpf: usuData?.usu_cpf || null,
           // Dados do responsável (deixando nulo por enquanto)
           responsavel_nome: null,

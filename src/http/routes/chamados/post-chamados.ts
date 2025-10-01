@@ -62,6 +62,14 @@ export const postChamadosRoute: FastifyPluginCallbackZod = (app) => {
         // Criar nome do chamado baseado no título
         const nome_chamado = body.titulo || `Chamado - ${body.motivo || 'Solicitação'}`;
 
+        // Log dos dados antes de inserir
+        console.log('📝 Dados do chamado a ser criado:', {
+          usuario_id: body.usuario_id || null,
+          anonimo: body.anonimo || false,
+          departamento_id: body.departamento_id,
+          categoria_id: categoria_id,
+        });
+
         const novoChamado = await db
           .insert(chamados)
           .values({
@@ -79,7 +87,12 @@ export const postChamadosRoute: FastifyPluginCallbackZod = (app) => {
           })
           .returning();
 
-        console.log('✅ Chamado criado com sucesso:', novoChamado[0]);
+        console.log('✅ Chamado criado com sucesso:', {
+          cha_id: novoChamado[0].cha_id,
+          cha_titulo: novoChamado[0].cha_titulo,
+          usu_id: novoChamado[0].usu_id,
+          cha_departamento: novoChamado[0].cha_departamento,
+        });
 
         // Criar notificação para o usuário (apenas se não for anônimo)
         if (body.usuario_id) {
