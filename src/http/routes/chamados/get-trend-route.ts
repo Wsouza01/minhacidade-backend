@@ -61,13 +61,15 @@ export const getTrendRoute: FastifyPluginCallbackZod = (app) => {
           weekStart.setDate(now.getDate() - 6);
           weekStart.setHours(0, 0, 0, 0);
 
+          const weekStartStr = weekStart.toISOString();
+
           const daysData = await db
             .select({
               date: sql<string>`DATE(${chamados.cha_data_abertura})`,
               count: sql<number>`count(*)::int`,
             })
             .from(chamados)
-            .where(sql`${chamados.cha_data_abertura} >= ${weekStart}`)
+            .where(sql`${chamados.cha_data_abertura} >= ${weekStartStr}`)
             .groupBy(sql`DATE(${chamados.cha_data_abertura})`)
             .orderBy(sql`DATE(${chamados.cha_data_abertura})`);
 
@@ -93,13 +95,15 @@ export const getTrendRoute: FastifyPluginCallbackZod = (app) => {
           monthStart.setDate(now.getDate() - 29);
           monthStart.setHours(0, 0, 0, 0);
 
+          const monthStartStr = monthStart.toISOString();
+
           const daysData = await db
             .select({
               date: sql<string>`DATE(${chamados.cha_data_abertura})`,
               count: sql<number>`count(*)::int`,
             })
             .from(chamados)
-            .where(sql`${chamados.cha_data_abertura} >= ${monthStart}`)
+            .where(sql`${chamados.cha_data_abertura} >= ${monthStartStr}`)
             .groupBy(sql`DATE(${chamados.cha_data_abertura})`)
             .orderBy(sql`DATE(${chamados.cha_data_abertura})`);
 

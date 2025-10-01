@@ -10,14 +10,15 @@
   "devDependencies": {
     "@biomejs/biome": "2.2.4",
     "@types/bcrypt": "^6.0.0",
-    "@types/node": "^24.6.0",
+    "@types/node": "^24.6.1",
     "drizzle-kit": "^0.31.5",
     "drizzle-seed": "^0.3.1",
-    "typescript": "^5.9.2",
+    "typescript": "^5.9.3",
     "ultracite": "5.4.6"
   },
   "dependencies": {
     "@fastify/cors": "^11.1.0",
+    "@fastify/multipart": "^9.2.1",
     "bcrypt": "^6.0.0",
     "drizzle-orm": "^0.44.5",
     "fastify": "^5.6.1",

@@ -85,10 +85,9 @@ export const postChamadosRoute: FastifyPluginCallbackZod = (app) => {
         if (body.usuario_id) {
           try {
             await db.insert(notificacoes).values({
-              not_titulo: "Chamado criado com sucesso",
-              not_mensagem: `Seu chamado "${body.titulo}" foi registrado e está em análise. Você receberá atualizações sobre o andamento.`,
-              not_tipo: "success",
-              not_lida: false,
+              ntf_canal: "app",
+              ntf_mensagem: `Chamado criado com sucesso! Seu chamado "${body.titulo}" foi registrado e está em análise. Você receberá atualizações sobre o andamento.`,
+              ntf_lida: "false",
               cha_id: novoChamado[0].cha_id,
               usu_id: body.usuario_id,
             });

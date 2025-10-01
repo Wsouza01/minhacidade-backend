@@ -25,15 +25,18 @@ export const getDistributionRoute: FastifyPluginCallbackZod = (app) => {
 
         if (period === "hoje") {
           const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-          dateFilter = sql`${chamados.cha_data_abertura} >= ${today}`;
+          const todayStr = today.toISOString();
+          dateFilter = sql`${chamados.cha_data_abertura} >= ${todayStr}`;
         } else if (period === "semana") {
           const weekStart = new Date(now);
           weekStart.setDate(now.getDate() - now.getDay());
           weekStart.setHours(0, 0, 0, 0);
-          dateFilter = sql`${chamados.cha_data_abertura} >= ${weekStart}`;
+          const weekStartStr = weekStart.toISOString();
+          dateFilter = sql`${chamados.cha_data_abertura} >= ${weekStartStr}`;
         } else if (period === "mes") {
           const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-          dateFilter = sql`${chamados.cha_data_abertura} >= ${monthStart}`;
+          const monthStartStr = monthStart.toISOString();
+          dateFilter = sql`${chamados.cha_data_abertura} >= ${monthStartStr}`;
         }
 
         // Buscar distribuição por departamento
@@ -48,30 +51,11 @@ export const getDistributionRoute: FastifyPluginCallbackZod = (app) => {
           .groupBy(departamentos.dep_nome)
           .orderBy(sql`count(${chamados.cha_id}) DESC`);
 
-        // Se não há dados, retorna dados mock
-        if (distribution.length === 0) {
-          const mockData = [
-            { name: "Educação", count: 5 },
-            { name: "Saúde", count: 8 },
-            { name: "Infraestrutura", count: 12 },
-            { name: "Segurança", count: 3 },
-            { name: "Meio Ambiente", count: 2 }
-          ];
-          reply.send(mockData);
-        } else {
-          reply.send(distribution);
-        }
+        console.log(`✅ Distribuição (${period}):`, distribution);
+        reply.send(distribution);
       } catch (err) {
         console.error("Erro ao buscar distribuição:", err);
-        // Em caso de erro, retorna dados mock
-        const mockData = [
-          { name: "Educação", count: 5 },
-          { name: "Saúde", count: 8 },
-          { name: "Infraestrutura", count: 12 },
-          { name: "Segurança", count: 3 },
-          { name: "Meio Ambiente", count: 2 }
-        ];
-        reply.send(mockData);
+        reply.status(500).send({ error: "Erro ao buscar distribuição de chamados" });
       }
     }
   );

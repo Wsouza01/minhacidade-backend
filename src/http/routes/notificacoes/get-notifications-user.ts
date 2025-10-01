@@ -9,17 +9,16 @@ export const getNotificationsUserRoute: FastifyPluginCallback = (app) => {
 
       const userNotifications = await db
         .select({
-          id: notificacoes.not_id,
-          titulo: notificacoes.not_titulo,
-          mensagem: notificacoes.not_mensagem,
-          dataCriacao: notificacoes.not_data_criacao,
-          lida: notificacoes.not_lida,
-          tipo: notificacoes.not_tipo,
+          id: notificacoes.ntf_id,
+          canal: notificacoes.ntf_canal,
+          mensagem: notificacoes.ntf_mensagem,
+          dataCriacao: notificacoes.ntf_data_envio,
+          lida: notificacoes.ntf_lida,
           usuarioId: notificacoes.usu_id,
         })
         .from(notificacoes)
         .where(db.eq(notificacoes.usu_id, userId))
-        .orderBy(db.desc(notificacoes.not_data_criacao));
+        .orderBy(db.desc(notificacoes.ntf_data_envio));
 
       reply.send(userNotifications);
     } catch (error) {
@@ -35,8 +34,8 @@ export const getNotificationsUserRoute: FastifyPluginCallback = (app) => {
 
       await db
         .update(notificacoes)
-        .set({ not_lida: true })
-        .where(db.eq(notificacoes.not_id, notificationId));
+        .set({ ntf_lida: "true" })
+        .where(db.eq(notificacoes.ntf_id, notificationId));
 
       reply.send({ message: "Notificação marcada como lida" });
     } catch (error) {
@@ -52,7 +51,7 @@ export const getNotificationsUserRoute: FastifyPluginCallback = (app) => {
 
       await db
         .update(notificacoes)
-        .set({ not_lida: true })
+        .set({ ntf_lida: "true" })
         .where(db.eq(notificacoes.usu_id, userId));
 
       reply.send({ message: "Todas as notificações marcadas como lidas" });

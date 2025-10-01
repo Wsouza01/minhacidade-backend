@@ -1,32 +1,19 @@
-import { schema } from "../../../db/schema/index.ts";
 import { db } from "../../../db/connection.ts";
+import { schema } from "../../../db/schema/index.ts";
 import type { FastifyPluginCallback } from 'fastify';
 import fs from 'node:fs';
 import path from 'node:path';
 import { pipeline } from 'node:stream/promises';
 
-export const postAnexosRoute: FastifyPluginCallback = (app) => {
+export const postAnexosRouteNew: FastifyPluginCallback = (app) => {
   // Rota para upload de arquivo usando parts()
-  app.post("/anexos/upload", {
-    config: {
-      // Configurações específicas para upload (compatível com ngrok)
-      bodyLimit: 15 * 1024 * 1024, // 15MB
-      timeout: 120000, // 2 minutos
-    }
-  }, async (request, reply) => {
-    // Timeout global de 90 segundos (ngrok precisa de mais tempo)
-    const timeout = setTimeout(() => {
-      console.error('⏱️ TIMEOUT: Upload demorou mais de 90s');
-      if (!reply.sent) {
-        reply.status(408).send({ error: 'Timeout no upload' });
-      }
-    }, 90000);
-
+  app.post("/anexos/upload", async (request, reply) => {
     try {
       console.log('📥 Recebendo upload de anexo...');
 
       // Processar todos os campos do multipart usando parts()
       const parts = request.parts();
+
       let fileData: any = null;
       let chamado_id: string | null = null;
       let tipo: string | null = null;
@@ -39,7 +26,6 @@ export const postAnexosRoute: FastifyPluginCallback = (app) => {
             mimetype: part.mimetype,
             encoding: part.encoding,
           });
-
           fileData = {
             file: part.file,
             filename: part.filename,
@@ -98,25 +84,9 @@ export const postAnexosRoute: FastifyPluginCallback = (app) => {
         extension,
       });
 
-      // Salvar arquivo com timeout
-      const writeStream = fs.createWriteStream(filepath);
-      try {
-        // Timeout de 85 segundos para salvar (ngrok precisa de mais tempo)
-        await Promise.race([
-          pipeline(fileData.file, writeStream),
-          new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Timeout ao salvar arquivo')), 85000)
-          )
-        ]);
-        console.log('✅ Arquivo salvo no disco');
-      } catch (saveError) {
-        console.error('❌ Erro ao salvar arquivo:', saveError);
-        // Limpar arquivo parcial se houver
-        if (fs.existsSync(filepath)) {
-          fs.unlinkSync(filepath);
-        }
-        throw saveError;
-      }
+      // Salvar arquivo
+      await pipeline(fileData.file, fs.createWriteStream(filepath));
+      console.log('✅ Arquivo salvo no disco');
 
       // Criar URL do arquivo
       const fileUrl = `/uploads/anexos/${filename}`;
@@ -135,8 +105,6 @@ export const postAnexosRoute: FastifyPluginCallback = (app) => {
 
       console.log('✅ Anexo salvo com sucesso:', novoAnexo[0]);
 
-      clearTimeout(timeout);
-
       reply.status(201).send({
         message: 'Anexo enviado com sucesso',
         anexo: novoAnexo[0],
@@ -145,40 +113,10 @@ export const postAnexosRoute: FastifyPluginCallback = (app) => {
       console.error('❌ Erro ao fazer upload de anexo:', error);
       console.error('Stack:', error instanceof Error ? error.stack : 'No stack trace');
 
-      clearTimeout(timeout);
-
-      if (!reply.sent) {
-        reply.status(500).send({
-          error: 'Erro ao fazer upload do anexo',
-          details: error instanceof Error ? error.message : 'Erro desconhecido'
-        });
-      }
+      reply.status(500).send({
+        error: 'Erro ao fazer upload do anexo',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
     }
   });
-
-  // Rota antiga para compatibilidade (apenas URL)
-  app.post(
-    "/anexos",
-    async (request, reply) => {
-      try {
-        const body = request.body as any;
-        const { tipo, url, chamado_id } = body;
-
-        if (!tipo || !url || !chamado_id) {
-          return reply.status(400).send({ error: 'Campos obrigatórios: tipo, url, chamado_id' });
-        }
-
-        await db.insert(schema.anexos).values({
-          anx_tipo: tipo,
-          anx_url: url,
-          cha_id: chamado_id,
-        });
-
-        reply.status(201).send({ message: "Anexo criado" });
-      } catch (error) {
-        console.error('Erro ao criar anexo:', error);
-        reply.status(500).send({ error: 'Erro ao criar anexo' });
-      }
-    }
-  );
 };

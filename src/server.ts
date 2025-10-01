@@ -5,6 +5,7 @@ import {
   validatorCompiler,
   type ZodTypeProvider,
 } from "fastify-type-provider-zod";
+import multipart from '@fastify/multipart';
 import { env } from "./env.ts";
 import { getAnexosRoute } from "./http/routes/anexos/get-anexos.ts";
 import { postAnexosRoute } from "./http/routes/anexos/post-anexos.ts";
@@ -41,11 +42,26 @@ import { alterarSenhaRoute } from "./http/routes/users/alterar-senha.ts";
 import { alterarEmailRoute } from "./http/routes/users/alterar-email.ts";
 import { cidadesRoute } from "./http/routes/cidades/cidades-route.ts";
 import { getNotificationsUserRoute } from "./http/routes/notificacoes/get-notifications-user.ts";
+import { postNotificationRoute } from "./http/routes/notificacoes/post-notification.ts";
 
-const app = fastify().withTypeProvider<ZodTypeProvider>();
+const app = fastify({
+  // Aumentar timeouts para suportar ngrok e uploads grandes
+  connectionTimeout: 120000, // 2 minutos
+  keepAliveTimeout: 120000, // 2 minutos
+  requestTimeout: 120000, // 2 minutos
+  bodyLimit: 15 * 1024 * 1024, // 15MB
+}).withTypeProvider<ZodTypeProvider>();
 
 app.register(fastifyCors, {
   origin: "*",
+});
+
+app.register(multipart, {
+  limits: {
+    fileSize: 15 * 1024 * 1024, // 15MB
+    files: 5, // máximo de 5 arquivos
+  },
+  attachFieldsToBody: false,
 });
 
 app.setSerializerCompiler(serializerCompiler);
@@ -90,5 +106,6 @@ app.register(createTestUserRoute);
 app.register(alterarSenhaRoute);
 app.register(alterarEmailRoute);
 app.register(getNotificationsUserRoute);
+app.register(postNotificationRoute);
 
-app.listen({ port: env.PORT });
+app.listen({ port: env.PORT, host: '0.0.0.0' });
