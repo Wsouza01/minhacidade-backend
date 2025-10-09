@@ -1,7 +1,7 @@
-import type { FastifyPluginCallback } from 'fastify'
-import { z } from 'zod'
-import { db } from '../../../db/connection.ts'
-import { anexos } from '../../../db/schema/anexos.ts'
+import type { FastifyPluginCallback } from "fastify"
+import { z } from "zod"
+import { db } from "../../../db/connection.ts"
+import { anexos } from "../../../db/schema/anexos.ts"
 
 // Schema de resposta
 const GetAnexosResponse = z.object({
@@ -15,7 +15,7 @@ const GetAnexosResponseArray = z.array(GetAnexosResponse)
 
 export const getAnexosRoute: FastifyPluginCallback = (app) => {
   app.get(
-    '/anexos',
+    "/anexos",
     {
       schema: {
         response: {

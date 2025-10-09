@@ -1,15 +1,15 @@
-import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
-import { z } from "zod";
-import { db } from "../../../db/connection.ts";
-import { chamados } from "../../../db/schema/chamados.ts";
-import { departamentos } from "../../../db/schema/departamentos.ts";
-import { categorias } from "../../../db/schema/categorias.ts";
-import { usuarios } from "../../../db/schema/usuarios.ts";
-import { eq, desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm"
+import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod"
+import { z } from "zod"
+import { db } from "../../../db/connection.ts"
+import { categorias } from "../../../db/schema/categorias.ts"
+import { chamados } from "../../../db/schema/chamados.ts"
+import { departamentos } from "../../../db/schema/departamentos.ts"
+import { usuarios } from "../../../db/schema/usuarios.ts"
 
 const getChamadosQuerySchema = z.object({
   limit: z.string().optional(),
-});
+})
 
 export const getChamadosRoute: FastifyPluginCallbackZod = (app) => {
   // Route to get all tickets with optional limit
@@ -22,8 +22,8 @@ export const getChamadosRoute: FastifyPluginCallbackZod = (app) => {
     },
     async (request, reply) => {
       try {
-        const { limit } = request.query;
-        const limitNumber = limit ? parseInt(limit) : undefined;
+        const { limit } = request.query
+        const limitNumber = limit ? Number.parseInt(limit) : undefined
 
         let query = db
           .select({
@@ -45,36 +45,37 @@ export const getChamadosRoute: FastifyPluginCallbackZod = (app) => {
             usuario_nome: usuarios.usu_nome,
           })
           .from(chamados)
-          .leftJoin(departamentos, eq(chamados.cha_departamento, departamentos.dep_id))
+          .leftJoin(
+            departamentos,
+            eq(chamados.cha_departamento, departamentos.dep_id)
+          )
           .leftJoin(categorias, eq(chamados.cat_id, categorias.cat_id))
           .leftJoin(usuarios, eq(chamados.usu_id, usuarios.usu_id))
-          .orderBy(desc(chamados.cha_data_abertura));
+          .orderBy(desc(chamados.cha_data_abertura))
 
         if (limitNumber) {
-          query = query.limit(limitNumber);
+          query = query.limit(limitNumber)
         }
 
-        const results = await query;
-        reply.send(results);
+        const results = await query
+        reply.send(results)
       } catch (err) {
-        console.error("Erro ao buscar chamados:", err);
-        reply.status(500).send({ message: "Erro ao buscar chamados" });
+        console.error("Erro ao buscar chamados:", err)
+        reply.status(500).send({ message: "Erro ao buscar chamados" })
       }
     }
-  );
+  )
 
   // Route to get chamados count
   app.get("/chamados/count", async (_, reply) => {
     try {
-      const result = await db
-        .select({ count: db.count() })
-        .from(chamados);
+      const result = await db.select({ count: db.count() }).from(chamados)
 
-      const totalChamados = Number(result[0]?.count) || 0;
-      reply.send({ total: totalChamados });
+      const totalChamados = Number(result[0]?.count) || 0
+      reply.send({ total: totalChamados })
     } catch (err) {
-      console.error("Erro ao contar chamados:", err);
-      reply.status(500).send({ message: "Erro ao contar chamados" });
+      console.error("Erro ao contar chamados:", err)
+      reply.status(500).send({ message: "Erro ao contar chamados" })
     }
-  });
-};
+  })
+}

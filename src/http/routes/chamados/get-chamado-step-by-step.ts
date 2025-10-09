@@ -1,17 +1,16 @@
-import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
-import { z } from "zod";
-import { db } from "../../../db/connection.ts";
-import { chamados } from "../../../db/schema/chamados.ts";
-import { departamentos } from "../../../db/schema/departamentos.ts";
-import { categorias } from "../../../db/schema/categorias.ts";
-import { usuarios } from "../../../db/schema/usuarios.ts";
-import { funcionarios } from "../../../db/schema/funcionarios.ts";
-import { anexos } from "../../../db/schema/anexos.ts";
-import { eq } from "drizzle-orm";
+import { eq } from "drizzle-orm"
+import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod"
+import { z } from "zod"
+import { db } from "../../../db/connection.ts"
+import { categorias } from "../../../db/schema/categorias.ts"
+import { chamados } from "../../../db/schema/chamados.ts"
+import { departamentos } from "../../../db/schema/departamentos.ts"
+import { funcionarios } from "../../../db/schema/funcionarios.ts"
+import { usuarios } from "../../../db/schema/usuarios.ts"
 
 const getChamadoByIdParamsSchema = z.object({
   id: z.string().uuid(),
-});
+})
 
 export const getChamadoStepByStepRoute: FastifyPluginCallbackZod = (app) => {
   app.get(
@@ -23,11 +22,11 @@ export const getChamadoStepByStepRoute: FastifyPluginCallbackZod = (app) => {
     },
     async (request, reply) => {
       try {
-        const { id } = request.params;
-        console.log("🔍 STEP: Buscando chamado ID:", id);
+        const { id } = request.params
+        console.log("🔍 STEP: Buscando chamado ID:", id)
 
         // Step 1: Query básica com joins um por vez
-        console.log("📝 STEP 1: Query base");
+        console.log("📝 STEP 1: Query base")
         const chamadoResult = await db
           .select({
             cha_id: chamados.cha_id,
@@ -48,18 +47,21 @@ export const getChamadoStepByStepRoute: FastifyPluginCallbackZod = (app) => {
             departamento_telefone: departamentos.dep_telefone,
           })
           .from(chamados)
-          .leftJoin(departamentos, eq(chamados.cha_departamento, departamentos.dep_id))
+          .leftJoin(
+            departamentos,
+            eq(chamados.cha_departamento, departamentos.dep_id)
+          )
           .where(eq(chamados.cha_id, id))
-          .limit(1);
+          .limit(1)
 
-        console.log("✅ STEP 1 OK, resultados:", chamadoResult.length);
+        console.log("✅ STEP 1 OK, resultados:", chamadoResult.length)
 
         if (chamadoResult.length === 0) {
-          return reply.status(404).send({ message: "Chamado não encontrado" });
+          return reply.status(404).send({ message: "Chamado não encontrado" })
         }
 
         // Step 2: Adicionar categoria
-        console.log("📝 STEP 2: Adicionando categoria");
+        console.log("📝 STEP 2: Adicionando categoria")
         const chamadoComCategoria = await db
           .select({
             cha_id: chamados.cha_id,
@@ -70,15 +72,18 @@ export const getChamadoStepByStepRoute: FastifyPluginCallbackZod = (app) => {
             categoria_nome: categorias.cat_nome,
           })
           .from(chamados)
-          .leftJoin(departamentos, eq(chamados.cha_departamento, departamentos.dep_id))
+          .leftJoin(
+            departamentos,
+            eq(chamados.cha_departamento, departamentos.dep_id)
+          )
           .leftJoin(categorias, eq(chamados.cat_id, categorias.cat_id))
           .where(eq(chamados.cha_id, id))
-          .limit(1);
+          .limit(1)
 
-        console.log("✅ STEP 2 OK");
+        console.log("✅ STEP 2 OK")
 
         // Step 3: Adicionar usuário
-        console.log("📝 STEP 3: Adicionando usuário");
+        console.log("📝 STEP 3: Adicionando usuário")
         const chamadoComUsuario = await db
           .select({
             cha_id: chamados.cha_id,
@@ -91,16 +96,19 @@ export const getChamadoStepByStepRoute: FastifyPluginCallbackZod = (app) => {
             usuario_email: usuarios.usu_email,
           })
           .from(chamados)
-          .leftJoin(departamentos, eq(chamados.cha_departamento, departamentos.dep_id))
+          .leftJoin(
+            departamentos,
+            eq(chamados.cha_departamento, departamentos.dep_id)
+          )
           .leftJoin(categorias, eq(chamados.cat_id, categorias.cat_id))
           .leftJoin(usuarios, eq(chamados.usu_id, usuarios.usu_id))
           .where(eq(chamados.cha_id, id))
-          .limit(1);
+          .limit(1)
 
-        console.log("✅ STEP 3 OK");
+        console.log("✅ STEP 3 OK")
 
         // Step 4: Adicionar funcionário/responsável
-        console.log("📝 STEP 4: Adicionando responsável");
+        console.log("📝 STEP 4: Adicionando responsável")
         const chamadoCompleto = await db
           .select({
             cha_id: chamados.cha_id,
@@ -113,30 +121,39 @@ export const getChamadoStepByStepRoute: FastifyPluginCallbackZod = (app) => {
             responsavel_nome: funcionarios.fun_nome,
           })
           .from(chamados)
-          .leftJoin(departamentos, eq(chamados.cha_departamento, departamentos.dep_id))
+          .leftJoin(
+            departamentos,
+            eq(chamados.cha_departamento, departamentos.dep_id)
+          )
           .leftJoin(categorias, eq(chamados.cat_id, categorias.cat_id))
           .leftJoin(usuarios, eq(chamados.usu_id, usuarios.usu_id))
-          .leftJoin(funcionarios, eq(chamados.cha_responsavel, funcionarios.fun_id))
+          .leftJoin(
+            funcionarios,
+            eq(chamados.cha_responsavel, funcionarios.fun_id)
+          )
           .where(eq(chamados.cha_id, id))
-          .limit(1);
+          .limit(1)
 
-        console.log("✅ STEP 4 OK");
+        console.log("✅ STEP 4 OK")
 
-        const chamado = chamadoCompleto[0];
+        const chamado = chamadoCompleto[0]
 
         reply.send({
           success: true,
           data: chamado,
-          message: "Query complexa funcionou!"
-        });
+          message: "Query complexa funcionou!",
+        })
       } catch (err) {
-        console.error("❌ STEP ERROR:", err);
-        console.error("❌ STEP Stack:", err instanceof Error ? err.stack : 'No stack');
+        console.error("❌ STEP ERROR:", err)
+        console.error(
+          "❌ STEP Stack:",
+          err instanceof Error ? err.stack : "No stack"
+        )
         reply.status(500).send({
           message: "Erro no teste step by step",
-          error: err instanceof Error ? err.message : 'Erro desconhecido'
-        });
+          error: err instanceof Error ? err.message : "Erro desconhecido",
+        })
       }
     }
-  );
-};
+  )
+}

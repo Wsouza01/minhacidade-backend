@@ -1,7 +1,7 @@
-import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
-import { db } from "../../../db/connection.ts";
-import { schema } from "../../../db/schema/index.ts";
-import { z } from "zod";
+import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod"
+import { z } from "zod"
+import { db } from "../../../db/connection.ts"
+import { schema } from "../../../db/schema/index.ts"
 
 export const postFuncionariosRoute: FastifyPluginCallbackZod = (app) => {
   app.post(
@@ -28,7 +28,7 @@ export const postFuncionariosRoute: FastifyPluginCallbackZod = (app) => {
         login,
         senha,
         departamento_id,
-      } = request.body;
+      } = request.body
 
       await db.insert(schema.funcionarios).values({
         fun_nome: nome,
@@ -38,9 +38,9 @@ export const postFuncionariosRoute: FastifyPluginCallbackZod = (app) => {
         fun_login: login,
         fun_senha: senha,
         dep_id: departamento_id,
-      });
+      })
 
-      reply.status(201).send({ message: "Funcionário criado" });
+      reply.status(201).send({ message: "Funcionário criado" })
     }
-  );
-};
+  )
+}

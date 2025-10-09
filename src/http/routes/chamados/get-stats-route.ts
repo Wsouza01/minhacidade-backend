@@ -1,10 +1,10 @@
 // src/routes/getStatsRoute.ts
-import { and, isNotNull, isNull } from "drizzle-orm";
-import fastify from "fastify";
-import { db } from "../../../db/connection.ts";
-import { chamados } from "../../../db/schema/chamados.ts";
+import { and, isNotNull, isNull } from "drizzle-orm"
+import fastify from "fastify"
+import { db } from "../../../db/connection.ts"
+import { chamados } from "../../../db/schema/chamados.ts"
 
-const { FastifyPluginCallback } = fastify;
+const { FastifyPluginCallback } = fastify
 
 export const getStatsRoute: FastifyPluginCallback = (app) => {
   app.get("/chamados/stats", async (_, reply) => {
@@ -29,7 +29,7 @@ export const getStatsRoute: FastifyPluginCallback = (app) => {
             isNotNull(chamados.cha_responsavel)
           )
         ),
-      ]);
+      ])
 
       // Se não há dados reais, retorna dados mock
       if (total === 0) {
@@ -37,20 +37,20 @@ export const getStatsRoute: FastifyPluginCallback = (app) => {
           total: 45,
           resolvidos: 18,
           pendentes: 15,
-          emAndamento: 12
-        });
+          emAndamento: 12,
+        })
       }
 
-      return reply.send({ total, resolvidos, pendentes, emAndamento });
+      return reply.send({ total, resolvidos, pendentes, emAndamento })
     } catch (err) {
-      console.error("Erro ao buscar estatísticas:", err);
+      console.error("Erro ao buscar estatísticas:", err)
       // Em caso de erro, retorna dados mock
       return reply.send({
         total: 45,
         resolvidos: 18,
         pendentes: 15,
-        emAndamento: 12
-      });
+        emAndamento: 12,
+      })
     }
-  });
-};
+  })
+}

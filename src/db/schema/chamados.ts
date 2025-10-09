@@ -1,8 +1,8 @@
-import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
-import { categorias } from "./categorias.ts";
-import { departamentos } from "./departamentos.ts";
-import { funcionarios } from "./funcionarios.ts";
-import { usuarios } from "./usuarios.ts";
+import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core"
+import { categorias } from "./categorias.ts"
+import { departamentos } from "./departamentos.ts"
+import { funcionarios } from "./funcionarios.ts"
+import { usuarios } from "./usuarios.ts"
 
 export const chamados = pgTable("chamado", {
   cha_id: uuid("cha_id").primaryKey().defaultRandom(),
@@ -22,4 +22,4 @@ export const chamados = pgTable("chamado", {
   cha_prioridade: text("cha_prioridade"),
   usu_id: uuid("usu_id").references(() => usuarios.usu_id),
   cat_id: uuid("cat_id").references(() => categorias.cat_id),
-});
+})

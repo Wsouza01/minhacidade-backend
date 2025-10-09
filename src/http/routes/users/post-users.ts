@@ -1,13 +1,13 @@
-import bcrypt from 'bcrypt'
-import { and, eq } from 'drizzle-orm'
-import type { FastifyPluginCallback } from 'fastify'
-import { z } from 'zod'
-import { db } from '../../../db/connection.ts'
-import { cidades } from '../../../db/schema/cidades.ts'
-import { usuarios } from '../../../db/schema/usuarios.ts'
+import bcrypt from "bcrypt"
+import { and, eq } from "drizzle-orm"
+import type { FastifyPluginCallback } from "fastify"
+import { z } from "zod"
+import { db } from "../../../db/connection.ts"
+import { cidades } from "../../../db/schema/cidades.ts"
+import { usuarios } from "../../../db/schema/usuarios.ts"
 
 function validarCPF(cpf: string): boolean {
-  cpf = cpf.replace(/\D/g, '')
+  cpf = cpf.replace(/\D/g, "")
   if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false
 
   let soma = 0
@@ -31,39 +31,39 @@ function validarCPF(cpf: string): boolean {
 
 export const postUsersRoute: FastifyPluginCallback = (app) => {
   app.post(
-    '/users',
+    "/users",
     {
       schema: {
         body: z.object({
           nome: z
             .string()
-            .min(1, 'Nome é obrigatório')
+            .min(1, "Nome é obrigatório")
             .transform((s) => s.trim()),
           cpf: z
             .string()
-            .min(11, 'CPF deve ter 11 dígitos')
+            .min(11, "CPF deve ter 11 dígitos")
             .max(14)
-            .refine((cpf) => validarCPF(cpf), { message: 'CPF inválido' }),
+            .refine((cpf) => validarCPF(cpf), { message: "CPF inválido" }),
           email: z
             .string()
-            .email('Email inválido')
+            .email("Email inválido")
             .transform((s) => s.toLowerCase().trim()),
           senha: z
             .string()
-            .min(6, 'Senha deve ter no mínimo 6 caracteres')
+            .min(6, "Senha deve ter no mínimo 6 caracteres")
             .refine((s) => /[A-Z]/.test(s), {
-              message: 'Senha deve conter pelo menos uma letra maiúscula',
+              message: "Senha deve conter pelo menos uma letra maiúscula",
             })
             .refine((s) => /[0-9]/.test(s), {
-              message: 'Senha deve conter pelo menos um número',
+              message: "Senha deve conter pelo menos um número",
             }),
           login: z
             .string()
-            .min(3, 'Login deve ter no mínimo 3 caracteres')
+            .min(3, "Login deve ter no mínimo 3 caracteres")
             .transform((s) => s.trim()),
           data_nascimento: z
             .string()
-            .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato deve ser YYYY-MM-DD')
+            .regex(/^\d{4}-\d{2}-\d{2}$/, "Formato deve ser YYYY-MM-DD")
             .refine(
               (date) => {
                 const birthDate = new Date(date)
@@ -71,22 +71,20 @@ export const postUsersRoute: FastifyPluginCallback = (app) => {
                 const age = today.getFullYear() - birthDate.getFullYear()
                 return age >= 18
               },
-              { message: 'Você deve ter pelo menos 18 anos' }
+              { message: "Você deve ter pelo menos 18 anos" }
             ),
           endereco: z.object({
             cep: z
               .string()
-              .min(8, 'CEP inválido')
-              .transform((s) => s.replace(/\D/g, '')),
-            logradouro: z.string().min(1, 'Logradouro é obrigatório'),
-            numero: z.string().min(1, 'Número é obrigatório'),
-            complemento: z.string().optional().default(''),
-            bairro: z.string().min(1, 'Bairro é obrigatório'),
-            cidadeId: z
-              .string()
-              .uuid('ID da cidade inválido'),
-            estado: z.string().length(2, 'Estado deve ter 2 caracteres'),
-            cidade: z.string().min(1, 'Cidade é obrigatória'),
+              .min(8, "CEP inválido")
+              .transform((s) => s.replace(/\D/g, "")),
+            logradouro: z.string().min(1, "Logradouro é obrigatório"),
+            numero: z.string().min(1, "Número é obrigatório"),
+            complemento: z.string().optional().default(""),
+            bairro: z.string().min(1, "Bairro é obrigatório"),
+            cidadeId: z.string().uuid("ID da cidade inválido"),
+            estado: z.string().length(2, "Estado deve ter 2 caracteres"),
+            cidade: z.string().min(1, "Cidade é obrigatória"),
           }),
         }),
       },
@@ -105,7 +103,7 @@ export const postUsersRoute: FastifyPluginCallback = (app) => {
               eq(cidades.cid_ativo, true)
             )
           )
-          .then(res => res[0] || null);
+          .then((res) => res[0] || null)
 
         if (!cidadeExistente) {
           const cidadesAtivas = await db
@@ -119,13 +117,13 @@ export const postUsersRoute: FastifyPluginCallback = (app) => {
             .orderBy(cidades.cid_nome)
 
           return reply.status(400).send({
-            message: 'Cidade não encontrada ou inativa',
+            message: "Cidade não encontrada ou inativa",
             cidadesDisponiveis: cidadesAtivas,
-            code: 'INVALID_CITY',
+            code: "INVALID_CITY",
           })
         }
 
-        const cpfFormatado = cpf.replace(/\D/g, '')
+        const cpfFormatado = cpf.replace(/\D/g, "")
         const usuarioExistente = await db
           .select()
           .from(usuarios)
@@ -134,8 +132,8 @@ export const postUsersRoute: FastifyPluginCallback = (app) => {
 
         if (usuarioExistente) {
           return reply.status(400).send({
-            message: 'CPF já cadastrado',
-            code: 'CPF_ALREADY_EXISTS',
+            message: "CPF já cadastrado",
+            code: "CPF_ALREADY_EXISTS",
           })
         }
 
@@ -147,8 +145,8 @@ export const postUsersRoute: FastifyPluginCallback = (app) => {
 
         if (emailExistente) {
           return reply.status(400).send({
-            message: 'Email já cadastrado',
-            code: 'EMAIL_ALREADY_EXISTS',
+            message: "Email já cadastrado",
+            code: "EMAIL_ALREADY_EXISTS",
           })
         }
 
@@ -160,8 +158,8 @@ export const postUsersRoute: FastifyPluginCallback = (app) => {
 
         if (loginExistente) {
           return reply.status(400).send({
-            message: 'Login já está em uso',
-            code: 'LOGIN_ALREADY_EXISTS',
+            message: "Login já está em uso",
+            code: "LOGIN_ALREADY_EXISTS",
           })
         }
 
@@ -181,7 +179,7 @@ export const postUsersRoute: FastifyPluginCallback = (app) => {
               cidade: cidadeExistente.cid_nome,
             },
             cid_id: endereco.cidadeId,
-            usu_tipo: 'municipe',
+            usu_tipo: "municipe",
           })
           .returning()
 
@@ -190,11 +188,11 @@ export const postUsersRoute: FastifyPluginCallback = (app) => {
           usu_senha: undefined,
         })
       } catch (error) {
-        console.error('Erro no cadastro:', error)
+        console.error("Erro no cadastro:", error)
         return reply.status(500).send({
-          message: 'Erro interno no servidor',
-          error: error instanceof Error ? error.message : 'Erro desconhecido',
-          code: 'INTERNAL_SERVER_ERROR',
+          message: "Erro interno no servidor",
+          error: error instanceof Error ? error.message : "Erro desconhecido",
+          code: "INTERNAL_SERVER_ERROR",
         })
       }
     }

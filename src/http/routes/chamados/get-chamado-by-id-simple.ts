@@ -1,17 +1,17 @@
-import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
-import { z } from "zod";
-import { db } from "../../../db/connection.ts";
-import { chamados } from "../../../db/schema/chamados.ts";
-import { departamentos } from "../../../db/schema/departamentos.ts";
-import { categorias } from "../../../db/schema/categorias.ts";
-import { usuarios } from "../../../db/schema/usuarios.ts";
-import { funcionarios } from "../../../db/schema/funcionarios.ts";
-import { anexos } from "../../../db/schema/anexos.ts";
-import { eq } from "drizzle-orm";
+import { eq } from "drizzle-orm"
+import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod"
+import { z } from "zod"
+import { db } from "../../../db/connection.ts"
+import { anexos } from "../../../db/schema/anexos.ts"
+import { categorias } from "../../../db/schema/categorias.ts"
+import { chamados } from "../../../db/schema/chamados.ts"
+import { departamentos } from "../../../db/schema/departamentos.ts"
+import { funcionarios } from "../../../db/schema/funcionarios.ts"
+import { usuarios } from "../../../db/schema/usuarios.ts"
 
 const getChamadoByIdParamsSchema = z.object({
   id: z.string().uuid(),
-});
+})
 
 export const getChamadoByIdSimpleRoute: FastifyPluginCallbackZod = (app) => {
   app.get(
@@ -23,8 +23,8 @@ export const getChamadoByIdSimpleRoute: FastifyPluginCallbackZod = (app) => {
     },
     async (request, reply) => {
       try {
-        const { id } = request.params;
-        console.log("🔍 Buscando chamado ID:", id);
+        const { id } = request.params
+        console.log("🔍 Buscando chamado ID:", id)
 
         // Buscar dados do chamado com joins
         const chamadoResult = await db
@@ -57,24 +57,30 @@ export const getChamadoByIdSimpleRoute: FastifyPluginCallbackZod = (app) => {
             responsavel_email: funcionarios.fun_email,
           })
           .from(chamados)
-          .leftJoin(departamentos, eq(chamados.cha_departamento, departamentos.dep_id))
+          .leftJoin(
+            departamentos,
+            eq(chamados.cha_departamento, departamentos.dep_id)
+          )
           .leftJoin(categorias, eq(chamados.cat_id, categorias.cat_id))
           .leftJoin(usuarios, eq(chamados.usu_id, usuarios.usu_id))
-          .leftJoin(funcionarios, eq(chamados.cha_responsavel, funcionarios.fun_id))
+          .leftJoin(
+            funcionarios,
+            eq(chamados.cha_responsavel, funcionarios.fun_id)
+          )
           .where(eq(chamados.cha_id, id))
-          .limit(1);
+          .limit(1)
 
-        console.log("✅ Query executada, resultados:", chamadoResult.length);
+        console.log("✅ Query executada, resultados:", chamadoResult.length)
 
         if (chamadoResult.length === 0) {
-          return reply.status(404).send({ message: "Chamado não encontrado" });
+          return reply.status(404).send({ message: "Chamado não encontrado" })
         }
 
-        const chamado = chamadoResult[0];
-        console.log("📝 Dados do chamado:", chamado.cha_titulo);
+        const chamado = chamadoResult[0]
+        console.log("📝 Dados do chamado:", chamado.cha_titulo)
 
         // Buscar anexos do chamado (try-catch para debug)
-        let chamadoAnexos = [];
+        let chamadoAnexos = []
         try {
           chamadoAnexos = await db
             .select({
@@ -83,12 +89,12 @@ export const getChamadoByIdSimpleRoute: FastifyPluginCallbackZod = (app) => {
               anx_url: anexos.anx_url,
             })
             .from(anexos)
-            .where(eq(anexos.cha_id, id));
+            .where(eq(anexos.cha_id, id))
 
-          console.log("📎 Anexos encontrados:", chamadoAnexos.length);
+          console.log("📎 Anexos encontrados:", chamadoAnexos.length)
         } catch (anexosError) {
-          console.error("❌ Erro ao buscar anexos:", anexosError);
-          chamadoAnexos = [];
+          console.error("❌ Erro ao buscar anexos:", anexosError)
+          chamadoAnexos = []
         }
 
         // Montar resposta completa
@@ -98,26 +104,31 @@ export const getChamadoByIdSimpleRoute: FastifyPluginCallbackZod = (app) => {
           etapas: [], // Por enquanto, vazio para testar
           // Determinar status baseado nos dados
           status: chamado.cha_data_fechamento
-            ? 'resolvido'
+            ? "resolvido"
             : chamado.cha_responsavel
-            ? 'em_andamento'
-            : 'pendente',
+              ? "em_andamento"
+              : "pendente",
           // Formatação de endereço
-          endereco_completo: chamado.cha_cep && chamado.cha_numero_endereco
-            ? `${chamado.cha_numero_endereco}, CEP: ${chamado.cha_cep}`
-            : chamado.cha_cep || 'Não informado',
-        };
+          endereco_completo:
+            chamado.cha_cep && chamado.cha_numero_endereco
+              ? `${chamado.cha_numero_endereco}, CEP: ${chamado.cha_cep}`
+              : chamado.cha_cep || "Não informado",
+        }
 
-        console.log("🚀 Enviando resposta");
-        reply.send(response);
+        console.log("🚀 Enviando resposta")
+        reply.send(response)
       } catch (err) {
-        console.error("❌ Erro detalhado ao buscar chamado:", err);
-        console.error("Stack trace:", err instanceof Error ? err.stack : 'No stack trace');
+        console.error("❌ Erro detalhado ao buscar chamado:", err)
+        console.error(
+          "Stack trace:",
+          err instanceof Error ? err.stack : "No stack trace"
+        )
         reply.status(500).send({
           message: "Erro ao buscar chamado",
-          error: process.env.NODE_ENV === 'development' ? err.message : undefined
-        });
+          error:
+            process.env.NODE_ENV === "development" ? err.message : undefined,
+        })
       }
     }
-  );
-};
+  )
+}

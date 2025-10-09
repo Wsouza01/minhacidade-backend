@@ -1,9 +1,9 @@
-import { sql } from "drizzle-orm";
-import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
-import { z } from "zod";
-import { db } from "../../../db/connection.ts";
-import { chamados } from "../../../db/schema/chamados.ts";
-import { departamentos } from "../../../db/schema/departamentos.ts";
+import { sql } from "drizzle-orm"
+import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod"
+import { z } from "zod"
+import { db } from "../../../db/connection.ts"
+import { chamados } from "../../../db/schema/chamados.ts"
+import { departamentos } from "../../../db/schema/departamentos.ts"
 
 export const getDistributionRoute: FastifyPluginCallbackZod = (app) => {
   app.get(
@@ -17,26 +17,30 @@ export const getDistributionRoute: FastifyPluginCallbackZod = (app) => {
     },
     async (request, reply) => {
       try {
-        const { period } = request.query;
+        const { period } = request.query
 
         // Definir filtro de data baseado no período
-        let dateFilter = sql`TRUE`;
-        const now = new Date();
+        let dateFilter = sql`TRUE`
+        const now = new Date()
 
         if (period === "hoje") {
-          const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-          const todayStr = today.toISOString();
-          dateFilter = sql`${chamados.cha_data_abertura} >= ${todayStr}`;
+          const today = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate()
+          )
+          const todayStr = today.toISOString()
+          dateFilter = sql`${chamados.cha_data_abertura} >= ${todayStr}`
         } else if (period === "semana") {
-          const weekStart = new Date(now);
-          weekStart.setDate(now.getDate() - now.getDay());
-          weekStart.setHours(0, 0, 0, 0);
-          const weekStartStr = weekStart.toISOString();
-          dateFilter = sql`${chamados.cha_data_abertura} >= ${weekStartStr}`;
+          const weekStart = new Date(now)
+          weekStart.setDate(now.getDate() - now.getDay())
+          weekStart.setHours(0, 0, 0, 0)
+          const weekStartStr = weekStart.toISOString()
+          dateFilter = sql`${chamados.cha_data_abertura} >= ${weekStartStr}`
         } else if (period === "mes") {
-          const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-          const monthStartStr = monthStart.toISOString();
-          dateFilter = sql`${chamados.cha_data_abertura} >= ${monthStartStr}`;
+          const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+          const monthStartStr = monthStart.toISOString()
+          dateFilter = sql`${chamados.cha_data_abertura} >= ${monthStartStr}`
         }
 
         // Buscar distribuição por departamento
@@ -46,17 +50,22 @@ export const getDistributionRoute: FastifyPluginCallbackZod = (app) => {
             count: sql<number>`count(${chamados.cha_id})::int`,
           })
           .from(chamados)
-          .leftJoin(departamentos, sql`${chamados.cha_departamento} = ${departamentos.dep_id}`)
+          .leftJoin(
+            departamentos,
+            sql`${chamados.cha_departamento} = ${departamentos.dep_id}`
+          )
           .where(dateFilter)
           .groupBy(departamentos.dep_nome)
-          .orderBy(sql`count(${chamados.cha_id}) DESC`);
+          .orderBy(sql`count(${chamados.cha_id}) DESC`)
 
-        console.log(`✅ Distribuição (${period}):`, distribution);
-        reply.send(distribution);
+        console.log(`✅ Distribuição (${period}):`, distribution)
+        reply.send(distribution)
       } catch (err) {
-        console.error("Erro ao buscar distribuição:", err);
-        reply.status(500).send({ error: "Erro ao buscar distribuição de chamados" });
+        console.error("Erro ao buscar distribuição:", err)
+        reply
+          .status(500)
+          .send({ error: "Erro ao buscar distribuição de chamados" })
       }
     }
-  );
-};
+  )
+}

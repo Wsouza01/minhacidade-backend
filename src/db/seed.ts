@@ -1,64 +1,61 @@
-import bcrypt from "bcrypt";
-import { db } from "./connection.ts";
-import { anexos } from "./schema/anexos.ts";
-import { categorias } from "./schema/categorias.ts";
-import { chamados } from "./schema/chamados.ts";
-import { cidades } from "./schema/cidades.ts";
-import { departamentos } from "./schema/departamentos.ts";
-import { etapas } from "./schema/etapas.ts";
-import { funcionarios } from "./schema/funcionarios.ts";
-import { notificacoes } from "./schema/notificacoes.ts";
-import { usuarios } from "./schema/usuarios.ts";
+import bcrypt from "bcrypt"
+import { db } from "./connection.ts"
+import { anexos } from "./schema/anexos.ts"
+import { categorias } from "./schema/categorias.ts"
+import { chamados } from "./schema/chamados.ts"
+import { cidades } from "./schema/cidades.ts"
+import { departamentos } from "./schema/departamentos.ts"
+import { etapas } from "./schema/etapas.ts"
+import { funcionarios } from "./schema/funcionarios.ts"
+import { notificacoes } from "./schema/notificacoes.ts"
+import { usuarios } from "./schema/usuarios.ts"
 
 // Função para gerar CPF válido
 function generateCPF(): string {
-  const rand = () => Math.floor(Math.random() * 9);
-  const base = Array.from({ length: 9 }, rand);
+  const rand = () => Math.floor(Math.random() * 9)
+  const base = Array.from({ length: 9 }, rand)
 
   const calcDigit = (arr: number[], factor: number) => {
-    const sum = arr.reduce(
-      (total, num, idx) => total + num * (factor - idx),
-      0
-    );
-    const mod = sum % 11;
-    return mod < 2 ? 0 : 11 - mod;
-  };
+    const sum = arr.reduce((total, num, idx) => total + num * (factor - idx), 0)
+    const mod = sum % 11
+    return mod < 2 ? 0 : 11 - mod
+  }
 
-  const digit1 = calcDigit(base, 10);
-  const digit2 = calcDigit([...base, digit1], 11);
-  return [...base, digit1, digit2].join("");
+  const digit1 = calcDigit(base, 10)
+  const digit2 = calcDigit([...base, digit1], 11)
+  return [...base, digit1, digit2].join("")
 }
 
 // Função para formatar datas no formato YYYY-MM-DD
 function formatDate(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, "0")
+  const day = String(date.getDate()).padStart(2, "0")
+  return `${year}-${month}-${day}`
 }
 
 // Função para pegar um motivo aleatório do array de motivos
 function getRandomMotivo(motivos: string[]): string {
-  const randomIndex = Math.floor(Math.random() * motivos.length);
-  return motivos[randomIndex];
+  const randomIndex = Math.floor(Math.random() * motivos.length)
+  return motivos[randomIndex]
 }
 
 async function runSeed() {
   try {
-    console.log("Iniciando seed...");
+    console.log("Iniciando seed...")
 
     // Limpar tabelas na ordem correta
-    await db.delete(anexos);
-    await db.delete(notificacoes);
-    await db.delete(chamados);
-    await db.delete(etapas);
-    await db.delete(categorias);
-    await db.delete(funcionarios);
-    await db.delete(usuarios);
-    await db.delete(departamentos);
-    await db.delete(cidades);
+    await db.delete(anexos)
+    await db.delete(notificacoes)
+    await db.delete(chamados)
+    await db.delete(etapas)
+    await db.delete(categorias)
+    await db.delete(funcionarios)
+    await db.delete(usuarios)
+    await db.delete(departamentos)
+    await db.delete(cidades)
 
-    console.log("Tabelas limpas");
+    console.log("Tabelas limpas")
 
     // Inserir cidades
     const [cidadePadrao] = await db
@@ -83,8 +80,8 @@ async function runSeed() {
           cid_ativo: true,
         },
       ])
-      .returning();
-    console.log("Cidades inseridas");
+      .returning()
+    console.log("Cidades inseridas")
 
     // Inserir departamentos simplificados
     const departamentosInseridos = await db
@@ -111,8 +108,8 @@ async function runSeed() {
           dep_descricao: "Secretaria de Meio Ambiente",
         },
       ])
-      .returning();
-    console.log("Departamentos inseridos");
+      .returning()
+    console.log("Departamentos inseridos")
 
     // Inserir categorias
     const categoriasInseridas = await db
@@ -127,8 +124,33 @@ async function runSeed() {
           cat_descricao: "Categoria para chamados não urgentes",
         },
       ])
-      .returning();
-    console.log("Categorias inseridas");
+      .returning()
+    console.log("Categorias inseridas")
+
+    // Inserir ADMIN (único admin do sistema)
+    const [usuarioAdmin] = await db
+      .insert(usuarios)
+      .values({
+        usu_nome: "Administrador",
+        usu_email: "admin@minhacidade.com",
+        usu_cpf: "00000000000",
+        usu_data_nascimento: "1980-01-01",
+        usu_login: "admin",
+        usu_senha: await bcrypt.hash("Admin@123", 10),
+        usu_endereco: {
+          cep: "00000000",
+          logradouro: "Sistema",
+          numero: "0",
+          complemento: "",
+          bairro: "Sistema",
+          cidade: cidadePadrao.cid_nome,
+          estado: cidadePadrao.cid_estado,
+        },
+        cid_id: cidadePadrao.cid_id,
+        usu_tipo: "admin",
+        usu_ativo: true,
+      })
+      .returning()
 
     // Inserir usuário específico (Silas)
     const [usuarioSilas] = await db
@@ -153,15 +175,12 @@ async function runSeed() {
         usu_tipo: "municipe",
         usu_ativo: true,
       })
-      .returning();
+      .returning()
 
     // Inserir usuários adicionais
-    const usuariosInseridos = [usuarioSilas];
+    const usuariosInseridos = [usuarioSilas]
     for (let i = 0; i < 19; i++) {
-      const senha =
-        i < 10
-          ? await bcrypt.hash("senha123", 10)
-          : "senha123";
+      const senha = i < 10 ? await bcrypt.hash("senha123", 10) : "senha123"
 
       const [usuario] = await db
         .insert(usuarios)
@@ -191,12 +210,27 @@ async function runSeed() {
           usu_tipo: "municipe",
           usu_ativo: true,
         })
-        .returning();
+        .returning()
 
-      usuariosInseridos.push(usuario);
+      usuariosInseridos.push(usuario)
     }
 
-    console.log("Usuários inseridos");
+    console.log("Usuários inseridos")
+
+    // Inserir ATENDENTE (único atendente do sistema)
+    const [funcionarioAtendente] = await db
+      .insert(funcionarios)
+      .values({
+        fun_nome: "Atendente Principal",
+        fun_email: "atendente@minhacidade.com",
+        fun_cpf: "11111111111",
+        fun_data_nascimento: "1985-06-15",
+        fun_login: "atendente",
+        fun_senha: await bcrypt.hash("Atendente@123", 10),
+        fun_tipo: "atendente",
+        dep_id: departamentosInseridos[0].dep_id,
+      })
+      .returning()
 
     // Inserir funcionário específico (João Silva - Servidor)
     // CPF: 123.456.789-01 | Senha: Servidor@123
@@ -209,18 +243,19 @@ async function runSeed() {
         fun_data_nascimento: "1985-03-20",
         fun_login: "joao.silva",
         fun_senha: await bcrypt.hash("Servidor@123", 10),
+        fun_tipo: "servidor",
         dep_id: departamentosInseridos[0].dep_id, // Departamento de Educação
       })
-      .returning();
+      .returning()
 
-    // Inserir funcionários adicionais
-    const funcionariosInseridos = [funcionarioJoao];
+    // Inserir funcionários adicionais (servidores)
+    const funcionariosInseridos = [funcionarioAtendente, funcionarioJoao]
     for (let i = 0; i < 9; i++) {
       const [funcionario] = await db
         .insert(funcionarios)
         .values({
-          fun_nome: `Funcionário ${i + 1}`,
-          fun_email: `funcionario${i + 1}@prefeitura.com`.toLowerCase(),
+          fun_nome: `Servidor ${i + 1}`,
+          fun_email: `servidor${i + 1}@prefeitura.com`.toLowerCase(),
           fun_cpf: generateCPF(),
           fun_data_nascimento: formatDate(
             new Date(
@@ -229,105 +264,137 @@ async function runSeed() {
               Math.floor(Math.random() * 28) + 1
             )
           ),
-          fun_login: `func${i + 1}`,
+          fun_login: `servidor${i + 1}`,
           fun_senha: await bcrypt.hash("senha123", 10), // Senha criptografada
+          fun_tipo: "servidor",
           dep_id:
             departamentosInseridos[i % departamentosInseridos.length].dep_id,
         })
-        .returning();
-      funcionariosInseridos.push(funcionario);
+        .returning()
+      funcionariosInseridos.push(funcionario)
     }
 
-    console.log("Funcionários inseridos");
+    console.log("Funcionários inseridos")
 
     // Inserir chamados
-    const chamadosInseridos = [];
-    const prioridades = ["Alta", "Média", "Baixa"];
+    const chamadosInseridos = []
+    const prioridades = ["Alta", "Média", "Baixa"]
     const titulos = [
       "Solicitação de reparo",
       "Reclamação de serviço",
       "Pedido de informação",
       "Denúncia",
-      "Sugestão de melhoria"
-    ];
+      "Sugestão de melhoria",
+    ]
 
     // Criar 15 chamados para o usuário Silas
     for (let i = 0; i < 15; i++) {
-      const departamento = departamentosInseridos[i % departamentosInseridos.length];
+      const departamento =
+        departamentosInseridos[i % departamentosInseridos.length]
 
-      const dataAbertura = new Date();
-      dataAbertura.setDate(dataAbertura.getDate() - Math.floor(Math.random() * 30));
+      const dataAbertura = new Date()
+      dataAbertura.setDate(
+        dataAbertura.getDate() - Math.floor(Math.random() * 30)
+      )
 
-      const dataFechamento = i % 4 === 0 ? new Date(dataAbertura.getTime() + Math.random() * 7 * 24 * 60 * 60 * 1000) : null;
+      const dataFechamento =
+        i % 4 === 0
+          ? new Date(
+              dataAbertura.getTime() + Math.random() * 7 * 24 * 60 * 60 * 1000
+            )
+          : null
 
-      const [chamado] = await db.insert(chamados).values({
-        cha_descricao: `Chamado ${i + 1} do usuário Silas - ${titulos[i % titulos.length]}`,
-        cha_nome: `Chamado ${i + 1} - ${departamento.dep_nome}`,
-        cha_data_abertura: dataAbertura,
-        cha_data_fechamento: dataFechamento,
-        cha_departamento: departamento.dep_id,
-        cha_responsavel: i % 2 === 0 ? funcionariosInseridos[i % funcionariosInseridos.length].fun_id : null,
-        cha_cep: "06543000",
-        cha_numero_endereco: String(100 + i),
-        cha_titulo: titulos[i % titulos.length],
-        cha_prioridade: prioridades[i % prioridades.length],
-        usu_id: usuarioSilas.usu_id,
-        cat_id: categoriasInseridas[i % categoriasInseridas.length].cat_id,
-      }).returning();
+      const [chamado] = await db
+        .insert(chamados)
+        .values({
+          cha_descricao: `Chamado ${i + 1} do usuário Silas - ${titulos[i % titulos.length]}`,
+          cha_nome: `Chamado ${i + 1} - ${departamento.dep_nome}`,
+          cha_data_abertura: dataAbertura,
+          cha_data_fechamento: dataFechamento,
+          cha_departamento: departamento.dep_id,
+          cha_responsavel:
+            i % 2 === 0
+              ? funcionariosInseridos[i % funcionariosInseridos.length].fun_id
+              : null,
+          cha_cep: "06543000",
+          cha_numero_endereco: String(100 + i),
+          cha_titulo: titulos[i % titulos.length],
+          cha_prioridade: prioridades[i % prioridades.length],
+          usu_id: usuarioSilas.usu_id,
+          cat_id: categoriasInseridas[i % categoriasInseridas.length].cat_id,
+        })
+        .returning()
 
-      chamadosInseridos.push(chamado);
+      chamadosInseridos.push(chamado)
     }
 
     // Criar chamados para outros usuários
     for (let i = 0; i < 35; i++) {
-      const departamento = departamentosInseridos[i % departamentosInseridos.length];
-      const usuario = usuariosInseridos[1 + (i % (usuariosInseridos.length - 1))]; // Skip Silas
+      const departamento =
+        departamentosInseridos[i % departamentosInseridos.length]
+      const usuario =
+        usuariosInseridos[1 + (i % (usuariosInseridos.length - 1))] // Skip Silas
 
-      const dataAbertura = new Date();
-      dataAbertura.setDate(dataAbertura.getDate() - Math.floor(Math.random() * 60));
+      const dataAbertura = new Date()
+      dataAbertura.setDate(
+        dataAbertura.getDate() - Math.floor(Math.random() * 60)
+      )
 
-      const dataFechamento = i % 3 === 0 ? new Date(dataAbertura.getTime() + Math.random() * 10 * 24 * 60 * 60 * 1000) : null;
+      const dataFechamento =
+        i % 3 === 0
+          ? new Date(
+              dataAbertura.getTime() + Math.random() * 10 * 24 * 60 * 60 * 1000
+            )
+          : null
 
-      const [chamado] = await db.insert(chamados).values({
-        cha_descricao: `Chamado ${i + 16} - ${titulos[i % titulos.length]}`,
-        cha_nome: `Chamado ${i + 16} - ${departamento.dep_nome}`,
-        cha_data_abertura: dataAbertura,
-        cha_data_fechamento: dataFechamento,
-        cha_departamento: departamento.dep_id,
-        cha_responsavel: i % 2 === 0 ? funcionariosInseridos[i % funcionariosInseridos.length].fun_id : null,
-        cha_cep: "06543000",
-        cha_numero_endereco: String(200 + i),
-        cha_titulo: titulos[i % titulos.length],
-        cha_prioridade: prioridades[i % prioridades.length],
-        usu_id: usuario.usu_id,
-        cat_id: categoriasInseridas[i % categoriasInseridas.length].cat_id,
-      }).returning();
+      const [chamado] = await db
+        .insert(chamados)
+        .values({
+          cha_descricao: `Chamado ${i + 16} - ${titulos[i % titulos.length]}`,
+          cha_nome: `Chamado ${i + 16} - ${departamento.dep_nome}`,
+          cha_data_abertura: dataAbertura,
+          cha_data_fechamento: dataFechamento,
+          cha_departamento: departamento.dep_id,
+          cha_responsavel:
+            i % 2 === 0
+              ? funcionariosInseridos[i % funcionariosInseridos.length].fun_id
+              : null,
+          cha_cep: "06543000",
+          cha_numero_endereco: String(200 + i),
+          cha_titulo: titulos[i % titulos.length],
+          cha_prioridade: prioridades[i % prioridades.length],
+          usu_id: usuario.usu_id,
+          cat_id: categoriasInseridas[i % categoriasInseridas.length].cat_id,
+        })
+        .returning()
 
-      chamadosInseridos.push(chamado);
+      chamadosInseridos.push(chamado)
     }
 
-    console.log("Chamados inseridos");
+    console.log("Chamados inseridos")
 
     // Inserir notificações para o usuário Silas
-    const tiposNotificacao = ["info", "success", "warning", "error"];
+    const tiposNotificacao = ["info", "success", "warning", "error"]
     const titulosNotificacao = [
       "Chamado atualizado",
       "Novo chamado criado",
       "Chamado finalizado",
       "Atenção necessária",
-      "Prazo se aproxima"
-    ];
+      "Prazo se aproxima",
+    ]
     const mensagensNotificacao = [
       "Seu chamado foi atualizado pelo responsável",
       "Um novo chamado foi criado com sucesso",
       "Seu chamado foi finalizado",
       "Seu chamado necessita de informações adicionais",
-      "O prazo do seu chamado está se aproximando"
-    ];
+      "O prazo do seu chamado está se aproximando",
+    ]
 
     for (let i = 0; i < 10; i++) {
-      const dataNotificacao = new Date();
-      dataNotificacao.setDate(dataNotificacao.getDate() - Math.floor(Math.random() * 15));
+      const dataNotificacao = new Date()
+      dataNotificacao.setDate(
+        dataNotificacao.getDate() - Math.floor(Math.random() * 15)
+      )
 
       await db.insert(notificacoes).values({
         not_titulo: titulosNotificacao[i % titulosNotificacao.length],
@@ -336,17 +403,17 @@ async function runSeed() {
         not_lida: i % 3 === 0, // 1/3 das notificações já lidas
         not_tipo: tiposNotificacao[i % tiposNotificacao.length],
         usu_id: usuarioSilas.usu_id,
-      });
+      })
     }
 
-    console.log("Notificações inseridas");
+    console.log("Notificações inseridas")
 
-    console.log("✅ Seed concluído com sucesso!");
+    console.log("✅ Seed concluído com sucesso!")
   } catch (error) {
-    console.error("❌ Erro ao executar seed:", error);
+    console.error("❌ Erro ao executar seed:", error)
   } finally {
-    process.exit(0);
+    process.exit(0)
   }
 }
 
-runSeed();
+runSeed()

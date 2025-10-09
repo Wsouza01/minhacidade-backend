@@ -1,13 +1,13 @@
-import { and, eq } from 'drizzle-orm'
-import type { FastifyPluginCallback } from 'fastify'
-import { z } from 'zod'
-import { db } from '../../../db/connection.ts'
-import { cidades } from '../../../db/schema/cidades.ts'
+import { and, eq } from "drizzle-orm"
+import type { FastifyPluginCallback } from "fastify"
+import { z } from "zod"
+import { db } from "../../../db/connection.ts"
+import { cidades } from "../../../db/schema/cidades.ts"
 
 export const cidadesRoute: FastifyPluginCallback = (app) => {
   // Lista de cidades (público, com filtros)
   app.get(
-    '/cidades',
+    "/cidades",
     {
       schema: {
         querystring: z.object({
@@ -34,7 +34,7 @@ export const cidadesRoute: FastifyPluginCallback = (app) => {
         // condições dinâmicas
         const conditions = []
         if (ativo !== undefined) {
-          conditions.push(eq(cidades.cid_ativo, ativo === 'true'))
+          conditions.push(eq(cidades.cid_ativo, ativo === "true"))
         }
         if (estado) {
           conditions.push(eq(cidades.cid_estado, estado))
@@ -54,11 +54,11 @@ export const cidadesRoute: FastifyPluginCallback = (app) => {
 
         return reply.send(result)
       } catch (error) {
-        console.error('Erro ao buscar cidades:', error)
+        console.error("Erro ao buscar cidades:", error)
         return reply.status(500).send({
-          message: 'Erro ao buscar cidades',
+          message: "Erro ao buscar cidades",
           error: error instanceof Error ? error.message : String(error),
-          code: 'CITIES_FETCH_ERROR',
+          code: "CITIES_FETCH_ERROR",
         })
       }
     }
@@ -66,7 +66,7 @@ export const cidadesRoute: FastifyPluginCallback = (app) => {
 
   // Lista somente cidades ativas (permitidas)
   app.get(
-    '/cidades/permitidas',
+    "/cidades/permitidas",
     {
       schema: {
         response: {
@@ -94,11 +94,11 @@ export const cidadesRoute: FastifyPluginCallback = (app) => {
 
         return reply.send(result)
       } catch (error) {
-        console.error('Erro ao buscar cidades permitidas:', error)
+        console.error("Erro ao buscar cidades permitidas:", error)
         return reply.status(500).send({
-          message: 'Erro ao buscar cidades permitidas',
+          message: "Erro ao buscar cidades permitidas",
           error: error instanceof Error ? error.message : String(error),
-          code: 'CITIES_FETCH_ERROR',
+          code: "CITIES_FETCH_ERROR",
         })
       }
     }
@@ -106,7 +106,7 @@ export const cidadesRoute: FastifyPluginCallback = (app) => {
 
   // Adicionar cidade
   app.post(
-    '/cidades',
+    "/cidades",
     {
       schema: {
         body: z.object({
@@ -122,7 +122,10 @@ export const cidadesRoute: FastifyPluginCallback = (app) => {
 
       try {
         if (padrao) {
-          await db.update(cidades).set({ cid_padrao: false }).where(eq(cidades.cid_padrao, true))
+          await db
+            .update(cidades)
+            .set({ cid_padrao: false })
+            .where(eq(cidades.cid_padrao, true))
         }
 
         const [novaCidade] = await db
@@ -137,11 +140,11 @@ export const cidadesRoute: FastifyPluginCallback = (app) => {
 
         return reply.status(201).send(novaCidade)
       } catch (error) {
-        console.error('Erro ao adicionar cidade:', error)
+        console.error("Erro ao adicionar cidade:", error)
         return reply.status(400).send({
-          message: 'Erro ao adicionar cidade',
+          message: "Erro ao adicionar cidade",
           error: error instanceof Error ? error.message : String(error),
-          code: 'CITY_CREATION_ERROR',
+          code: "CITY_CREATION_ERROR",
         })
       }
     }
@@ -149,7 +152,7 @@ export const cidadesRoute: FastifyPluginCallback = (app) => {
 
   // Atualizar cidade
   app.put(
-    '/cidades/:id',
+    "/cidades/:id",
     {
       schema: {
         params: z.object({ id: z.string().uuid() }),
@@ -167,7 +170,10 @@ export const cidadesRoute: FastifyPluginCallback = (app) => {
 
       try {
         if (padrao) {
-          await db.update(cidades).set({ cid_padrao: false }).where(eq(cidades.cid_padrao, true))
+          await db
+            .update(cidades)
+            .set({ cid_padrao: false })
+            .where(eq(cidades.cid_padrao, true))
         }
 
         const [cidadeAtualizada] = await db
@@ -183,11 +189,11 @@ export const cidadesRoute: FastifyPluginCallback = (app) => {
 
         return reply.send(cidadeAtualizada)
       } catch (error) {
-        console.error('Erro ao atualizar cidade:', error)
+        console.error("Erro ao atualizar cidade:", error)
         return reply.status(400).send({
-          message: 'Erro ao atualizar cidade',
+          message: "Erro ao atualizar cidade",
           error: error instanceof Error ? error.message : String(error),
-          code: 'CITY_UPDATE_ERROR',
+          code: "CITY_UPDATE_ERROR",
         })
       }
     }
@@ -195,7 +201,7 @@ export const cidadesRoute: FastifyPluginCallback = (app) => {
 
   // Remover cidade
   app.delete(
-    '/cidades/:id',
+    "/cidades/:id",
     {
       schema: { params: z.object({ id: z.string().uuid() }) },
     },
@@ -203,13 +209,13 @@ export const cidadesRoute: FastifyPluginCallback = (app) => {
       const { id } = request.params
       try {
         await db.delete(cidades).where(eq(cidades.cid_id, id))
-        return reply.send({ message: 'Cidade removida com sucesso' })
+        return reply.send({ message: "Cidade removida com sucesso" })
       } catch (error) {
-        console.error('Erro ao remover cidade:', error)
+        console.error("Erro ao remover cidade:", error)
         return reply.status(400).send({
-          message: 'Erro ao remover cidade',
+          message: "Erro ao remover cidade",
           error: error instanceof Error ? error.message : String(error),
-          code: 'CITY_DELETION_ERROR',
+          code: "CITY_DELETION_ERROR",
         })
       }
     }

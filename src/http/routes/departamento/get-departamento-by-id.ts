@@ -1,8 +1,8 @@
-import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
-import { db } from "../../../db/connection.ts";
-import { departamentos } from "../../../db/schema/departamentos.ts";
-import { z } from "zod";
-import { eq } from "drizzle-orm";
+import { eq } from "drizzle-orm"
+import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod"
+import { z } from "zod"
+import { db } from "../../../db/connection.ts"
+import { departamentos } from "../../../db/schema/departamentos.ts"
 
 export const getDepartamentoByIdRoute: FastifyPluginCallbackZod = (app) => {
   app.get(
@@ -16,27 +16,27 @@ export const getDepartamentoByIdRoute: FastifyPluginCallbackZod = (app) => {
     },
     async (request, reply) => {
       try {
-        const { id } = request.params;
+        const { id } = request.params
 
         const departamento = await db
           .select()
           .from(departamentos)
           .where(eq(departamentos.dep_id, id))
-          .limit(1);
+          .limit(1)
 
         if (departamento.length === 0) {
           return reply.status(404).send({
-            message: "Departamento não encontrado"
-          });
+            message: "Departamento não encontrado",
+          })
         }
 
-        console.log(`📋 Departamento encontrado:`, departamento[0]);
+        console.log("📋 Departamento encontrado:", departamento[0])
 
-        reply.send(departamento[0]);
+        reply.send(departamento[0])
       } catch (error) {
-        console.error("Erro ao buscar departamento:", error);
-        reply.status(500).send({ message: "Erro interno do servidor" });
+        console.error("Erro ao buscar departamento:", error)
+        reply.status(500).send({ message: "Erro interno do servidor" })
       }
     }
-  );
-};
+  )
+}

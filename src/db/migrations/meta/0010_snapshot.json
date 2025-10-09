@@ -1,6 +1,6 @@
 {
-  "id": "f73567b0-1df3-405b-91b8-9ca57bd401a8",
-  "prevId": "71db0df1-adb3-4df0-9d82-20e467630c33",
+  "id": "14b3afdc-f2a9-4f38-87f8-b78e87fd1c5d",
+  "prevId": "85b0a06c-626c-4068-ba3e-9b8e05c477e9",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -39,11 +39,11 @@
         "anexo_cha_id_chamado_cha_id_fk": {
           "name": "anexo_cha_id_chamado_cha_id_fk",
           "tableFrom": "anexo",
-          "tableTo": "chamado",
           "columnsFrom": ["cha_id"],
+          "tableTo": "chamado",
           "columnsTo": ["cha_id"],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -144,9 +144,9 @@
           "notNull": true,
           "default": "now()"
         },
-        "cha_titulo": {
-          "name": "cha_titulo",
-          "type": "text",
+        "cha_motivo:": {
+          "name": "cha_motivo:",
+          "type": "jsonb",
           "primaryKey": false,
           "notNull": false
         },
@@ -174,38 +174,38 @@
         "chamado_cha_departamento_departamentos_dep_id_fk": {
           "name": "chamado_cha_departamento_departamentos_dep_id_fk",
           "tableFrom": "chamado",
-          "tableTo": "departamentos",
           "columnsFrom": ["cha_departamento"],
+          "tableTo": "departamentos",
           "columnsTo": ["dep_id"],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         },
         "chamado_cha_responsavel_funcionario_fun_id_fk": {
           "name": "chamado_cha_responsavel_funcionario_fun_id_fk",
           "tableFrom": "chamado",
-          "tableTo": "funcionario",
           "columnsFrom": ["cha_responsavel"],
+          "tableTo": "funcionario",
           "columnsTo": ["fun_id"],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         },
-        "chamado_usu_id_usuario_usu_id_fk": {
-          "name": "chamado_usu_id_usuario_usu_id_fk",
+        "chamado_usu_id_usuarios_usu_id_fk": {
+          "name": "chamado_usu_id_usuarios_usu_id_fk",
           "tableFrom": "chamado",
-          "tableTo": "usuario",
           "columnsFrom": ["usu_id"],
+          "tableTo": "usuarios",
           "columnsTo": ["usu_id"],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         },
         "chamado_cat_id_categoria_cat_id_fk": {
           "name": "chamado_cat_id_categoria_cat_id_fk",
           "tableFrom": "chamado",
-          "tableTo": "categoria",
           "columnsFrom": ["cat_id"],
+          "tableTo": "categoria",
           "columnsTo": ["cat_id"],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -282,6 +282,19 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "dep_qtdChamados": {
+          "name": "dep_qtdChamados",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "dep_motivo": {
+          "name": "dep_motivo",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
         }
       },
       "indexes": {},
@@ -339,11 +352,11 @@
         "etapa_cha_id_chamado_cha_id_fk": {
           "name": "etapa_cha_id_chamado_cha_id_fk",
           "tableFrom": "etapa",
-          "tableTo": "chamado",
           "columnsFrom": ["cha_id"],
+          "tableTo": "chamado",
           "columnsTo": ["cha_id"],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -418,11 +431,11 @@
         "funcionario_dep_id_departamentos_dep_id_fk": {
           "name": "funcionario_dep_id_departamentos_dep_id_fk",
           "tableFrom": "funcionario",
-          "tableTo": "departamentos",
           "columnsFrom": ["dep_id"],
+          "tableTo": "departamentos",
           "columnsTo": ["dep_id"],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -485,20 +498,20 @@
         "notificacao_cha_id_chamado_cha_id_fk": {
           "name": "notificacao_cha_id_chamado_cha_id_fk",
           "tableFrom": "notificacao",
-          "tableTo": "chamado",
           "columnsFrom": ["cha_id"],
+          "tableTo": "chamado",
           "columnsTo": ["cha_id"],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         },
-        "notificacao_usu_id_usuario_usu_id_fk": {
-          "name": "notificacao_usu_id_usuario_usu_id_fk",
+        "notificacao_usu_id_usuarios_usu_id_fk": {
+          "name": "notificacao_usu_id_usuarios_usu_id_fk",
           "tableFrom": "notificacao",
-          "tableTo": "usuario",
           "columnsFrom": ["usu_id"],
+          "tableTo": "usuarios",
           "columnsTo": ["usu_id"],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -507,8 +520,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.usuario": {
-      "name": "usuario",
+    "public.usuarios": {
+      "name": "usuarios",
       "schema": "",
       "columns": {
         "usu_id": {
@@ -575,6 +588,19 @@
           "notNull": true,
           "default": true
         },
+        "usu_tentativas_login": {
+          "name": "usu_tentativas_login",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "usu_bloqueado_ate": {
+          "name": "usu_bloqueado_ate",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
         "usu_endereco": {
           "name": "usu_endereco",
           "type": "jsonb",
@@ -590,32 +616,32 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "usuario_cid_id_cidades_cid_id_fk": {
-          "name": "usuario_cid_id_cidades_cid_id_fk",
-          "tableFrom": "usuario",
-          "tableTo": "cidades",
+        "usuarios_cid_id_cidades_cid_id_fk": {
+          "name": "usuarios_cid_id_cidades_cid_id_fk",
+          "tableFrom": "usuarios",
           "columnsFrom": ["cid_id"],
+          "tableTo": "cidades",
           "columnsTo": ["cid_id"],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "usuario_usu_email_unique": {
-          "name": "usuario_usu_email_unique",
-          "nullsNotDistinct": false,
-          "columns": ["usu_email"]
+        "usuarios_usu_email_unique": {
+          "name": "usuarios_usu_email_unique",
+          "columns": ["usu_email"],
+          "nullsNotDistinct": false
         },
-        "usuario_usu_cpf_unique": {
-          "name": "usuario_usu_cpf_unique",
-          "nullsNotDistinct": false,
-          "columns": ["usu_cpf"]
+        "usuarios_usu_cpf_unique": {
+          "name": "usuarios_usu_cpf_unique",
+          "columns": ["usu_cpf"],
+          "nullsNotDistinct": false
         },
-        "usuario_usu_login_unique": {
-          "name": "usuario_usu_login_unique",
-          "nullsNotDistinct": false,
-          "columns": ["usu_login"]
+        "usuarios_usu_login_unique": {
+          "name": "usuarios_usu_login_unique",
+          "columns": ["usu_login"],
+          "nullsNotDistinct": false
         }
       },
       "policies": {},
@@ -625,10 +651,10 @@
   },
   "enums": {},
   "schemas": {},
+  "views": {},
   "sequences": {},
   "roles": {},
   "policies": {},
-  "views": {},
   "_meta": {
     "columns": {},
     "schemas": {},

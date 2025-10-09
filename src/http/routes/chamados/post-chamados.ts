@@ -1,11 +1,11 @@
-import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
-import { db } from "../../../db/connection.ts";
-import { chamados } from "../../../db/schema/chamados.ts";
-import { categorias } from "../../../db/schema/categorias.ts";
-import { departamentos } from "../../../db/schema/departamentos.ts";
-import { notificacoes } from "../../../db/schema/notificacoes.ts";
-import { z } from "zod";
-import { eq, ilike } from "drizzle-orm";
+import { eq, ilike } from "drizzle-orm"
+import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod"
+import { z } from "zod"
+import { db } from "../../../db/connection.ts"
+import { categorias } from "../../../db/schema/categorias.ts"
+import { chamados } from "../../../db/schema/chamados.ts"
+import { departamentos } from "../../../db/schema/departamentos.ts"
+import { notificacoes } from "../../../db/schema/notificacoes.ts"
 
 export const postChamadosRoute: FastifyPluginCallbackZod = (app) => {
   app.post(
@@ -31,20 +31,20 @@ export const postChamadosRoute: FastifyPluginCallbackZod = (app) => {
     },
     async (request, reply) => {
       try {
-        const body = request.body;
-        console.log('📥 Recebendo chamado:', body);
+        const body = request.body
+        console.log("📥 Recebendo chamado:", body)
 
         // Buscar categoria pelo nome se fornecida
-        let categoria_id = null;
+        let categoria_id = null
         if (body.categoria_nome) {
           const categoria = await db
             .select()
             .from(categorias)
             .where(ilike(categorias.cat_nome, `%${body.categoria_nome}%`))
-            .limit(1);
+            .limit(1)
 
           if (categoria.length > 0) {
-            categoria_id = categoria[0].cat_id;
+            categoria_id = categoria[0].cat_id
           }
         }
 
@@ -53,22 +53,25 @@ export const postChamadosRoute: FastifyPluginCallbackZod = (app) => {
           .select()
           .from(departamentos)
           .where(eq(departamentos.dep_id, body.departamento_id))
-          .limit(1);
+          .limit(1)
 
         if (departamento.length === 0) {
-          return reply.status(400).send({ error: "Departamento não encontrado" });
+          return reply
+            .status(400)
+            .send({ error: "Departamento não encontrado" })
         }
 
         // Criar nome do chamado baseado no título
-        const nome_chamado = body.titulo || `Chamado - ${body.motivo || 'Solicitação'}`;
+        const nome_chamado =
+          body.titulo || `Chamado - ${body.motivo || "Solicitação"}`
 
         // Log dos dados antes de inserir
-        console.log('📝 Dados do chamado a ser criado:', {
+        console.log("📝 Dados do chamado a ser criado:", {
           usuario_id: body.usuario_id || null,
-          anonimo: body.anonimo || false,
+          anonimo: body.anonimo,
           departamento_id: body.departamento_id,
-          categoria_id: categoria_id,
-        });
+          categoria_id,
+        })
 
         const novoChamado = await db
           .insert(chamados)
@@ -85,14 +88,14 @@ export const postChamadosRoute: FastifyPluginCallbackZod = (app) => {
             cha_data_abertura: new Date(),
             // cha_responsavel pode ser null inicialmente
           })
-          .returning();
+          .returning()
 
-        console.log('✅ Chamado criado com sucesso:', {
+        console.log("✅ Chamado criado com sucesso:", {
           cha_id: novoChamado[0].cha_id,
           cha_titulo: novoChamado[0].cha_titulo,
           usu_id: novoChamado[0].usu_id,
           cha_departamento: novoChamado[0].cha_departamento,
-        });
+        })
 
         // Criar notificação para o usuário (apenas se não for anônimo)
         if (body.usuario_id) {
@@ -103,24 +106,24 @@ export const postChamadosRoute: FastifyPluginCallbackZod = (app) => {
               ntf_lida: "false",
               cha_id: novoChamado[0].cha_id,
               usu_id: body.usuario_id,
-            });
-            console.log('✅ Notificação criada para o usuário');
+            })
+            console.log("✅ Notificação criada para o usuário")
           } catch (notifError) {
-            console.error('❌ Erro ao criar notificação:', notifError);
+            console.error("❌ Erro ao criar notificação:", notifError)
             // Não interrompe o fluxo se a notificação falhar
           }
         } else {
-          console.log('ℹ️ Chamado anônimo - notificação não criada');
+          console.log("ℹ️ Chamado anônimo - notificação não criada")
         }
 
         reply.status(201).send({
           message: "Chamado criado com sucesso",
-          chamado: novoChamado[0]
-        });
+          chamado: novoChamado[0],
+        })
       } catch (error) {
-        console.error("Erro ao criar chamado:", error);
-        reply.status(500).send({ message: "Erro interno do servidor" });
+        console.error("Erro ao criar chamado:", error)
+        reply.status(500).send({ message: "Erro interno do servidor" })
       }
     }
-  );
-};
+  )
+}
