@@ -1,6 +1,6 @@
+import { fastify } from "fastify"
 import fastifyCors from "@fastify/cors"
 import multipart from "@fastify/multipart"
-import { fastify } from "fastify"
 import {
   serializerCompiler,
   validatorCompiler,
@@ -11,6 +11,8 @@ import { jwtPlugin } from "./http/plugins/jwt.ts"
 import { getAnexosRoute } from "./http/routes/anexos/get-anexos.ts"
 import { postAnexosRoute } from "./http/routes/anexos/post-anexos.ts"
 import { authLoginRoute } from "./http/routes/auth/login.ts"
+import { solicitarRecuperacaoSenhaRoute } from "./http/routes/auth/solicitar-recuperacao-senha.ts"
+import { redefinirSenhaRoute } from "./http/routes/auth/redefinir-senha.ts"
 import { getCategoriasRoute } from "./http/routes/categorias/get-categorias.ts"
 import { getCategoriasByDepartamentoRoute } from "./http/routes/categorias/get-categorias-by-departamento.ts"
 import { getPrioridadesByDepartamentoRoute } from "./http/routes/categorias/get-prioridades-by-departamento.ts"
@@ -38,6 +40,7 @@ import { postFuncionariosRoute } from "./http/routes/funcionarios/post-funcionar
 import { loginRoute } from "./http/routes/login/login.ts"
 import { getNotificationsUserRoute } from "./http/routes/notificacoes/get-notifications-user.ts"
 import { postNotificationRoute } from "./http/routes/notificacoes/post-notification.ts"
+import { getRelatorioGeralRoute } from "./http/routes/relatorios/get-relatorio-geral.ts"
 import { alterarEmailRoute } from "./http/routes/users/alterar-email.ts"
 import { alterarSenhaRoute } from "./http/routes/users/alterar-senha.ts"
 import { checkCpfRoute } from "./http/routes/users/check-cpf.ts"
@@ -76,6 +79,8 @@ app.get("/health", () => "OK")
 
 // Auth routes
 app.register(authLoginRoute)
+app.register(solicitarRecuperacaoSenhaRoute)
+app.register(redefinirSenhaRoute)
 app.register(loginRoute)
 app.register(postUsersRoute)
 app.register(checkCpfRoute)
@@ -112,5 +117,6 @@ app.register(alterarSenhaRoute)
 app.register(alterarEmailRoute)
 app.register(getNotificationsUserRoute)
 app.register(postNotificationRoute)
+app.register(getRelatorioGeralRoute)
 
 app.listen({ port: env.PORT, host: "0.0.0.0" })
