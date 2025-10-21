@@ -1,23 +1,26 @@
-import type { FastifyInstance } from 'fastify'
-import type { ZodTypeProvider } from 'fastify-type-provider-zod'
-import { z } from 'zod'
-import { db } from '../../../db/connection.ts'
-import { usuarios } from '../../../db/schema/usuarios.ts'
-import { funcionarios } from '../../../db/schema/funcionarios.ts'
-import { tokensRecuperacao } from '../../../db/schema/tokens-recuperacao.ts'
-import { eq, or } from 'drizzle-orm'
-import { randomBytes } from 'node:crypto'
-import { sendEmail, gerarEmailRecuperacaoSenha } from '../../../services/email.ts'
+import type { FastifyInstance } from "fastify";
+import type { ZodTypeProvider } from "fastify-type-provider-zod";
+import { z } from "zod";
+import { db } from "../../../db/connection.ts";
+import { usuarios } from "../../../db/schema/usuarios.ts";
+import { funcionarios } from "../../../db/schema/funcionarios.ts";
+import { tokensRecuperacao } from "../../../db/schema/tokens-recuperacao.ts";
+import { eq, or } from "drizzle-orm";
+import { randomBytes } from "node:crypto";
+import {
+  sendEmail,
+  gerarEmailRecuperacaoSenha,
+} from "../../../services/email.ts";
 
 export async function solicitarRecuperacaoSenhaRoute(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().post(
-    '/auth/solicitar-recuperacao-senha',
+    "/auth/solicitar-recuperacao-senha",
     {
       schema: {
-        tags: ['auth'],
-        summary: 'Solicitar recuperação de senha',
+        tags: ["auth"],
+        summary: "Solicitar recuperação de senha",
         body: z.object({
-          identificador: z.string().min(1, 'Identificador é obrigatório'),
+          identificador: z.string().min(1, "Identificador é obrigatório"),
         }),
         response: {
           200: z.object({
@@ -34,11 +37,11 @@ export async function solicitarRecuperacaoSenhaRoute(app: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const { identificador } = request.body
+      const { identificador } = request.body;
 
       try {
         // Remove caracteres especiais do CPF (se for CPF)
-        const identificadorLimpo = identificador.replace(/[.\-/]/g, '')
+        const identificadorLimpo = identificador.replace(/[.\-/]/g, "");
 
         // Buscar em usuários (por CPF, email ou login)
         const usuarioEncontrado = await db
@@ -51,7 +54,7 @@ export async function solicitarRecuperacaoSenhaRoute(app: FastifyInstance) {
               eq(usuarios.usu_login, identificador)
             )
           )
-          .limit(1)
+          .limit(1);
 
         // Buscar em funcionários (por CPF, email ou matrícula)
         const funcionarioEncontrado = await db
@@ -61,32 +64,35 @@ export async function solicitarRecuperacaoSenhaRoute(app: FastifyInstance) {
             or(
               eq(funcionarios.fun_cpf, identificadorLimpo),
               eq(funcionarios.fun_email, identificador),
-              eq(funcionarios.fun_matricula, identificador)
+              eq(funcionarios.fun_login, identificador) // 👈 usar login no lugar, já que ele existe
             )
           )
-          .limit(1)
+          .limit(1);
 
         // Se não encontrou em nenhuma tabela
-        if (usuarioEncontrado.length === 0 && funcionarioEncontrado.length === 0) {
+        if (
+          usuarioEncontrado.length === 0 &&
+          funcionarioEncontrado.length === 0
+        ) {
           return reply.status(404).send({
-            message: 'Usuário não encontrado com o identificador fornecido',
-          })
+            message: "Usuário não encontrado com o identificador fornecido",
+          });
         }
 
         // Determinar qual foi encontrado
-        const usuario = usuarioEncontrado[0]
-        const funcionario = funcionarioEncontrado[0]
+        const usuario = usuarioEncontrado[0];
+        const funcionario = funcionarioEncontrado[0];
 
-        const email = usuario ? usuario.usu_email : funcionario.fun_email
-        const nome = usuario ? usuario.usu_nome : funcionario.fun_nome
-        const tipoUsuario = usuario ? 'usuario' : 'funcionario'
+        const email = usuario ? usuario.usu_email : funcionario.fun_email;
+        const nome = usuario ? usuario.usu_nome : funcionario.fun_nome;
+        const tipoUsuario = usuario ? "usuario" : "funcionario";
 
         // Gerar token único
-        const token = randomBytes(32).toString('hex')
+        const token = randomBytes(32).toString("hex");
 
         // Definir expiração (1 hora)
-        const expiraEm = new Date()
-        expiraEm.setHours(expiraEm.getHours() + 1)
+        const expiraEm = new Date();
+        expiraEm.setHours(expiraEm.getHours() + 1);
 
         // Salvar token no banco
         await db.insert(tokensRecuperacao).values({
@@ -94,10 +100,10 @@ export async function solicitarRecuperacaoSenhaRoute(app: FastifyInstance) {
           tok_email: email,
           tok_tipo_usuario: tipoUsuario,
           tok_expira_em: expiraEm,
-        })
+        });
 
         // Gerar conteúdo do email
-        const emailContent = gerarEmailRecuperacaoSenha(nome, token)
+        const emailContent = gerarEmailRecuperacaoSenha(nome, token);
 
         // Enviar email
         const resultado = await sendEmail({
@@ -105,24 +111,24 @@ export async function solicitarRecuperacaoSenhaRoute(app: FastifyInstance) {
           subject: emailContent.subject,
           html: emailContent.html,
           text: emailContent.text,
-        })
+        });
 
         if (!resultado.success) {
           return reply.status(500).send({
-            message: 'Erro ao enviar email de recuperação',
-          })
+            message: "Erro ao enviar email de recuperação",
+          });
         }
 
         return reply.status(200).send({
           message: `Email de recuperação enviado para ${email}`,
           emailEnviado: true,
-        })
+        });
       } catch (error) {
-        console.error('[RECUPERACAO] Erro:', error)
+        console.error("[RECUPERACAO] Erro:", error);
         return reply.status(500).send({
-          message: 'Erro ao processar solicitação de recuperação',
-        })
+          message: "Erro ao processar solicitação de recuperação",
+        });
       }
     }
-  )
+  );
 }
