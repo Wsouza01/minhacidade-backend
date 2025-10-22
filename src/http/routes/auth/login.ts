@@ -214,7 +214,21 @@ export const authLoginRoute: FastifyPluginAsyncZod = async (app) => {
 
         // Se não encontrou como usuário, tenta como funcionário (atendente ou servidor)
         const funcionario = await db
-          .select()
+          .select({
+            fun_id: funcionarios.fun_id,
+            fun_nome: funcionarios.fun_nome,
+            fun_email: funcionarios.fun_email,
+            fun_cpf: funcionarios.fun_cpf,
+            fun_data_nascimento: funcionarios.fun_data_nascimento,
+            fun_criado: funcionarios.fun_criado,
+            fun_login: funcionarios.fun_login,
+            fun_senha: funcionarios.fun_senha,
+            fun_matricula: funcionarios.fun_matricula,
+            fun_tipo: funcionarios.fun_tipo,
+            fun_ativo: funcionarios.fun_ativo,
+            dep_id: funcionarios.dep_id,
+            cid_id: funcionarios.cid_id,
+          })
           .from(funcionarios)
           .where(
             or(

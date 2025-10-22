@@ -1,13 +1,16 @@
-import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core"
+import { pgTable, boolean, text, timestamp, uuid } from "drizzle-orm/pg-core"
 import { chamados } from "./chamados.ts"
+import { funcionarios } from "./funcionarios.ts"
 import { usuarios } from "./usuarios.ts"
 
 export const notificacoes = pgTable("notificacao", {
-  ntf_id: uuid("ntf_id").primaryKey().defaultRandom(),
-  ntf_canal: text("ntf_canal"),
-  ntf_mensagem: text("ntf_mensagem"),
-  ntf_data_envio: timestamp("ntf_data_envio").defaultNow(),
-  ntf_lida: text("ntf_lida"),
+  not_id: uuid("not_id").primaryKey().defaultRandom(),
+  not_titulo: text("not_titulo"),
+  not_mensagem: text("not_mensagem"),
+  not_tipo: text("not_tipo"), // 'info', 'success', 'warning', 'error'
+  not_lida: boolean("not_lida").default(false),
+  not_data: timestamp("not_data").defaultNow(),
   cha_id: uuid("cha_id").references(() => chamados.cha_id),
   usu_id: uuid("usu_id").references(() => usuarios.usu_id),
+  fun_id: uuid("fun_id").references(() => funcionarios.fun_id),
 })

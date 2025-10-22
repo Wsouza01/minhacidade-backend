@@ -44,7 +44,10 @@ import { postDepartamentosRoute } from "./http/routes/departamento/post-departam
 import { getEtapasRoute } from "./http/routes/etapas/get-etapas.ts"
 import { postEtapasRoute } from "./http/routes/etapas/post-etapas.ts"
 import { getFuncionariosRoute } from "./http/routes/funcionarios/get-funcionarios.ts"
+import { getFuncionariosByDepartamentoRoute } from "./http/routes/funcionarios/get-funcionarios-by-departamento.ts"
 import { postFuncionariosRoute } from "./http/routes/funcionarios/post-funcionarios.ts"
+import { putFuncionariosRoute } from "./http/routes/funcionarios/put-funcionarios.ts"
+import { deleteFuncionariosRoute } from "./http/routes/funcionarios/delete-funcionarios.ts"
 import { loginRoute } from "./http/routes/login/login.ts"
 import { getNotificationsUserRoute } from "./http/routes/notificacoes/get-notifications-user.ts"
 import { postNotificationRoute } from "./http/routes/notificacoes/post-notification.ts"
@@ -99,7 +102,10 @@ app.register(deleteAdministradoresRoute)
 app.register(postUsersRoute)
 app.register(checkCpfRoute)
 app.register(getFuncionariosRoute)
+app.register(getFuncionariosByDepartamentoRoute)
 app.register(postFuncionariosRoute)
+app.register(putFuncionariosRoute)
+app.register(deleteFuncionariosRoute)
 app.register(getEtapasRoute)
 app.register(cidadesRoute)
 app.register(postEtapasRoute)

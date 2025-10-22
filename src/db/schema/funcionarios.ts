@@ -21,8 +21,9 @@ export const funcionarios = pgTable("funcionario", {
   fun_login: text("fun_login").notNull().unique(),
   fun_senha: text("fun_senha").notNull(),
 
-  // 🆕 novo campo adicionado
+  // Campos adicionais
   fun_matricula: varchar("fun_matricula", { length: 50 }).unique(),
+  fun_requer_troca_senha: boolean("fun_requer_troca_senha").notNull().default(false),
 
   fun_tipo: text("fun_tipo")
     .notNull()

@@ -8,7 +8,7 @@
     "db:migrate": "drizzle-kit migrate"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.2.6",
+    "@biomejs/biome": "2.2.7",
     "@types/bcrypt": "^6.0.0",
     "@types/bcryptjs": "^3.0.0",
     "@types/node": "^24.9.1",
