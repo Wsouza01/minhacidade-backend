@@ -1,4 +1,4 @@
-import nodemailer from "nodemailer";
+import nodemailer from "nodemailer"
 
 // Configuração do transporter
 // Para desenvolvimento, use um serviço como Ethereal (https://ethereal.email)
@@ -11,13 +11,13 @@ const transporter = nodemailer.createTransport({
     user: process.env.SMTP_USER || "seu-email@ethereal.email",
     pass: process.env.SMTP_PASS || "sua-senha",
   },
-});
+})
 
 interface EmailOptions {
-  to: string;
-  subject: string;
-  html: string;
-  text?: string;
+  to: string
+  subject: string
+  html: string
+  text?: string
 }
 
 export async function sendEmail(options: EmailOptions) {
@@ -30,26 +30,26 @@ export async function sendEmail(options: EmailOptions) {
       subject: options.subject,
       text: options.text,
       html: options.html,
-    });
+    })
 
-    console.log("Email enviado:", info.messageId);
+    console.log("Email enviado:", info.messageId)
 
     // Para Ethereal, gera URL de preview
     if (process.env.NODE_ENV !== "production") {
-      console.log("Preview URL:", nodemailer.getTestMessageUrl(info));
+      console.log("Preview URL:", nodemailer.getTestMessageUrl(info))
     }
 
-    return { success: true, messageId: info.messageId };
+    return { success: true, messageId: info.messageId }
   } catch (error) {
-    console.error("Erro ao enviar email:", error);
-    return { success: false, error };
+    console.error("Erro ao enviar email:", error)
+    return { success: false, error }
   }
 }
 
 export function gerarEmailRecuperacaoSenha(nome: string, token: string) {
   const url = `${
     process.env.FRONTEND_URL || "http://localhost:3000"
-  }/redefinir-senha?token=${token}`;
+  }/redefinir-senha?token=${token}`
 
   return {
     subject: "Recuperação de Senha - Minha Cidade",
@@ -161,5 +161,5 @@ export function gerarEmailRecuperacaoSenha(nome: string, token: string) {
       Este é um email automático, por favor não responda.
       © 2025 Minha Cidade. Todos os direitos reservados.
     `,
-  };
+  }
 }

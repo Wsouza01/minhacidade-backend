@@ -1,21 +1,21 @@
-import type { FastifyInstance } from 'fastify'
-import type { ZodTypeProvider } from 'fastify-type-provider-zod'
-import { z } from 'zod'
-import { db } from '../../../db/connection.ts'
-import { chamados } from '../../../db/schema/chamados.ts'
-import { usuarios } from '../../../db/schema/usuarios.ts'
-import { funcionarios } from '../../../db/schema/funcionarios.ts'
-import { departamentos } from '../../../db/schema/departamentos.ts'
-import { categorias } from '../../../db/schema/categorias.ts'
-import { eq, sql, and, gte, lte } from 'drizzle-orm'
+import { and, eq, gte, lte, sql } from "drizzle-orm"
+import type { FastifyInstance } from "fastify"
+import type { ZodTypeProvider } from "fastify-type-provider-zod"
+import { z } from "zod"
+import { db } from "../../../db/connection.ts"
+import { categorias } from "../../../db/schema/categorias.ts"
+import { chamados } from "../../../db/schema/chamados.ts"
+import { departamentos } from "../../../db/schema/departamentos.ts"
+import { funcionarios } from "../../../db/schema/funcionarios.ts"
+import { usuarios } from "../../../db/schema/usuarios.ts"
 
 export async function getRelatorioGeralRoute(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().get(
-    '/relatorios/geral',
+    "/relatorios/geral",
     {
       schema: {
-        tags: ['relatorios'],
-        summary: 'Obter relatório geral do sistema',
+        tags: ["relatorios"],
+        summary: "Obter relatório geral do sistema",
         querystring: z.object({
           dataInicio: z.string().optional(),
           dataFim: z.string().optional(),
@@ -63,11 +63,13 @@ export async function getRelatorioGeralRoute(app: FastifyInstance) {
                 quantidade: z.number(),
               })
             ),
-            tempoMedioResolucao: z.object({
-              dias: z.number(),
-              horas: z.number(),
-              minutos: z.number(),
-            }).nullable(),
+            tempoMedioResolucao: z
+              .object({
+                dias: z.number(),
+                horas: z.number(),
+                minutos: z.number(),
+              })
+              .nullable(),
             taxaResolucao: z.number(),
           }),
         },
@@ -126,9 +128,12 @@ export async function getRelatorioGeralRoute(app: FastifyInstance) {
         const statusComPercentual = chamadosPorStatus.map((item) => ({
           status: item.status,
           quantidade: item.quantidade,
-          percentual: totalParaPercentual > 0
-            ? Number(((item.quantidade / totalParaPercentual) * 100).toFixed(2))
-            : 0,
+          percentual:
+            totalParaPercentual > 0
+              ? Number(
+                  ((item.quantidade / totalParaPercentual) * 100).toFixed(2)
+                )
+              : 0,
         }))
 
         // Chamados por prioridade
@@ -144,9 +149,12 @@ export async function getRelatorioGeralRoute(app: FastifyInstance) {
         const prioridadeComPercentual = chamadosPorPrioridade.map((item) => ({
           prioridade: item.prioridade,
           quantidade: item.quantidade,
-          percentual: totalParaPercentual > 0
-            ? Number(((item.quantidade / totalParaPercentual) * 100).toFixed(2))
-            : 0,
+          percentual:
+            totalParaPercentual > 0
+              ? Number(
+                  ((item.quantidade / totalParaPercentual) * 100).toFixed(2)
+                )
+              : 0,
         }))
 
         // Chamados por departamento
@@ -164,7 +172,10 @@ export async function getRelatorioGeralRoute(app: FastifyInstance) {
             `,
           })
           .from(chamados)
-          .innerJoin(departamentos, eq(chamados.cha_departamento, departamentos.dep_id))
+          .innerJoin(
+            departamentos,
+            eq(chamados.cha_departamento, departamentos.dep_id)
+          )
           .where(filters.length > 0 ? and(...filters) : undefined)
           .groupBy(departamentos.dep_nome)
 
@@ -192,7 +203,7 @@ export async function getRelatorioGeralRoute(app: FastifyInstance) {
           .from(chamados)
           .where(
             and(
-              eq(chamados.cha_status, 'Resolvido'),
+              eq(chamados.cha_status, "Resolvido"),
               filters.length > 0 ? and(...filters) : undefined
             )
           )
@@ -200,17 +211,20 @@ export async function getRelatorioGeralRoute(app: FastifyInstance) {
         let tempoMedioResolucao = null
         if (tempoMedioQuery[0]?.tempoMedio) {
           const segundos = tempoMedioQuery[0].tempoMedio
-          const dias = Math.floor(segundos / 86400)
-          const horas = Math.floor((segundos % 86400) / 3600)
+          const dias = Math.floor(segundos / 86_400)
+          const horas = Math.floor((segundos % 86_400) / 3600)
           const minutos = Math.floor((segundos % 3600) / 60)
           tempoMedioResolucao = { dias, horas, minutos }
         }
 
         // Taxa de resolução
-        const resolvidos = chamadosPorStatus.find((s) => s.status === 'Resolvido')?.quantidade || 0
-        const taxaResolucao = totalParaPercentual > 0
-          ? Number(((resolvidos / totalParaPercentual) * 100).toFixed(2))
-          : 0
+        const resolvidos =
+          chamadosPorStatus.find((s) => s.status === "Resolvido")?.quantidade ||
+          0
+        const taxaResolucao =
+          totalParaPercentual > 0
+            ? Number(((resolvidos / totalParaPercentual) * 100).toFixed(2))
+            : 0
 
         return reply.status(200).send({
           periodo: {
@@ -242,9 +256,9 @@ export async function getRelatorioGeralRoute(app: FastifyInstance) {
           taxaResolucao,
         })
       } catch (error) {
-        console.error('[RELATORIO_GERAL] Erro:', error)
+        console.error("[RELATORIO_GERAL] Erro:", error)
         return reply.status(500).send({
-          message: 'Erro ao gerar relatório',
+          message: "Erro ao gerar relatório",
         })
       }
     }

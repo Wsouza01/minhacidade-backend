@@ -1,5 +1,5 @@
-import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
-import { createId } from "@paralleldrive/cuid2";
+import { createId } from "@paralleldrive/cuid2"
+import { pgTable, text, timestamp } from "drizzle-orm/pg-core"
 
 export const tokensRecuperacao = pgTable("tokens_recuperacao", {
   tok_id: text("tok_id")
@@ -13,7 +13,7 @@ export const tokensRecuperacao = pgTable("tokens_recuperacao", {
   tok_criado_em: timestamp("tok_criado_em", { withTimezone: true })
     .defaultNow()
     .notNull(),
-});
+})
 
-export type TokenRecuperacao = typeof tokensRecuperacao.$inferSelect;
-export type NewTokenRecuperacao = typeof tokensRecuperacao.$inferInsert;
+export type TokenRecuperacao = typeof tokensRecuperacao.$inferSelect
+export type NewTokenRecuperacao = typeof tokensRecuperacao.$inferInsert

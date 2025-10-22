@@ -1,7 +1,7 @@
-import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
-import { z } from "zod";
-import { db } from "../../../db/connection.ts";
-import { schema } from "../../../db/schema/index.ts";
+import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod"
+import { z } from "zod"
+import { db } from "../../../db/connection.ts"
+import { schema } from "../../../db/schema/index.ts"
 
 export const postFuncionariosRoute: FastifyPluginCallbackZod = (app) => {
   app.post(
@@ -32,7 +32,7 @@ export const postFuncionariosRoute: FastifyPluginCallbackZod = (app) => {
         departamento_id,
         matricula,
         tipo,
-      } = request.body;
+      } = request.body
 
       // Assumindo que seu schema do banco de dados `funcionarios`
       // também tem as colunas `fun_matricula` e `fun_tipo`.
@@ -46,9 +46,9 @@ export const postFuncionariosRoute: FastifyPluginCallbackZod = (app) => {
         fun_matricula: matricula, // agora existe
         fun_tipo: tipo,
         dep_id: departamento_id,
-      });
+      })
 
-      return reply.status(201).send({ message: "Funcionário criado" });
+      return reply.status(201).send({ message: "Funcionário criado" })
     }
-  );
-};
+  )
+}

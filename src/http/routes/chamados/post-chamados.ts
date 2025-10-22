@@ -1,10 +1,13 @@
-import { eq, ilike } from "drizzle-orm"
+import { randomUUID } from "crypto"
+import { and, eq, ilike } from "drizzle-orm"
 import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod"
 import { z } from "zod"
 import { db } from "../../../db/connection.ts"
 import { categorias } from "../../../db/schema/categorias.ts"
 import { chamados } from "../../../db/schema/chamados.ts"
 import { departamentos } from "../../../db/schema/departamentos.ts"
+import { etapas } from "../../../db/schema/etapas.ts"
+import { funcionarios } from "../../../db/schema/funcionarios.ts"
 import { notificacoes } from "../../../db/schema/notificacoes.ts"
 
 export const postChamadosRoute: FastifyPluginCallbackZod = (app) => {
@@ -97,23 +100,81 @@ export const postChamadosRoute: FastifyPluginCallbackZod = (app) => {
           cha_departamento: novoChamado[0].cha_departamento,
         })
 
+        // Criar etapa inicial no histórico
+        try {
+          await db.insert(etapas).values({
+            eta_id: randomUUID(),
+            cha_id: novoChamado[0].cha_id,
+            eta_nome: "Chamado criado",
+            eta_descricao: body.anonimo
+              ? "Chamado criado de forma anônima"
+              : "Chamado criado e aguardando triagem",
+            eta_data_inicio: new Date(),
+            eta_data_fim: null,
+          })
+          console.log("✅ Etapa inicial criada")
+        } catch (etapaError) {
+          console.error("❌ Erro ao criar etapa:", etapaError)
+        }
+
         // Criar notificação para o usuário (apenas se não for anônimo)
         if (body.usuario_id) {
           try {
             await db.insert(notificacoes).values({
-              ntf_canal: "app",
-              ntf_mensagem: `Chamado criado com sucesso! Seu chamado "${body.titulo}" foi registrado e está em análise. Você receberá atualizações sobre o andamento.`,
-              ntf_lida: "false",
-              cha_id: novoChamado[0].cha_id,
+              not_id: randomUUID(),
+              not_titulo: "Chamado criado com sucesso!",
+              not_mensagem: `Seu chamado "${body.titulo}" foi registrado e está em análise. Você receberá atualizações sobre o andamento.`,
+              not_tipo: "success",
+              not_lida: false,
+              not_data: new Date(),
               usu_id: body.usuario_id,
+              fun_id: null,
             })
             console.log("✅ Notificação criada para o usuário")
           } catch (notifError) {
             console.error("❌ Erro ao criar notificação:", notifError)
-            // Não interrompe o fluxo se a notificação falhar
           }
         } else {
-          console.log("ℹ️ Chamado anônimo - notificação não criada")
+          console.log("ℹ️ Chamado anônimo - notificação de usuário não criada")
+        }
+
+        // Buscar atendente do departamento para notificar
+        try {
+          const departamentoInfo = await db
+            .select()
+            .from(departamentos)
+            .where(eq(departamentos.dep_id, body.departamento_id))
+            .limit(1)
+
+          if (departamentoInfo.length > 0 && departamentoInfo[0].cid_id) {
+            // Buscar atendente da cidade e departamento
+            const atendentes = await db
+              .select()
+              .from(funcionarios)
+              .where(
+                and(
+                  eq(funcionarios.fun_tipo, "atendente"),
+                  eq(funcionarios.cid_id, departamentoInfo[0].cid_id)
+                )
+              )
+              .limit(1)
+
+            if (atendentes.length > 0) {
+              await db.insert(notificacoes).values({
+                not_id: randomUUID(),
+                not_titulo: "Novo chamado recebido",
+                not_mensagem: `Novo chamado "${body.titulo}" criado no departamento ${departamento[0].dep_nome}. Prioridade: ${body.prioridade}`,
+                not_tipo: "info",
+                not_lida: false,
+                not_data: new Date(),
+                usu_id: null,
+                fun_id: atendentes[0].fun_id,
+              })
+              console.log("✅ Notificação criada para o atendente")
+            }
+          }
+        } catch (atendenteError) {
+          console.error("❌ Erro ao notificar atendente:", atendenteError)
         }
 
         reply.status(201).send({

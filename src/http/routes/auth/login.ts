@@ -3,6 +3,7 @@ import { eq, or } from "drizzle-orm"
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod"
 import { z } from "zod"
 import { db } from "../../../db/connection.ts"
+import { administradores } from "../../../db/schema/administradores.ts"
 import { funcionarios } from "../../../db/schema/funcionarios.ts"
 import { usuarios } from "../../../db/schema/usuarios.ts"
 
@@ -23,8 +24,15 @@ export const authLoginRoute: FastifyPluginAsyncZod = async (app) => {
               id: z.string(),
               nome: z.string(),
               email: z.string(),
-              tipo: z.enum(["admin", "municipe", "atendente", "servidor"]),
+              tipo: z.enum([
+                "admin",
+                "municipe",
+                "atendente",
+                "servidor",
+                "admin-global",
+              ]),
               departamento: z.string().optional(),
+              cidadeId: z.string().uuid().optional(),
             }),
           }),
           401: z.object({
@@ -42,7 +50,91 @@ export const authLoginRoute: FastifyPluginAsyncZod = async (app) => {
       try {
         const { login, senha } = request.body
 
-        // Primeiro tenta encontrar como usuário (admin ou munícipe)
+        // Primeiro tenta encontrar como administrador (admin global ou admin de cidade)
+        const administrador = await db
+          .select()
+          .from(administradores)
+          .where(
+            or(
+              eq(administradores.adm_login, login),
+              eq(administradores.adm_cpf, login),
+              eq(administradores.adm_email, login)
+            )
+          )
+          .then((res) => res[0])
+
+        if (administrador) {
+          // Verificar se está ativo
+          if (!administrador.adm_ativo) {
+            return reply.status(403).send({
+              message: "Conta desativada",
+              code: "ACCOUNT_DISABLED",
+            })
+          }
+
+          // Verificar bloqueio
+          if (
+            administrador.adm_bloqueado_ate &&
+            administrador.adm_bloqueado_ate > new Date()
+          ) {
+            return reply.status(403).send({
+              message: "Conta temporariamente bloqueada",
+              code: "ACCOUNT_LOCKED",
+            })
+          }
+
+          // Verificar senha
+          const senhaCorreta = await bcrypt.compare(
+            senha,
+            administrador.adm_senha
+          )
+
+          if (!senhaCorreta) {
+            const tentativas = (administrador.adm_tentativas_login || 0) + 1
+            const bloquearAte =
+              tentativas >= 5 ? new Date(Date.now() + 30 * 60 * 1000) : null
+
+            await db
+              .update(administradores)
+              .set({
+                adm_tentativas_login: tentativas,
+                adm_bloqueado_ate: bloquearAte,
+              })
+              .where(eq(administradores.adm_id, administrador.adm_id))
+
+            return reply.status(401).send({
+              message: `Senha incorreta. ${Math.max(0, 5 - tentativas)} tentativa(s) restante(s)`,
+              code: "INVALID_CREDENTIALS",
+            })
+          }
+
+          // Login bem-sucedido - resetar tentativas
+          await db
+            .update(administradores)
+            .set({
+              adm_tentativas_login: 0,
+              adm_bloqueado_ate: null,
+            })
+            .where(eq(administradores.adm_id, administrador.adm_id))
+
+          // Determinar tipo: admin-global (sem cidade) ou admin (com cidade)
+          const tipo = administrador.cid_id ? "admin" : "admin-global"
+
+          return reply.send({
+            success: true,
+            message: "Login realizado com sucesso",
+            data: {
+              id: administrador.adm_id,
+              nome: administrador.adm_nome,
+              email: administrador.adm_email,
+              tipo,
+              departamento: undefined,
+              cidadeId: administrador.cid_id || undefined,
+            },
+          })
+        }
+
+        // Segundo tenta encontrar como usuário (munícipe)
         const usuario = await db
           .select()
           .from(usuarios)
@@ -115,6 +207,7 @@ export const authLoginRoute: FastifyPluginAsyncZod = async (app) => {
               email: usuario.usu_email,
               tipo: usuario.usu_tipo,
               departamento: undefined,
+              cidadeId: usuario.cid_id || undefined,
             },
           })
         }
@@ -166,6 +259,7 @@ export const authLoginRoute: FastifyPluginAsyncZod = async (app) => {
             email: funcionario.fun_email,
             tipo: funcionario.fun_tipo,
             departamento: funcionario.dep_id,
+            cidadeId: funcionario.cid_id || undefined,
           },
         })
       } catch (error) {

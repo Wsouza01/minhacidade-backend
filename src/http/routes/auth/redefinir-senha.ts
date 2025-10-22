@@ -1,28 +1,28 @@
-import type { FastifyInstance } from 'fastify'
-import type { ZodTypeProvider } from 'fastify-type-provider-zod'
-import { z } from 'zod'
-import { db } from '../../../db/connection.ts'
-import { usuarios } from '../../../db/schema/usuarios.ts'
-import { funcionarios } from '../../../db/schema/funcionarios.ts'
-import { tokensRecuperacao } from '../../../db/schema/tokens-recuperacao.ts'
-import { eq, and, isNull, gt } from 'drizzle-orm'
-import bcrypt from 'bcryptjs'
+import bcrypt from "bcryptjs"
+import { and, eq, gt, isNull } from "drizzle-orm"
+import type { FastifyInstance } from "fastify"
+import type { ZodTypeProvider } from "fastify-type-provider-zod"
+import { z } from "zod"
+import { db } from "../../../db/connection.ts"
+import { funcionarios } from "../../../db/schema/funcionarios.ts"
+import { tokensRecuperacao } from "../../../db/schema/tokens-recuperacao.ts"
+import { usuarios } from "../../../db/schema/usuarios.ts"
 
 export async function redefinirSenhaRoute(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().post(
-    '/auth/redefinir-senha',
+    "/auth/redefinir-senha",
     {
       schema: {
-        tags: ['auth'],
-        summary: 'Redefinir senha com token',
+        tags: ["auth"],
+        summary: "Redefinir senha com token",
         body: z.object({
-          token: z.string().min(1, 'Token é obrigatório'),
+          token: z.string().min(1, "Token é obrigatório"),
           novaSenha: z
             .string()
-            .min(6, 'A senha deve ter no mínimo 6 caracteres')
+            .min(6, "A senha deve ter no mínimo 6 caracteres")
             .regex(
               /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-              'A senha deve conter pelo menos: 1 letra maiúscula, 1 minúscula, 1 número e 1 caractere especial'
+              "A senha deve conter pelo menos: 1 letra maiúscula, 1 minúscula, 1 número e 1 caractere especial"
             ),
         }),
         response: {
@@ -61,7 +61,7 @@ export async function redefinirSenhaRoute(app: FastifyInstance) {
 
         if (tokenEncontrado.length === 0) {
           return reply.status(400).send({
-            message: 'Token inválido ou expirado',
+            message: "Token inválido ou expirado",
           })
         }
 
@@ -71,7 +71,7 @@ export async function redefinirSenhaRoute(app: FastifyInstance) {
         const senhaHash = await bcrypt.hash(novaSenha, 10)
 
         // Atualizar senha baseado no tipo de usuário
-        if (tokenValido.tok_tipo_usuario === 'usuario') {
+        if (tokenValido.tok_tipo_usuario === "usuario") {
           // Atualizar senha do usuário
           const resultado = await db
             .update(usuarios)
@@ -82,10 +82,10 @@ export async function redefinirSenhaRoute(app: FastifyInstance) {
 
           if (resultado.rowCount === 0) {
             return reply.status(404).send({
-              message: 'Usuário não encontrado',
+              message: "Usuário não encontrado",
             })
           }
-        } else if (tokenValido.tok_tipo_usuario === 'funcionario') {
+        } else if (tokenValido.tok_tipo_usuario === "funcionario") {
           // Atualizar senha do funcionário
           const resultado = await db
             .update(funcionarios)
@@ -96,7 +96,7 @@ export async function redefinirSenhaRoute(app: FastifyInstance) {
 
           if (resultado.rowCount === 0) {
             return reply.status(404).send({
-              message: 'Funcionário não encontrado',
+              message: "Funcionário não encontrado",
             })
           }
         }
@@ -110,13 +110,13 @@ export async function redefinirSenhaRoute(app: FastifyInstance) {
           .where(eq(tokensRecuperacao.tok_id, tokenValido.tok_id))
 
         return reply.status(200).send({
-          message: 'Senha redefinida com sucesso!',
+          message: "Senha redefinida com sucesso!",
           senhaAlterada: true,
         })
       } catch (error) {
-        console.error('[REDEFINIR-SENHA] Erro:', error)
+        console.error("[REDEFINIR-SENHA] Erro:", error)
         return reply.status(500).send({
-          message: 'Erro ao redefinir senha',
+          message: "Erro ao redefinir senha",
         })
       }
     }

@@ -1,9 +1,124 @@
 {
-  "id": "c8b8b6e7-98ce-4440-b4db-638e7ac9bb5e",
-  "prevId": "d63f9cdc-8f17-47b4-98f8-ef0b7e76ec7f",
+  "id": "e5fa01be-b63e-43c7-bb78-71959878f9c1",
+  "prevId": "c8b8b6e7-98ce-4440-b4db-638e7ac9bb5e",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
+    "public.administradores": {
+      "name": "administradores",
+      "schema": "",
+      "columns": {
+        "adm_id": {
+          "name": "adm_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "adm_nome": {
+          "name": "adm_nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "adm_email": {
+          "name": "adm_email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "adm_cpf": {
+          "name": "adm_cpf",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "adm_data_nascimento": {
+          "name": "adm_data_nascimento",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "adm_criado": {
+          "name": "adm_criado",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "adm_login": {
+          "name": "adm_login",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "adm_senha": {
+          "name": "adm_senha",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "adm_ativo": {
+          "name": "adm_ativo",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "adm_tentativas_login": {
+          "name": "adm_tentativas_login",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "adm_bloqueado_ate": {
+          "name": "adm_bloqueado_ate",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cid_id": {
+          "name": "cid_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "administradores_cid_id_cidades_cid_id_fk": {
+          "name": "administradores_cid_id_cidades_cid_id_fk",
+          "tableFrom": "administradores",
+          "tableTo": "cidades",
+          "columnsFrom": ["cid_id"],
+          "columnsTo": ["cid_id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "administradores_adm_email_unique": {
+          "name": "administradores_adm_email_unique",
+          "nullsNotDistinct": false,
+          "columns": ["adm_email"]
+        },
+        "administradores_adm_cpf_unique": {
+          "name": "administradores_adm_cpf_unique",
+          "nullsNotDistinct": false,
+          "columns": ["adm_cpf"]
+        },
+        "administradores_adm_login_unique": {
+          "name": "administradores_adm_login_unique",
+          "nullsNotDistinct": false,
+          "columns": ["adm_login"]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.anexo": {
       "name": "anexo",
       "schema": "",
@@ -282,10 +397,26 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "cid_id": {
+          "name": "cid_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "departamentos_cid_id_cidades_cid_id_fk": {
+          "name": "departamentos_cid_id_cidades_cid_id_fk",
+          "tableFrom": "departamentos",
+          "tableTo": "cidades",
+          "columnsFrom": ["cid_id"],
+          "columnsTo": ["cid_id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -431,6 +562,12 @@
           "type": "uuid",
           "primaryKey": false,
           "notNull": false
+        },
+        "cid_id": {
+          "name": "cid_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
@@ -441,6 +578,15 @@
           "tableTo": "departamentos",
           "columnsFrom": ["dep_id"],
           "columnsTo": ["dep_id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "funcionario_cid_id_cidades_cid_id_fk": {
+          "name": "funcionario_cid_id_cidades_cid_id_fk",
+          "tableFrom": "funcionario",
+          "tableTo": "cidades",
+          "columnsFrom": ["cid_id"],
+          "columnsTo": ["cid_id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }

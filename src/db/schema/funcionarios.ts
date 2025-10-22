@@ -1,4 +1,4 @@
-import { relations } from "drizzle-orm";
+import { relations } from "drizzle-orm"
 import {
   boolean,
   date,
@@ -7,8 +7,9 @@ import {
   timestamp,
   uuid,
   varchar,
-} from "drizzle-orm/pg-core";
-import { departamentos } from "./departamentos.ts";
+} from "drizzle-orm/pg-core"
+import { cidades } from "./cidades.ts"
+import { departamentos } from "./departamentos.ts"
 
 export const funcionarios = pgTable("funcionario", {
   fun_id: uuid("fun_id").primaryKey().defaultRandom(),
@@ -29,14 +30,20 @@ export const funcionarios = pgTable("funcionario", {
     .$type<"servidor" | "atendente">(),
   fun_ativo: boolean("fun_ativo").notNull().default(true),
   dep_id: uuid("dep_id").references(() => departamentos.dep_id),
-});
+  // Referência à cidade do funcionário
+  cid_id: uuid("cid_id").references(() => cidades.cid_id),
+})
 
 export const funcionariosRelations = relations(funcionarios, ({ one }) => ({
   departamento: one(departamentos, {
     fields: [funcionarios.dep_id],
     references: [departamentos.dep_id],
   }),
-}));
+  cidade: one(cidades, {
+    fields: [funcionarios.cid_id],
+    references: [cidades.cid_id],
+  }),
+}))
 
-export type Funcionario = typeof funcionarios.$inferSelect;
-export type NovoFuncionario = typeof funcionarios.$inferInsert;
+export type Funcionario = typeof funcionarios.$inferSelect
+export type NovoFuncionario = typeof funcionarios.$inferInsert

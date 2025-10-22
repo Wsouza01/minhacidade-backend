@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt"
 import { db } from "./connection.ts"
+import { administradores } from "./schema/administradores.ts"
 import { anexos } from "./schema/anexos.ts"
 import { categorias } from "./schema/categorias.ts"
 import { chamados } from "./schema/chamados.ts"
@@ -52,13 +53,14 @@ async function runSeed() {
     await db.delete(categorias)
     await db.delete(funcionarios)
     await db.delete(usuarios)
+    await db.delete(administradores)
     await db.delete(departamentos)
     await db.delete(cidades)
 
     console.log("Tabelas limpas")
 
     // Inserir cidades
-    const [cidadePadrao] = await db
+    const cidadesInseridas = await db
       .insert(cidades)
       .values([
         {
@@ -81,35 +83,124 @@ async function runSeed() {
         },
       ])
       .returning()
+
+    const [cidadePadrao, cidadeBarueri, cidadeOsasco] = cidadesInseridas
     console.log("Cidades inseridas")
 
-    // Inserir departamentos simplificados
-    const departamentosInseridos = await db
+    // Inserir ADMIN GLOBAL (sem cidade, gerencia todo o sistema)
+    const [adminGlobal] = await db
+      .insert(administradores)
+      .values({
+        adm_nome: "Administrador Global",
+        adm_email: "admin.global@minhacidade.com",
+        adm_cpf: "00000000000",
+        adm_data_nascimento: "1975-01-01",
+        adm_login: "admin.global",
+        adm_senha: await bcrypt.hash("AdminGlobal@123", 10),
+        cid_id: null, // NULL = admin global
+        adm_ativo: true,
+      })
+      .returning()
+    console.log("Admin Global inserido")
+
+    // Inserir ADMINISTRADORES DE CIDADES
+    const [adminSantana] = await db
+      .insert(administradores)
+      .values({
+        adm_nome: "Admin Santana de Parnaíba",
+        adm_email: "admin.santana@minhacidade.com",
+        adm_cpf: "11111111111",
+        adm_data_nascimento: "1980-05-15",
+        adm_login: "admin.santana",
+        adm_senha: await bcrypt.hash("Admin@123", 10),
+        cid_id: cidadePadrao.cid_id,
+        adm_ativo: true,
+      })
+      .returning()
+
+    const [adminBarueri] = await db
+      .insert(administradores)
+      .values({
+        adm_nome: "Admin Barueri",
+        adm_email: "admin.barueri@minhacidade.com",
+        adm_cpf: "22222222222",
+        adm_data_nascimento: "1982-08-20",
+        adm_login: "admin.barueri",
+        adm_senha: await bcrypt.hash("Admin@123", 10),
+        cid_id: cidadeBarueri.cid_id,
+        adm_ativo: true,
+      })
+      .returning()
+
+    const [adminOsasco] = await db
+      .insert(administradores)
+      .values({
+        adm_nome: "Admin Osasco",
+        adm_email: "admin.osasco@minhacidade.com",
+        adm_cpf: "33333333333",
+        adm_data_nascimento: "1985-12-10",
+        adm_login: "admin.osasco",
+        adm_senha: await bcrypt.hash("Admin@123", 10),
+        cid_id: cidadeOsasco.cid_id,
+        adm_ativo: true,
+      })
+      .returning()
+    console.log("Administradores de cidades inseridos")
+
+    // Inserir departamentos para Santana de Parnaíba (cidade padrão)
+    const departamentosSantana = await db
       .insert(departamentos)
       .values([
         {
           dep_nome: "Educação",
           dep_descricao: "Secretaria de Educação",
+          cid_id: cidadePadrao.cid_id,
         },
         {
           dep_nome: "Saúde",
           dep_descricao: "Secretaria de Saúde",
+          cid_id: cidadePadrao.cid_id,
         },
         {
           dep_nome: "Infraestrutura",
           dep_descricao: "Secretaria de Obras e Urbanismo",
+          cid_id: cidadePadrao.cid_id,
         },
         {
           dep_nome: "Segurança",
           dep_descricao: "Secretaria de Segurança",
+          cid_id: cidadePadrao.cid_id,
         },
         {
           dep_nome: "Meio Ambiente",
           dep_descricao: "Secretaria de Meio Ambiente",
+          cid_id: cidadePadrao.cid_id,
         },
       ])
       .returning()
-    console.log("Departamentos inseridos")
+
+    // Departamentos para Barueri
+    const departamentosBarueri = await db
+      .insert(departamentos)
+      .values([
+        {
+          dep_nome: "Educação",
+          dep_descricao: "Secretaria de Educação",
+          cid_id: cidadeBarueri.cid_id,
+        },
+        {
+          dep_nome: "Saúde",
+          dep_descricao: "Secretaria de Saúde",
+          cid_id: cidadeBarueri.cid_id,
+        },
+      ])
+      .returning()
+
+    const departamentosInseridos = [
+      ...departamentosSantana,
+      ...departamentosBarueri,
+    ]
+    console.log("Departamentos inseridos para todas as cidades")
 
     // Inserir categorias
     const categoriasInseridas = await db
@@ -126,31 +217,6 @@ async function runSeed() {
       ])
       .returning()
     console.log("Categorias inseridas")
-
-    // Inserir ADMIN (único admin do sistema)
-    const [usuarioAdmin] = await db
-      .insert(usuarios)
-      .values({
-        usu_nome: "Administrador",
-        usu_email: "admin@minhacidade.com",
-        usu_cpf: "00000000000",
-        usu_data_nascimento: "1980-01-01",
-        usu_login: "admin",
-        usu_senha: await bcrypt.hash("Admin@123", 10),
-        usu_endereco: {
-          cep: "00000000",
-          logradouro: "Sistema",
-          numero: "0",
-          complemento: "",
-          bairro: "Sistema",
-          cidade: cidadePadrao.cid_nome,
-          estado: cidadePadrao.cid_estado,
-        },
-        cid_id: cidadePadrao.cid_id,
-        usu_tipo: "admin",
-        usu_ativo: true,
-      })
-      .returning()
 
     // Inserir usuário específico (Silas)
     const [usuarioSilas] = await db
@@ -217,18 +283,19 @@ async function runSeed() {
 
     console.log("Usuários inseridos")
 
-    // Inserir ATENDENTE (único atendente do sistema)
+    // Inserir ATENDENTE para Santana de Parnaíba
     const [funcionarioAtendente] = await db
       .insert(funcionarios)
       .values({
-        fun_nome: "Atendente Principal",
-        fun_email: "atendente@minhacidade.com",
-        fun_cpf: "11111111111",
+        fun_nome: "Atendente Santana",
+        fun_email: "atendente@santanadeparnaiba.sp.gov.br",
+        fun_cpf: "44444444444",
         fun_data_nascimento: "1985-06-15",
         fun_login: "atendente",
         fun_senha: await bcrypt.hash("Atendente@123", 10),
         fun_tipo: "atendente",
-        dep_id: departamentosInseridos[0].dep_id,
+        dep_id: departamentosSantana[0].dep_id,
+        cid_id: cidadePadrao.cid_id,
       })
       .returning()
 
@@ -238,24 +305,26 @@ async function runSeed() {
       .insert(funcionarios)
       .values({
         fun_nome: "João Silva",
-        fun_email: "joao.silva@prefeitura.com",
+        fun_email: "joao.silva@santanadeparnaiba.sp.gov.br",
         fun_cpf: "12345678901",
         fun_data_nascimento: "1985-03-20",
         fun_login: "joao.silva",
         fun_senha: await bcrypt.hash("Servidor@123", 10),
         fun_tipo: "servidor",
-        dep_id: departamentosInseridos[0].dep_id, // Departamento de Educação
+        dep_id: departamentosSantana[0].dep_id, // Departamento de Educação
+        cid_id: cidadePadrao.cid_id,
       })
       .returning()
 
-    // Inserir funcionários adicionais (servidores)
+    // Inserir funcionários adicionais (servidores para Santana)
     const funcionariosInseridos = [funcionarioAtendente, funcionarioJoao]
     for (let i = 0; i < 9; i++) {
       const [funcionario] = await db
         .insert(funcionarios)
         .values({
           fun_nome: `Servidor ${i + 1}`,
-          fun_email: `servidor${i + 1}@prefeitura.com`.toLowerCase(),
+          fun_email:
+            `servidor${i + 1}@santanadeparnaiba.sp.gov.br`.toLowerCase(),
           fun_cpf: generateCPF(),
           fun_data_nascimento: formatDate(
             new Date(
@@ -267,8 +336,8 @@ async function runSeed() {
           fun_login: `servidor${i + 1}`,
           fun_senha: await bcrypt.hash("senha123", 10), // Senha criptografada
           fun_tipo: "servidor",
-          dep_id:
-            departamentosInseridos[i % departamentosInseridos.length].dep_id,
+          dep_id: departamentosSantana[i % departamentosSantana.length].dep_id,
+          cid_id: cidadePadrao.cid_id,
         })
         .returning()
       funcionariosInseridos.push(funcionario)
