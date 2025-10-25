@@ -1,11 +1,14 @@
+import request from "supertest";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import Fastify from "fastify";
 import bcrypt from "bcrypt";
-import { eq, or } from "drizzle-orm";
 import { loginRoute } from "./login.ts";
 import { db } from "../../../db/connection.ts";
 import { usuarios } from "../../../db/schema/usuarios.ts";
 
+// =========================================
+// 🔧 MOCKS DO BANCO DE DADOS
+// =========================================
 vi.mock("../../../db/connection", () => ({
   db: {
     select: vi.fn(() => ({
@@ -29,12 +32,16 @@ vi.mock("../../../db/connection", () => ({
   },
 }));
 
+// =========================================
+// 🔧 MOCKS DO BCRYPT
+// =========================================
 vi.mock("bcrypt", () => ({
-  default: {
-    compare: vi.fn().mockResolvedValue(true),
-  },
+  compare: vi.fn().mockResolvedValue(true),
 }));
 
+// =========================================
+// 🔧 MOCKS DO DRIZZLE ORM
+// =========================================
 vi.mock("drizzle-orm", async () => {
   const actual = await vi.importActual<typeof import("drizzle-orm")>(
     "drizzle-orm"
@@ -46,54 +53,58 @@ vi.mock("drizzle-orm", async () => {
   };
 });
 
-describe("POST /login", () => {
-  const app = Fastify();
-  app.register(loginRoute);
+describe("POST /login (Supertest)", () => {
+  let app: ReturnType<typeof Fastify>;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
+    app = Fastify();
+    app.register(loginRoute);
+    await app.ready();
   });
 
+  // =========================================
+  // ✅ Cenário 1 — Login bem-sucedido
+  // =========================================
   it("deve fazer login com sucesso", async () => {
-    const response = await app.inject({
-      method: "POST",
-      url: "/login",
-      payload: {
-        login: "maria",
-        senha: "senhaSegura123",
-        tipo: "municipe",
-      },
+    const response = await request(app.server).post("/login").send({
+      login: "maria",
+      senha: "senhaSegura123",
+      tipo: "municipe",
     });
 
-    expect(response.statusCode).toBe(200);
-    const body = response.json();
-
-    expect(body.success).toBe(true);
-    expect(body.data.nome).toBe("Maria Souza");
-    expect(bcrypt.compare).toHaveBeenCalled();
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    expect(response.body.data.nome).toBe("Maria Souza");
+    expect(bcrypt.compare).toHaveBeenCalledWith(
+      "senhaSegura123",
+      "hashedPassword"
+    );
     expect(db.update).toHaveBeenCalledWith(usuarios);
   });
 
+  // =========================================
+  // ❌ Cenário 2 — Usuário inexistente
+  // =========================================
   it("deve retornar 401 se o usuário não existir", async () => {
     vi.mocked(db.select).mockReturnValueOnce({
       from: vi.fn().mockReturnThis(),
       where: vi.fn().mockResolvedValue([]),
     } as any);
 
-    const response = await app.inject({
-      method: "POST",
-      url: "/login",
-      payload: {
-        login: "inexistente",
-        senha: "senhaErrada",
-        tipo: "municipe",
-      },
+    const response = await request(app.server).post("/login").send({
+      login: "inexistente",
+      senha: "senhaErrada",
+      tipo: "municipe",
     });
 
-    expect(response.statusCode).toBe(401);
-    expect(response.json().code).toBe("INVALID_CREDENTIALS");
+    expect(response.status).toBe(401);
+    expect(response.body.code).toBe("INVALID_CREDENTIALS");
   });
 
+  // =========================================
+  // ❌ Cenário 3 — Conta bloqueada
+  // =========================================
   it("deve retornar 403 se a conta estiver bloqueada", async () => {
     const futureDate = new Date(Date.now() + 30 * 60 * 1000);
     vi.mocked(db.select).mockReturnValueOnce({
@@ -111,20 +122,19 @@ describe("POST /login", () => {
       ]),
     } as any);
 
-    const response = await app.inject({
-      method: "POST",
-      url: "/login",
-      payload: {
-        login: "maria",
-        senha: "senhaSegura",
-        tipo: "municipe",
-      },
+    const response = await request(app.server).post("/login").send({
+      login: "maria",
+      senha: "senhaSegura",
+      tipo: "municipe",
     });
 
-    expect(response.statusCode).toBe(403);
-    expect(response.json().code).toBe("ACCOUNT_TEMPORARILY_LOCKED");
+    expect(response.status).toBe(403);
+    expect(response.body.code).toBe("ACCOUNT_TEMPORARILY_LOCKED");
   });
 
+  // =========================================
+  // ❌ Cenário 4 — Conta desativada
+  // =========================================
   it("deve retornar 403 se a conta estiver desativada", async () => {
     vi.mocked(db.select).mockReturnValueOnce({
       from: vi.fn().mockReturnThis(),
@@ -141,20 +151,19 @@ describe("POST /login", () => {
       ]),
     } as any);
 
-    const response = await app.inject({
-      method: "POST",
-      url: "/login",
-      payload: {
-        login: "maria",
-        senha: "senhaSegura",
-        tipo: "municipe",
-      },
+    const response = await request(app.server).post("/login").send({
+      login: "maria",
+      senha: "senhaSegura",
+      tipo: "municipe",
     });
 
-    expect(response.statusCode).toBe(403);
-    expect(response.json().code).toBe("ACCOUNT_DISABLED");
+    expect(response.status).toBe(403);
+    expect(response.body.code).toBe("ACCOUNT_DISABLED");
   });
 
+  // =========================================
+  // ❌ Cenário 5 — Tipo de perfil incorreto
+  // =========================================
   it("deve retornar 403 se o tipo de perfil for inválido", async () => {
     vi.mocked(db.select).mockReturnValueOnce({
       from: vi.fn().mockReturnThis(),
@@ -171,20 +180,19 @@ describe("POST /login", () => {
       ]),
     } as any);
 
-    const response = await app.inject({
-      method: "POST",
-      url: "/login",
-      payload: {
-        login: "maria",
-        senha: "senhaSegura",
-        tipo: "servidor", // tipo incorreto
-      },
+    const response = await request(app.server).post("/login").send({
+      login: "maria",
+      senha: "senhaSegura",
+      tipo: "servidor",
     });
 
-    expect(response.statusCode).toBe(403);
-    expect(response.json().code).toBe("UNAUTHORIZED_PROFILE");
+    expect(response.status).toBe(403);
+    expect(response.body.code).toBe("UNAUTHORIZED_PROFILE");
   });
 
+  // =========================================
+  // ❌ Cenário 6 — Senha incorreta
+  // =========================================
   it("deve retornar 401 se a senha estiver incorreta", async () => {
     vi.mocked(bcrypt.compare).mockResolvedValueOnce(false);
 
@@ -203,37 +211,32 @@ describe("POST /login", () => {
       ]),
     } as any);
 
-    const response = await app.inject({
-      method: "POST",
-      url: "/login",
-      payload: {
-        login: "maria",
-        senha: "senhaErrada",
-        tipo: "municipe",
-      },
+    const response = await request(app.server).post("/login").send({
+      login: "maria",
+      senha: "senhaErrada",
+      tipo: "municipe",
     });
 
-    expect(response.statusCode).toBe(401);
-    expect(response.json().code).toBe("INVALID_CREDENTIALS");
-    expect(db.update).toHaveBeenCalled(); // Atualiza tentativas
+    expect(response.status).toBe(401);
+    expect(response.body.code).toBe("INVALID_CREDENTIALS");
+    expect(db.update).toHaveBeenCalled();
   });
 
+  // =========================================
+  // ❌ Cenário 7 — Erro inesperado
+  // =========================================
   it("deve retornar 500 em erro inesperado", async () => {
     vi.mocked(db.select).mockImplementationOnce(() => {
       throw new Error("Falha inesperada");
     });
 
-    const response = await app.inject({
-      method: "POST",
-      url: "/login",
-      payload: {
-        login: "maria",
-        senha: "senhaSegura",
-        tipo: "municipe",
-      },
+    const response = await request(app.server).post("/login").send({
+      login: "maria",
+      senha: "senhaSegura",
+      tipo: "municipe",
     });
 
-    expect(response.statusCode).toBe(500);
-    expect(response.json().code).toBe("INTERNAL_SERVER_ERROR");
+    expect(response.status).toBe(500);
+    expect(response.body.code).toBe("INTERNAL_SERVER_ERROR");
   });
 });
