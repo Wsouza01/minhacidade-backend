@@ -1,1 +1,0 @@
-ALTER TABLE "tokens_recuperacao" ALTER COLUMN "tok_id" SET DATA TYPE text;
