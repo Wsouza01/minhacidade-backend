@@ -8,29 +8,30 @@
     "db:migrate": "drizzle-kit migrate"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.2.7",
+    "@biomejs/biome": "2.3.2",
     "@types/bcrypt": "^6.0.0",
     "@types/bcryptjs": "^3.0.0",
-    "@types/node": "^24.9.1",
-    "@types/nodemailer": "^7.0.2",
-    "drizzle-kit": "^0.31.5",
+    "@types/node": "^24.9.2",
+    "@types/nodemailer": "^7.0.3",
+    "drizzle-kit": "^0.31.6",
     "drizzle-seed": "^0.3.1",
     "nodemailer": "^7.0.10",
     "typescript": "^5.9.3",
-    "ultracite": "5.6.4"
+    "ultracite": "6.0.5",
+    "vitest": "^4.0.4"
   },
   "dependencies": {
     "@fastify/cors": "^11.1.0",
     "@fastify/jwt": "^10.0.0",
-    "@fastify/multipart": "^9.2.1",
+    "@fastify/multipart": "^9.3.0",
     "@paralleldrive/cuid2": "^3.1.0",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
     "drizzle-orm": "^0.44.7",
     "fastify": "^5.6.1",
-    "fastify-type-provider-zod": "^6.0.0",
+    "fastify-type-provider-zod": "^6.1.0",
     "postgres": "^3.4.7",
     "zod": "^4.1.12"
   },
-  "packageManager": "pnpm@10.19.0"
+  "packageManager": "pnpm@10.20.0"
 }
