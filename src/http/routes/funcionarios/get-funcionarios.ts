@@ -1,7 +1,7 @@
-import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod"
-import { db } from "../../../db/connection.ts"
-import { schema } from "../../../db/schema/index.ts"
-import { eq } from "drizzle-orm"
+import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
+import { db } from "../../../db/connection.ts";
+import { schema } from "../../../db/schema/index.ts";
+import { eq } from "drizzle-orm";
 
 export const getFuncionariosRoute: FastifyPluginCallbackZod = (app) => {
   app.get("/funcionarios", async (request, reply) => {
@@ -30,21 +30,24 @@ export const getFuncionariosRoute: FastifyPluginCallbackZod = (app) => {
         .from(schema.funcionarios)
         .leftJoin(
           schema.departamentos,
-          eq(schema.funcionarios.dep_id, schema.departamentos.dep_id),
+          eq(schema.funcionarios.dep_id, schema.departamentos.dep_id)
         )
         .leftJoin(
           schema.cidades,
-          eq(schema.funcionarios.cid_id, schema.cidades.cid_id),
-        )
+          eq(schema.funcionarios.cid_id, schema.cidades.cid_id)
+        );
 
-      reply.send(results)
+      reply.send(results);
     } catch (error) {
-      console.error("Erro ao buscar funcionários:", error)
+      console.error("Erro ao buscar funcionários:", error);
       reply.code(500).send({
         statusCode: 500,
         error: "Internal Server Error",
-        message: error instanceof Error ? error.message : "Erro ao buscar funcionários",
-      })
+        message:
+          error instanceof Error
+            ? error.message
+            : "Erro ao buscar funcionários",
+      });
     }
-  })
-}
+  });
+};

@@ -1,13 +1,14 @@
-import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core"
-import { categorias } from "./categorias.ts"
-import { departamentos } from "./departamentos.ts"
-import { funcionarios } from "./funcionarios.ts"
-import { usuarios } from "./usuarios.ts"
+// src/db/schema/chamados.ts
+import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { categorias } from "./categorias.ts";
+import { departamentos } from "./departamentos.ts";
+import { funcionarios } from "./funcionarios.ts";
+import { usuarios } from "./usuarios.ts";
 
 export const chamados = pgTable("chamado", {
   cha_id: uuid("cha_id").primaryKey().defaultRandom(),
   cha_descricao: text("cha_descricao").notNull(),
-  cha_data_fechamento: timestamp("cha_data_fechamento"),
+  cha_data_fechamento: timestamp("cha_data_fechamento"), // Permitir NULL
   cha_departamento: uuid("cha_departamento").references(
     () => departamentos.dep_id
   ),
@@ -22,4 +23,4 @@ export const chamados = pgTable("chamado", {
   cha_prioridade: text("cha_prioridade"),
   usu_id: uuid("usu_id").references(() => usuarios.usu_id),
   cat_id: uuid("cat_id").references(() => categorias.cat_id),
-})
+});
