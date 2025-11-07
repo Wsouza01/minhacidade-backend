@@ -1,0 +1,928 @@
+{
+	"id": "4dc46225-4075-432b-8d76-0742b97d924f",
+	"prevId": "00000000-0000-0000-0000-000000000000",
+	"version": "7",
+	"dialect": "postgresql",
+	"tables": {
+		"public.administradores": {
+			"name": "administradores",
+			"schema": "",
+			"columns": {
+				"adm_id": {
+					"name": "adm_id",
+					"type": "uuid",
+					"primaryKey": true,
+					"notNull": true,
+					"default": "gen_random_uuid()"
+				},
+				"adm_nome": {
+					"name": "adm_nome",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"adm_email": {
+					"name": "adm_email",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"adm_cpf": {
+					"name": "adm_cpf",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"adm_data_nascimento": {
+					"name": "adm_data_nascimento",
+					"type": "date",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"adm_criado": {
+					"name": "adm_criado",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "now()"
+				},
+				"adm_login": {
+					"name": "adm_login",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"adm_senha": {
+					"name": "adm_senha",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"adm_ativo": {
+					"name": "adm_ativo",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true,
+					"default": true
+				},
+				"adm_tentativas_login": {
+					"name": "adm_tentativas_login",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false,
+					"default": 0
+				},
+				"adm_bloqueado_ate": {
+					"name": "adm_bloqueado_ate",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"cid_id": {
+					"name": "cid_id",
+					"type": "uuid",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {
+				"administradores_cid_id_cidades_cid_id_fk": {
+					"name": "administradores_cid_id_cidades_cid_id_fk",
+					"tableFrom": "administradores",
+					"tableTo": "cidades",
+					"columnsFrom": ["cid_id"],
+					"columnsTo": ["cid_id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {
+				"administradores_adm_email_unique": {
+					"name": "administradores_adm_email_unique",
+					"nullsNotDistinct": false,
+					"columns": ["adm_email"]
+				},
+				"administradores_adm_cpf_unique": {
+					"name": "administradores_adm_cpf_unique",
+					"nullsNotDistinct": false,
+					"columns": ["adm_cpf"]
+				},
+				"administradores_adm_login_unique": {
+					"name": "administradores_adm_login_unique",
+					"nullsNotDistinct": false,
+					"columns": ["adm_login"]
+				}
+			},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.anexo": {
+			"name": "anexo",
+			"schema": "",
+			"columns": {
+				"anx_id": {
+					"name": "anx_id",
+					"type": "uuid",
+					"primaryKey": true,
+					"notNull": true,
+					"default": "gen_random_uuid()"
+				},
+				"anx_tipo": {
+					"name": "anx_tipo",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"anx_url": {
+					"name": "anx_url",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"cha_id": {
+					"name": "cha_id",
+					"type": "uuid",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {
+				"anexo_cha_id_chamado_cha_id_fk": {
+					"name": "anexo_cha_id_chamado_cha_id_fk",
+					"tableFrom": "anexo",
+					"tableTo": "chamado",
+					"columnsFrom": ["cha_id"],
+					"columnsTo": ["cha_id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.categoria": {
+			"name": "categoria",
+			"schema": "",
+			"columns": {
+				"cat_id": {
+					"name": "cat_id",
+					"type": "uuid",
+					"primaryKey": true,
+					"notNull": true,
+					"default": "gen_random_uuid()"
+				},
+				"cat_nome": {
+					"name": "cat_nome",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"cat_descricao": {
+					"name": "cat_descricao",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.chamado": {
+			"name": "chamado",
+			"schema": "",
+			"columns": {
+				"cha_id": {
+					"name": "cha_id",
+					"type": "uuid",
+					"primaryKey": true,
+					"notNull": true,
+					"default": "gen_random_uuid()"
+				},
+				"cha_descricao": {
+					"name": "cha_descricao",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"cha_data_fechamento": {
+					"name": "cha_data_fechamento",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"cha_departamento": {
+					"name": "cha_departamento",
+					"type": "uuid",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"cha_responsavel": {
+					"name": "cha_responsavel",
+					"type": "uuid",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"cha_nome": {
+					"name": "cha_nome",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"cha_cep": {
+					"name": "cha_cep",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"cha_numero_endereco": {
+					"name": "cha_numero_endereco",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"cha_data_abertura": {
+					"name": "cha_data_abertura",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "now()"
+				},
+				"cha_titulo": {
+					"name": "cha_titulo",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"cha_prioridade": {
+					"name": "cha_prioridade",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"usu_id": {
+					"name": "usu_id",
+					"type": "uuid",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"cat_id": {
+					"name": "cat_id",
+					"type": "uuid",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {
+				"chamado_cha_departamento_departamentos_dep_id_fk": {
+					"name": "chamado_cha_departamento_departamentos_dep_id_fk",
+					"tableFrom": "chamado",
+					"tableTo": "departamentos",
+					"columnsFrom": ["cha_departamento"],
+					"columnsTo": ["dep_id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				},
+				"chamado_cha_responsavel_funcionario_fun_id_fk": {
+					"name": "chamado_cha_responsavel_funcionario_fun_id_fk",
+					"tableFrom": "chamado",
+					"tableTo": "funcionario",
+					"columnsFrom": ["cha_responsavel"],
+					"columnsTo": ["fun_id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				},
+				"chamado_usu_id_usuarios_usu_id_fk": {
+					"name": "chamado_usu_id_usuarios_usu_id_fk",
+					"tableFrom": "chamado",
+					"tableTo": "usuarios",
+					"columnsFrom": ["usu_id"],
+					"columnsTo": ["usu_id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				},
+				"chamado_cat_id_categoria_cat_id_fk": {
+					"name": "chamado_cat_id_categoria_cat_id_fk",
+					"tableFrom": "chamado",
+					"tableTo": "categoria",
+					"columnsFrom": ["cat_id"],
+					"columnsTo": ["cat_id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.cidades": {
+			"name": "cidades",
+			"schema": "",
+			"columns": {
+				"cid_id": {
+					"name": "cid_id",
+					"type": "uuid",
+					"primaryKey": true,
+					"notNull": true,
+					"default": "gen_random_uuid()"
+				},
+				"cid_nome": {
+					"name": "cid_nome",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"cid_estado": {
+					"name": "cid_estado",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"cid_ativo": {
+					"name": "cid_ativo",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true,
+					"default": true
+				},
+				"cid_padrao": {
+					"name": "cid_padrao",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true,
+					"default": false
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.departamentos": {
+			"name": "departamentos",
+			"schema": "",
+			"columns": {
+				"dep_id": {
+					"name": "dep_id",
+					"type": "uuid",
+					"primaryKey": true,
+					"notNull": true,
+					"default": "gen_random_uuid()"
+				},
+				"dep_nome": {
+					"name": "dep_nome",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"dep_descricao": {
+					"name": "dep_descricao",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"cid_id": {
+					"name": "cid_id",
+					"type": "uuid",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {
+				"departamentos_cid_id_cidades_cid_id_fk": {
+					"name": "departamentos_cid_id_cidades_cid_id_fk",
+					"tableFrom": "departamentos",
+					"tableTo": "cidades",
+					"columnsFrom": ["cid_id"],
+					"columnsTo": ["cid_id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.etapa": {
+			"name": "etapa",
+			"schema": "",
+			"columns": {
+				"eta_id": {
+					"name": "eta_id",
+					"type": "uuid",
+					"primaryKey": true,
+					"notNull": true,
+					"default": "gen_random_uuid()"
+				},
+				"eta_descricao": {
+					"name": "eta_descricao",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"eta_data_inicio": {
+					"name": "eta_data_inicio",
+					"type": "date",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"eta_data_fim": {
+					"name": "eta_data_fim",
+					"type": "date",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"eta_nome": {
+					"name": "eta_nome",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"cha_id": {
+					"name": "cha_id",
+					"type": "uuid",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {
+				"etapa_cha_id_chamado_cha_id_fk": {
+					"name": "etapa_cha_id_chamado_cha_id_fk",
+					"tableFrom": "etapa",
+					"tableTo": "chamado",
+					"columnsFrom": ["cha_id"],
+					"columnsTo": ["cha_id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.funcionario": {
+			"name": "funcionario",
+			"schema": "",
+			"columns": {
+				"fun_id": {
+					"name": "fun_id",
+					"type": "uuid",
+					"primaryKey": true,
+					"notNull": true,
+					"default": "gen_random_uuid()"
+				},
+				"fun_nome": {
+					"name": "fun_nome",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"fun_email": {
+					"name": "fun_email",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"fun_cpf": {
+					"name": "fun_cpf",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"fun_data_nascimento": {
+					"name": "fun_data_nascimento",
+					"type": "date",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"fun_criado": {
+					"name": "fun_criado",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "now()"
+				},
+				"fun_login": {
+					"name": "fun_login",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"fun_senha": {
+					"name": "fun_senha",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"fun_matricula": {
+					"name": "fun_matricula",
+					"type": "varchar(50)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"fun_requer_troca_senha": {
+					"name": "fun_requer_troca_senha",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true,
+					"default": false
+				},
+				"fun_tipo": {
+					"name": "fun_tipo",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'servidor'"
+				},
+				"fun_ativo": {
+					"name": "fun_ativo",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true,
+					"default": true
+				},
+				"dep_id": {
+					"name": "dep_id",
+					"type": "uuid",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"cid_id": {
+					"name": "cid_id",
+					"type": "uuid",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {
+				"funcionario_dep_id_departamentos_dep_id_fk": {
+					"name": "funcionario_dep_id_departamentos_dep_id_fk",
+					"tableFrom": "funcionario",
+					"tableTo": "departamentos",
+					"columnsFrom": ["dep_id"],
+					"columnsTo": ["dep_id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				},
+				"funcionario_cid_id_cidades_cid_id_fk": {
+					"name": "funcionario_cid_id_cidades_cid_id_fk",
+					"tableFrom": "funcionario",
+					"tableTo": "cidades",
+					"columnsFrom": ["cid_id"],
+					"columnsTo": ["cid_id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {
+				"funcionario_fun_email_unique": {
+					"name": "funcionario_fun_email_unique",
+					"nullsNotDistinct": false,
+					"columns": ["fun_email"]
+				},
+				"funcionario_fun_cpf_unique": {
+					"name": "funcionario_fun_cpf_unique",
+					"nullsNotDistinct": false,
+					"columns": ["fun_cpf"]
+				},
+				"funcionario_fun_login_unique": {
+					"name": "funcionario_fun_login_unique",
+					"nullsNotDistinct": false,
+					"columns": ["fun_login"]
+				},
+				"funcionario_fun_matricula_unique": {
+					"name": "funcionario_fun_matricula_unique",
+					"nullsNotDistinct": false,
+					"columns": ["fun_matricula"]
+				}
+			},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.notificacao": {
+			"name": "notificacao",
+			"schema": "",
+			"columns": {
+				"not_id": {
+					"name": "not_id",
+					"type": "uuid",
+					"primaryKey": true,
+					"notNull": true,
+					"default": "gen_random_uuid()"
+				},
+				"not_titulo": {
+					"name": "not_titulo",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"not_mensagem": {
+					"name": "not_mensagem",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"not_tipo": {
+					"name": "not_tipo",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"not_lida": {
+					"name": "not_lida",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": false,
+					"default": false
+				},
+				"not_data": {
+					"name": "not_data",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": false,
+					"default": "now()"
+				},
+				"cha_id": {
+					"name": "cha_id",
+					"type": "uuid",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"usu_id": {
+					"name": "usu_id",
+					"type": "uuid",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"fun_id": {
+					"name": "fun_id",
+					"type": "uuid",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {
+				"notificacao_cha_id_chamado_cha_id_fk": {
+					"name": "notificacao_cha_id_chamado_cha_id_fk",
+					"tableFrom": "notificacao",
+					"tableTo": "chamado",
+					"columnsFrom": ["cha_id"],
+					"columnsTo": ["cha_id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				},
+				"notificacao_usu_id_usuarios_usu_id_fk": {
+					"name": "notificacao_usu_id_usuarios_usu_id_fk",
+					"tableFrom": "notificacao",
+					"tableTo": "usuarios",
+					"columnsFrom": ["usu_id"],
+					"columnsTo": ["usu_id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				},
+				"notificacao_fun_id_funcionario_fun_id_fk": {
+					"name": "notificacao_fun_id_funcionario_fun_id_fk",
+					"tableFrom": "notificacao",
+					"tableTo": "funcionario",
+					"columnsFrom": ["fun_id"],
+					"columnsTo": ["fun_id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.tokens_recuperacao": {
+			"name": "tokens_recuperacao",
+			"schema": "",
+			"columns": {
+				"tok_id": {
+					"name": "tok_id",
+					"type": "text",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"tok_token": {
+					"name": "tok_token",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"tok_email": {
+					"name": "tok_email",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"tok_tipo_usuario": {
+					"name": "tok_tipo_usuario",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"tok_usado": {
+					"name": "tok_usado",
+					"type": "timestamp with time zone",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"tok_expira_em": {
+					"name": "tok_expira_em",
+					"type": "timestamp with time zone",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"tok_criado_em": {
+					"name": "tok_criado_em",
+					"type": "timestamp with time zone",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "now()"
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {
+				"tokens_recuperacao_tok_token_unique": {
+					"name": "tokens_recuperacao_tok_token_unique",
+					"nullsNotDistinct": false,
+					"columns": ["tok_token"]
+				}
+			},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.usuarios": {
+			"name": "usuarios",
+			"schema": "",
+			"columns": {
+				"usu_id": {
+					"name": "usu_id",
+					"type": "uuid",
+					"primaryKey": true,
+					"notNull": true,
+					"default": "gen_random_uuid()"
+				},
+				"usu_nome": {
+					"name": "usu_nome",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"usu_email": {
+					"name": "usu_email",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"usu_cpf": {
+					"name": "usu_cpf",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"usu_data_nascimento": {
+					"name": "usu_data_nascimento",
+					"type": "date",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"usu_criado": {
+					"name": "usu_criado",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "now()"
+				},
+				"usu_login": {
+					"name": "usu_login",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"usu_senha": {
+					"name": "usu_senha",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"usu_tipo": {
+					"name": "usu_tipo",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'municipe'"
+				},
+				"usu_ativo": {
+					"name": "usu_ativo",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true,
+					"default": true
+				},
+				"usu_tentativas_login": {
+					"name": "usu_tentativas_login",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false,
+					"default": 0
+				},
+				"usu_bloqueado_ate": {
+					"name": "usu_bloqueado_ate",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"usu_endereco": {
+					"name": "usu_endereco",
+					"type": "jsonb",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"cid_id": {
+					"name": "cid_id",
+					"type": "uuid",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {
+				"usuarios_cid_id_cidades_cid_id_fk": {
+					"name": "usuarios_cid_id_cidades_cid_id_fk",
+					"tableFrom": "usuarios",
+					"tableTo": "cidades",
+					"columnsFrom": ["cid_id"],
+					"columnsTo": ["cid_id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {
+				"usuarios_usu_email_unique": {
+					"name": "usuarios_usu_email_unique",
+					"nullsNotDistinct": false,
+					"columns": ["usu_email"]
+				},
+				"usuarios_usu_cpf_unique": {
+					"name": "usuarios_usu_cpf_unique",
+					"nullsNotDistinct": false,
+					"columns": ["usu_cpf"]
+				},
+				"usuarios_usu_login_unique": {
+					"name": "usuarios_usu_login_unique",
+					"nullsNotDistinct": false,
+					"columns": ["usu_login"]
+				}
+			},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		}
+	},
+	"enums": {},
+	"schemas": {},
+	"sequences": {},
+	"roles": {},
+	"policies": {},
+	"views": {},
+	"_meta": {
+		"columns": {},
+		"schemas": {},
+		"tables": {}
+	}
+}

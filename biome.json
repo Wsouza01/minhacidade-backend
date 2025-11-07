@@ -1,0 +1,11 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.1.2/schema.json",
+  "javascript": {
+    "formatter": {
+      "semicolons": "asNeeded"
+    }
+  },
+  "linter": {
+    "enabled": true
+  }
+}

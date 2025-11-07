@@ -1,0 +1,1 @@
+ALTER TABLE "notificacao" ADD COLUMN "not_link" text;
