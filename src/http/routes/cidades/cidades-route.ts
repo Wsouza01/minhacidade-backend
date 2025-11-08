@@ -1,10 +1,10 @@
 import { and, eq } from "drizzle-orm"
-import type { FastifyPluginCallback } from "fastify"
+import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod"
 import { z } from "zod"
 import { db } from "../../../db/connection.ts"
 import { cidades } from "../../../db/schema/cidades.ts"
 
-export const cidadesRoute: FastifyPluginCallback = (app) => {
+export const cidadesRoute: FastifyPluginCallbackZod = (app) => {
 	// Lista de cidades (público, com filtros)
 	app.get(
 		"/cidades",
@@ -14,17 +14,6 @@ export const cidadesRoute: FastifyPluginCallback = (app) => {
 					ativo: z.string().optional(), // "true" | "false"
 					estado: z.string().length(2).optional(),
 				}),
-				response: {
-					200: z.array(
-						z.object({
-							id: z.string().uuid(),
-							nome: z.string(),
-							estado: z.string().length(2),
-							ativo: z.boolean(),
-							padrao: z.boolean(),
-						}),
-					),
-				},
 			},
 		},
 		async (request, reply) => {
@@ -67,19 +56,6 @@ export const cidadesRoute: FastifyPluginCallback = (app) => {
 	// Lista somente cidades ativas (permitidas)
 	app.get(
 		"/cidades/permitidas",
-		{
-			schema: {
-				response: {
-					200: z.array(
-						z.object({
-							id: z.string().uuid(),
-							nome: z.string(),
-							estado: z.string().length(2),
-						}),
-					),
-				},
-			},
-		},
 		async (_, reply) => {
 			try {
 				const result = await db
@@ -208,10 +184,40 @@ export const cidadesRoute: FastifyPluginCallback = (app) => {
 		async (request, reply) => {
 			const { id } = request.params
 			try {
+				// Verificar se a cidade existe
+				const cidade = await db
+					.select()
+					.from(cidades)
+					.where(eq(cidades.cid_id, id))
+					.limit(1)
+
+				if (cidade.length === 0) {
+					return reply.status(404).send({
+						message: "Cidade não encontrada",
+						code: "CITY_NOT_FOUND",
+					})
+				}
+
+				// Tentar deletar
 				await db.delete(cidades).where(eq(cidades.cid_id, id))
 				return reply.send({ message: "Cidade removida com sucesso" })
-			} catch (error) {
+			} catch (error: any) {
 				console.error("Erro ao remover cidade:", error)
+
+				// Verificar se é erro de foreign key constraint
+				// Drizzle retorna erro com 'cause' que contém o erro do Postgres
+				if (
+					(error?.cause?.code === "23503" ||
+					error?.message?.includes("foreign key constraint") ||
+					error?.message?.includes("violates foreign key"))
+				) {
+					return reply.status(400).send({
+						message:
+							"Não é possível remover esta cidade porque ela possui registros vinculados (administradores, departamentos, funcionários ou chamados). Remova primeiro os registros relacionados.",
+						code: "CITY_HAS_REFERENCES",
+					})
+				}
+
 				return reply.status(400).send({
 					message: "Erro ao remover cidade",
 					error: error instanceof Error ? error.message : String(error),

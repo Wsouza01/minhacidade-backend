@@ -20,6 +20,7 @@ export const chamados = pgTable("chamado", {
 	cha_data_abertura: timestamp("cha_data_abertura").defaultNow().notNull(),
 	cha_titulo: text("cha_titulo"),
 	cha_prioridade: text("cha_prioridade"),
+	cha_status: text("cha_status").default("Pendente"),
 	usu_id: uuid("usu_id").references(() => usuarios.usu_id),
 	cat_id: uuid("cat_id").references(() => categorias.cat_id),
 })

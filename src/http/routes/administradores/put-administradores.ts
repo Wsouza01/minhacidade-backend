@@ -1,11 +1,11 @@
 import bcrypt from "bcryptjs"
 import { eq } from "drizzle-orm"
-import type { FastifyPluginCallback } from "fastify"
+import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod"
 import { z } from "zod"
 import { db } from "../../../db/connection.ts"
 import { administradores } from "../../../db/schema/administradores.ts"
 
-export const putAdministradoresRoute: FastifyPluginCallback = (app) => {
+export const putAdministradoresRoute: FastifyPluginCallbackZod = (app) => {
 	app.put(
 		"/administradores/:id",
 		{
@@ -23,17 +23,6 @@ export const putAdministradoresRoute: FastifyPluginCallback = (app) => {
 					cidadeId: z.string().uuid().nullable().optional(),
 					ativo: z.boolean().optional(),
 				}),
-				response: {
-					200: z.object({
-						id: z.string().uuid(),
-						nome: z.string(),
-						email: z.string(),
-						cpf: z.string(),
-						login: z.string(),
-						ativo: z.boolean(),
-						cidadeId: z.string().uuid().nullable(),
-					}),
-				},
 			},
 		},
 		async (request, reply) => {
@@ -57,7 +46,7 @@ export const putAdministradoresRoute: FastifyPluginCallback = (app) => {
 				if (email) updateData.adm_email = email
 				if (cpf) updateData.adm_cpf = cpf
 				if (dataNascimento)
-					updateData.adm_data_nascimento = new Date(dataNascimento)
+					updateData.adm_data_nascimento = dataNascimento
 				if (login) updateData.adm_login = login
 				if (cidadeId !== undefined) updateData.cid_id = cidadeId
 				if (ativo !== undefined) updateData.adm_ativo = ativo

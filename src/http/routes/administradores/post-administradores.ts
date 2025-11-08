@@ -168,7 +168,7 @@ export const postAdministradoresRoute: FastifyPluginCallbackZod = (app) => {
 					adm_nome: nome,
 					adm_email: email,
 					adm_cpf: cpfSemFormatacao,
-					adm_data_nascimento: new Date(dataNascimento),
+					adm_data_nascimento: dataNascimento,
 					adm_login: login,
 					adm_senha: senhaHash,
 					cid_id: cidadeId || null,

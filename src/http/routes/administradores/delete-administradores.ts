@@ -1,10 +1,10 @@
 import { eq } from "drizzle-orm"
-import type { FastifyPluginCallback } from "fastify"
+import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod"
 import { z } from "zod"
 import { db } from "../../../db/connection.ts"
 import { administradores } from "../../../db/schema/administradores.ts"
 
-export const deleteAdministradoresRoute: FastifyPluginCallback = (app) => {
+export const deleteAdministradoresRoute: FastifyPluginCallbackZod = (app) => {
 	app.delete(
 		"/administradores/:id",
 		{
@@ -12,11 +12,6 @@ export const deleteAdministradoresRoute: FastifyPluginCallback = (app) => {
 				params: z.object({
 					id: z.string().uuid(),
 				}),
-				response: {
-					200: z.object({
-						message: z.string(),
-					}),
-				},
 			},
 		},
 		async (request, reply) => {
@@ -41,8 +36,22 @@ export const deleteAdministradoresRoute: FastifyPluginCallback = (app) => {
 				return reply.send({
 					message: "Administrador deletado com sucesso",
 				})
-			} catch (error) {
+			} catch (error: any) {
 				console.error("Erro ao deletar administrador:", error)
+
+				// Verificar se é erro de foreign key constraint
+				if (
+					error?.cause?.code === "23503" ||
+					error?.message?.includes("foreign key constraint") ||
+					error?.message?.includes("violates foreign key")
+				) {
+					return reply.status(400).send({
+						message:
+							"Não é possível remover este administrador porque ele possui registros vinculados. Remova primeiro os registros relacionados.",
+						code: "ADMIN_HAS_REFERENCES",
+					})
+				}
+
 				return reply.status(500).send({
 					message: "Erro ao deletar administrador",
 					error: error instanceof Error ? error.message : String(error),

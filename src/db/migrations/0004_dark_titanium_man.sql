@@ -1,0 +1,1 @@
+ALTER TABLE "chamado" ADD COLUMN "cha_status" text DEFAULT 'Pendente';

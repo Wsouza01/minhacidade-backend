@@ -49,6 +49,7 @@ import { postEncaminharChamado } from "./http/routes/chamados/post-encaminhar-ch
 import { postEncerrarChamado } from "./http/routes/chamados/post-encerrar-chamado.ts"
 import { postFinalizarChamado } from "./http/routes/chamados/post-finalizar-chamado.ts"
 import { postResolverChamado } from "./http/routes/chamados/post-resolver-chamado.ts"
+import { fixStatusRoute } from "./http/routes/chamados/fix-status.ts"
 import { cidadesRoute } from "./http/routes/cidades/cidades-route.ts"
 import { getDepartamentoByIdRoute } from "./http/routes/departamento/get-departamento-by-id.ts"
 import { getDepartamentoStatsRoute } from "./http/routes/departamento/get-departamento-stats.ts"
@@ -89,7 +90,12 @@ const app = fastify({
 // ---------------------------------------------------------------
 // 🔐 Plugins básicos
 // ---------------------------------------------------------------
-app.register(fastifyCors, { origin: "*" })
+app.register(fastifyCors, {
+	origin: "*",
+	methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+	allowedHeaders: ["Content-Type", "Authorization"],
+	credentials: true
+})
 app.register(multipart, {
 	limits: { fileSize: 15 * 1024 * 1024, files: 5 },
 	attachFieldsToBody: false,
@@ -193,6 +199,7 @@ app.register(postEncerrarChamado)
 app.register(postFinalizarChamado)
 app.register(postDevolverChamado)
 app.register(postCancelarChamado)
+app.register(fixStatusRoute)
 app.register(createTestChamadoRoute)
 app.register(getCategoriasRoute)
 app.register(postCategoriasRoute)

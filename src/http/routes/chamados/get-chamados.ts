@@ -1,4 +1,4 @@
-import { desc, eq, sql } from "drizzle-orm"
+import { and, desc, eq, sql } from "drizzle-orm"
 import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod"
 import { z } from "zod"
 import { db } from "../../../db/connection.ts"
@@ -11,6 +11,7 @@ import { usuarios } from "../../../db/schema/usuarios.ts"
 const getChamadosQuerySchema = z.object({
 	limit: z.string().optional(),
 	cidadeId: z.string().optional(),
+	dep_id: z.string().optional(),
 })
 
 export const getChamadosRoute: FastifyPluginCallbackZod = (app) => {
@@ -24,7 +25,7 @@ export const getChamadosRoute: FastifyPluginCallbackZod = (app) => {
 		},
 		async (request, reply) => {
 			try {
-				const { limit, cidadeId } = request.query
+				const { limit, cidadeId, dep_id } = request.query
 				const limitNumber = limit ? Number.parseInt(limit, 10) : undefined
 
 				const baseQuery = db
@@ -36,6 +37,7 @@ export const getChamadosRoute: FastifyPluginCallbackZod = (app) => {
 						cha_data_abertura: chamados.cha_data_abertura,
 						cha_data_fechamento: chamados.cha_data_fechamento,
 						cha_prioridade: chamados.cha_prioridade,
+						cha_status: chamados.cha_status,
 						cha_cep: chamados.cha_cep,
 						cha_numero_endereco: chamados.cha_numero_endereco,
 						cha_responsavel: chamados.cha_responsavel,
@@ -57,8 +59,19 @@ export const getChamadosRoute: FastifyPluginCallbackZod = (app) => {
 					.leftJoin(categorias, eq(chamados.cat_id, categorias.cat_id))
 					.leftJoin(usuarios, eq(chamados.usu_id, usuarios.usu_id))
 
-				const filteredQuery = cidadeId
-					? baseQuery.where(eq(departamentos.cid_id, cidadeId))
+				// Aplicar filtros dinamicamente
+				const conditions = []
+
+				if (cidadeId) {
+					conditions.push(eq(departamentos.cid_id, cidadeId))
+				}
+
+				if (dep_id) {
+					conditions.push(eq(chamados.cha_departamento, dep_id))
+				}
+
+				const filteredQuery = conditions.length > 0
+					? baseQuery.where(and(...conditions))
 					: baseQuery
 
 				const orderedQuery = filteredQuery.orderBy(desc(chamados.cha_data_abertura))
