@@ -4,6 +4,7 @@ import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod"
 import { z } from "zod"
 import { db } from "../../../db/connection.ts"
 import { schema } from "../../../db/schema/index.ts"
+import { getCPFDuplicateMessage } from "../../../utils/check-duplicate-cpf.ts"
 
 // Função auxiliar para validar CPF
 function validarCPF(cpf: string): boolean {
@@ -103,16 +104,11 @@ export const postFuncionariosRoute: FastifyPluginCallbackZod = (app) => {
 			// ✅ Limpar CPF (remover pontos e traços)
 			const cpfLimpo = cpf.replace(/\D/g, "")
 
-			// ✅ Validação 2: CPF já existe
-			const cpfExistente = await db
-				.select()
-				.from(schema.funcionarios)
-				.where(eq(schema.funcionarios.fun_cpf, cpfLimpo))
-				.limit(1)
-
-			if (cpfExistente.length > 0) {
+			// ✅ Validação 2: CPF já existe em qualquer tabela
+			const cpfDuplicadoMsg = await getCPFDuplicateMessage(cpfLimpo)
+			if (cpfDuplicadoMsg) {
 				return reply.status(400).send({
-					message: "CPF já cadastrado",
+					message: cpfDuplicadoMsg,
 				})
 			}
 
@@ -175,14 +171,13 @@ export const postFuncionariosRoute: FastifyPluginCallbackZod = (app) => {
 				fun_nome: nome,
 				fun_email: email,
 				fun_cpf: cpfLimpo,
-				fun_data_nascimento: new Date(dataNascimento),
+				fun_data_nascimento: dataNascimento,
 				fun_login: login,
 				fun_senha: senhaHash,
 				fun_matricula: matricula,
 				fun_tipo: tipo,
 				dep_id: departamentoId && departamentoId.trim() !== '' ? departamentoId : null,
 				cid_id: cidadeId,
-				fun_requer_troca_senha: true, // 🆕 Obriga trocar senha no primeiro acesso
 			})
 
 			return reply.status(201).send({

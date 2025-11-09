@@ -4,6 +4,7 @@ import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod"
 import { z } from "zod"
 import { db } from "../../../db/connection.ts"
 import { administradores } from "../../../db/schema/administradores.ts"
+import { getCPFDuplicateMessage } from "../../../utils/check-duplicate-cpf.ts"
 
 export const putAdministradoresRoute: FastifyPluginCallbackZod = (app) => {
 	app.put(
@@ -39,12 +40,26 @@ export const putAdministradoresRoute: FastifyPluginCallbackZod = (app) => {
 					ativo,
 				} = request.body
 
+				// Validar CPF duplicado se estiver sendo alterado
+				if (cpf) {
+					const cpfSemFormatacao = cpf.replace(/\D/g, "")
+					const cpfDuplicadoMsg = await getCPFDuplicateMessage(
+						cpfSemFormatacao,
+						id,
+					)
+					if (cpfDuplicadoMsg) {
+						return reply.status(400).send({
+							message: cpfDuplicadoMsg,
+						})
+					}
+				}
+
 				// Preparar dados para atualização
 				const updateData: any = {}
 
 				if (nome) updateData.adm_nome = nome
 				if (email) updateData.adm_email = email
-				if (cpf) updateData.adm_cpf = cpf
+				if (cpf) updateData.adm_cpf = cpf.replace(/\D/g, "")
 				if (dataNascimento)
 					updateData.adm_data_nascimento = dataNascimento
 				if (login) updateData.adm_login = login

@@ -5,6 +5,7 @@ import { z } from "zod"
 import { db } from "../../../db/connection.ts"
 import { cidades } from "../../../db/schema/cidades.ts"
 import { usuarios } from "../../../db/schema/usuarios.ts"
+import { getCPFDuplicateMessage } from "../../../utils/check-duplicate-cpf.ts"
 
 function validarCPF(cpf: string): boolean {
 	cpf = cpf.replace(/\D/g, "")
@@ -91,8 +92,25 @@ export const postUsersRoute: FastifyPluginCallback = (app) => {
 		},
 		async (request, reply) => {
 			try {
-				const { nome, cpf, email, senha, login, data_nascimento, endereco } =
-					request.body
+				const body = request.body as {
+					nome: string
+					cpf: string
+					email: string
+					senha: string
+					login: string
+					data_nascimento: string
+					endereco: {
+						cep: string
+						logradouro: string
+						numero: string
+						complemento?: string
+						bairro: string
+						cidadeId: string
+						estado: string
+						cidade: string
+					}
+				}
+				const { nome, cpf, email, senha, login, data_nascimento, endereco } = body
 
 				const cidadeExistente = await db
 					.select()
@@ -124,15 +142,12 @@ export const postUsersRoute: FastifyPluginCallback = (app) => {
 				}
 
 				const cpfFormatado = cpf.replace(/\D/g, "")
-				const usuarioExistente = await db
-					.select()
-					.from(usuarios)
-					.where(eq(usuarios.usu_cpf, cpfFormatado))
-					.then((res) => res[0] || null)
 
-				if (usuarioExistente) {
+				// Validar CPF duplicado em todas as tabelas
+				const cpfDuplicadoMsg = await getCPFDuplicateMessage(cpfFormatado)
+				if (cpfDuplicadoMsg) {
 					return reply.status(400).send({
-						message: "CPF já cadastrado",
+						message: cpfDuplicadoMsg,
 						code: "CPF_ALREADY_EXISTS",
 					})
 				}

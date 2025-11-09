@@ -5,6 +5,7 @@ import { z } from "zod"
 import { db } from "../../../db/connection.ts"
 import { administradores } from "../../../db/schema/administradores.ts"
 import { schema } from "../../../db/schema/index.ts"
+import { getCPFDuplicateMessage } from "../../../utils/check-duplicate-cpf.ts"
 
 // Função auxiliar para validar CPF
 function validarCPF(cpf: string): boolean {
@@ -98,17 +99,13 @@ export const postAdministradoresRoute: FastifyPluginCallbackZod = (app) => {
 					})
 				}
 
-				// ✅ Validação 2: CPF já existe
+				// ✅ Validação 2: CPF já existe (verifica em todas as tabelas)
 				const cpfSemFormatacao = cpf.replace(/\D/g, "")
-				const cpfExistente = await db
-					.select()
-					.from(administradores)
-					.where(eq(administradores.adm_cpf, cpfSemFormatacao))
-					.limit(1)
+				const cpfDuplicadoMsg = await getCPFDuplicateMessage(cpfSemFormatacao)
 
-				if (cpfExistente.length > 0) {
+				if (cpfDuplicadoMsg) {
 					return reply.status(400).send({
-						message: "CPF já cadastrado",
+						message: cpfDuplicadoMsg,
 					})
 				}
 

@@ -4,6 +4,7 @@ import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod"
 import { z } from "zod"
 import { db } from "../../../db/connection.ts"
 import { schema } from "../../../db/schema/index.ts"
+import { getCPFDuplicateMessage } from "../../../utils/check-duplicate-cpf.ts"
 
 export const putFuncionariosRoute: FastifyPluginCallbackZod = (app) => {
 	app.put(
@@ -51,6 +52,20 @@ export const putFuncionariosRoute: FastifyPluginCallbackZod = (app) => {
 				return reply.status(404).send({
 					message: "Funcionário não encontrado",
 				})
+			}
+
+			// Validar CPF duplicado se estiver sendo alterado
+			if (cpf !== undefined) {
+				const cpfSemFormatacao = cpf.replace(/\D/g, "")
+				const cpfDuplicadoMsg = await getCPFDuplicateMessage(
+					cpfSemFormatacao,
+					id,
+				)
+				if (cpfDuplicadoMsg) {
+					return reply.status(400).send({
+						message: cpfDuplicadoMsg,
+					})
+				}
 			}
 
 			// Prepara dados para atualizar
