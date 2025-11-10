@@ -1,8 +1,9 @@
-import { eq } from "drizzle-orm"
+import { and, count, eq, isNull } from "drizzle-orm"
 import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod"
 import { z } from "zod"
 import { db } from "../../../db/connection.ts"
-import { schema } from "../../../db/schema/index.ts"
+import { chamados } from "../../../db/schema/chamados.ts"
+import { funcionarios } from "../../../db/schema/funcionarios.ts"
 
 const getFuncionariosByDepartamentoParamsSchema = z.object({
 	id: z.string().uuid("ID do departamento deve ser um UUID válido"),
@@ -11,9 +12,7 @@ const getFuncionariosByDepartamentoParamsSchema = z.object({
 export const getFuncionariosByDepartamentoRoute: FastifyPluginCallbackZod = (
 	app,
 ) => {
-	app.get<{
-		Params: z.infer<typeof getFuncionariosByDepartamentoParamsSchema>
-	}>(
+	app.get(
 		"/funcionarios/departamento/:id",
 		{
 			schema: {
@@ -24,29 +23,42 @@ export const getFuncionariosByDepartamentoRoute: FastifyPluginCallbackZod = (
 			try {
 				const { id: departamentoId } = request.params
 
-				// Busca todos os servidores do departamento
+				// Subquery para contar chamados atribuídos a cada funcionário
+				const chamadosCountSubquery = db
+					.select({
+						funcionarioId: chamados.cha_responsavel,
+						count: count(chamados.cha_id).as("chamados_count"),
+					})
+					.from(chamados)
+					.where(and(eq(chamados.cha_status, "Em andamento")))
+					.groupBy(chamados.cha_responsavel)
+					.as("chamados_count_sq")
+
+				// Busca todos os servidores do departamento e junta com a contagem de chamados
 				const results = await db
 					.select({
-						fun_id: schema.funcionarios.fun_id,
-						fun_nome: schema.funcionarios.fun_nome,
-						fun_email: schema.funcionarios.fun_email,
-						fun_cpf: schema.funcionarios.fun_cpf,
-						fun_tipo: schema.funcionarios.fun_tipo,
-						fun_ativo: schema.funcionarios.fun_ativo,
-						fun_matricula: schema.funcionarios.fun_matricula,
-						departamento: {
-							dep_id: schema.departamentos.dep_id,
-							dep_nome: schema.departamentos.dep_nome,
-						},
+						fun_id: funcionarios.fun_id,
+						fun_nome: funcionarios.fun_nome,
+						chamados_atribuidos: chamadosCountSubquery.count,
 					})
-					.from(schema.funcionarios)
-					.where(eq(schema.funcionarios.dep_id, departamentoId))
+					.from(funcionarios)
+					.where(
+						and(
+							eq(funcionarios.dep_id, departamentoId),
+							eq(funcionarios.fun_tipo, "servidor"),
+						),
+					)
 					.leftJoin(
-						schema.departamentos,
-						eq(schema.funcionarios.dep_id, schema.departamentos.dep_id),
+						chamadosCountSubquery,
+						eq(funcionarios.fun_id, chamadosCountSubquery.funcionarioId),
 					)
 
-				reply.send(results)
+				const finalResults = results.map((r) => ({
+					...r,
+					chamados_atribuidos: r.chamados_atribuidos ?? 0,
+				}))
+
+				reply.send(finalResults)
 			} catch (error) {
 				console.error("Erro ao buscar funcionários por departamento:", error)
 				reply.code(500).send({

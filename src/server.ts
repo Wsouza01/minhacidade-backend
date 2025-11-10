@@ -44,10 +44,8 @@ import { getTrendRoute } from "./http/routes/chamados/get-trend-route.ts"
 import { postAtribuirServidor } from "./http/routes/chamados/post-atribuir-servidor.ts"
 import { postCancelarChamado } from "./http/routes/chamados/post-cancelar-chamado.ts"
 import { postChamadosRoute } from "./http/routes/chamados/post-chamados.ts"
-import { postDevolverChamado } from "./http/routes/chamados/post-devolver-chamado.ts"
 import { postEncaminharChamado } from "./http/routes/chamados/post-encaminhar-chamado.ts"
 import { postEncerrarChamado } from "./http/routes/chamados/post-encerrar-chamado.ts"
-import { postFinalizarChamado } from "./http/routes/chamados/post-finalizar-chamado.ts"
 import { postResolverChamado } from "./http/routes/chamados/post-resolver-chamado.ts"
 import { fixStatusRoute } from "./http/routes/chamados/fix-status.ts"
 import { cidadesRoute } from "./http/routes/cidades/cidades-route.ts"
@@ -61,6 +59,8 @@ import { postEtapasRoute } from "./http/routes/etapas/post-etapas.ts"
 import { deleteFuncionariosRoute } from "./http/routes/funcionarios/delete-funcionarios.ts"
 import { getFuncionariosRoute } from "./http/routes/funcionarios/get-funcionarios.ts"
 import { getFuncionariosByDepartamentoRoute } from "./http/routes/funcionarios/get-funcionarios-by-departamento.ts"
+import { getServidorByIdRoute } from "./http/routes/servidores/get-servidor-by-id.ts"
+import { alterarSenhaServidorRoute } from "./http/routes/servidores/put-alterar-senha.ts"
 import { postFuncionariosRoute } from "./http/routes/funcionarios/post-funcionarios.ts"
 import { putFuncionariosRoute } from "./http/routes/funcionarios/put-funcionarios.ts"
 import { loginRoute } from "./http/routes/login/login.ts"
@@ -170,6 +170,8 @@ app.register(postUsersRoute)
 app.register(checkCpfRoute)
 app.register(getFuncionariosRoute)
 app.register(getFuncionariosByDepartamentoRoute)
+app.register(getServidorByIdRoute)
+app.register(alterarSenhaServidorRoute)
 app.register(postFuncionariosRoute)
 app.register(putFuncionariosRoute)
 app.register(deleteFuncionariosRoute)
@@ -196,8 +198,6 @@ app.register(postEncaminharChamado)
 app.register(postAtribuirServidor)
 app.register(postResolverChamado)
 app.register(postEncerrarChamado)
-app.register(postFinalizarChamado)
-app.register(postDevolverChamado)
 app.register(postCancelarChamado)
 app.register(fixStatusRoute)
 app.register(createTestChamadoRoute)

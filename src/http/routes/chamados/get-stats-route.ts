@@ -1,97 +1,80 @@
-// src/routes/getStatsRoute.ts
-import { and, eq, isNotNull, isNull } from "drizzle-orm"
-import fastify from "fastify"
+import { and, count, eq, inArray, isNotNull, isNull } from "drizzle-orm"
+import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod"
 import { z } from "zod"
 import { db } from "../../../db/connection.ts"
 import { chamados } from "../../../db/schema/chamados.ts"
 import { departamentos } from "../../../db/schema/departamentos.ts"
 
-const { FastifyPluginCallback } = fastify
+export const getStatsRoute: FastifyPluginAsyncZod = async (app) => {
+	app.get(
+		"/chamados/stats",
+		{
+			schema: {
+				querystring: z.object({
+					cidadeId: z.string().uuid().optional(),
+					servidorId: z.string().uuid().optional(),
+				}),
+			},
+		},
+		async (request, reply) => {
+			const { cidadeId, servidorId } = request.query
 
-const _getStatsQuerySchema = z.object({
-	cidadeId: z.string().optional(),
-})
+			try {
+				const baseQuery = db.select({ total: count() }).from(chamados)
+				const statsQuery = db
+					.select({
+						total: count(chamados.cha_id),
+						resolvidos: count(
+							and(
+								isNotNull(chamados.cha_data_fechamento),
+								servidorId ? eq(chamados.cha_responsavel, servidorId) : undefined,
+							),
+						),
+						pendentes: count(
+							and(
+								isNull(chamados.cha_data_fechamento),
+								isNull(chamados.cha_responsavel),
+							),
+						),
+						emAndamento: count(
+							and(
+								isNull(chamados.cha_data_fechamento),
+								isNotNull(chamados.cha_responsavel),
+								servidorId ? eq(chamados.cha_responsavel, servidorId) : undefined,
+							),
+						),
+						prioridadeAlta: count(
+							and(
+								eq(chamados.cha_prioridade, "Alta"),
+								isNull(chamados.cha_data_fechamento),
+							),
+						),
+					})
+					.from(chamados)
 
-export const getStatsRoute: FastifyPluginCallback = (app) => {
-	app.get("/chamados/stats", async (request, reply) => {
-		try {
-			const { cidadeId } = request.query as Record<string, string | undefined>
+				if (cidadeId) {
+					const subquery = db
+						.select({ id: departamentos.dep_id })
+						.from(departamentos)
+						.where(eq(departamentos.cid_id, cidadeId))
 
-			// Construir condições de filtro
-			const filters: any[] = []
-			if (cidadeId) {
-				filters.push(eq(departamentos.cid_id, cidadeId))
-			}
+					statsQuery.where(inArray(chamados.cha_departamento, subquery))
+				}
 
-			// Subquery para trazer cid_id dos departamentos
-			const chamadosComCidade = db
-				.select({
-					cha_id: chamados.cha_id,
-					cha_data_fechamento: chamados.cha_data_fechamento,
-					cha_responsavel: chamados.cha_responsavel,
-					cid_id: departamentos.cid_id,
-				})
-				.from(chamados)
-				.leftJoin(
-					departamentos,
-					eq(chamados.cha_departamento, departamentos.dep_id),
-				)
-				.as("chamados_com_cidade")
+				if (servidorId) {
+					statsQuery.where(eq(chamados.cha_responsavel, servidorId))
+				}
 
-			const baseConditions = cidadeId
-				? [eq(chamadosComCidade.cid_id, cidadeId)]
-				: []
+				const [stats] = await statsQuery
 
-			const [total, resolvidos, pendentes, emAndamento] = await Promise.all([
-				db.$count(chamadosComCidade, ...baseConditions),
-				// Contagem de chamados fechados
-				db.$count(
-					chamadosComCidade,
-					and(
-						isNotNull(chamadosComCidade.cha_data_fechamento),
-						...baseConditions,
-					),
-				),
-				// Contagem de chamados abertos sem responsável
-				db.$count(
-					chamadosComCidade,
-					and(
-						isNull(chamadosComCidade.cha_data_fechamento),
-						isNull(chamadosComCidade.cha_responsavel),
-						...baseConditions,
-					),
-				),
-				// Contagem de chamados em andamento (abertos com responsável)
-				db.$count(
-					chamadosComCidade,
-					and(
-						isNull(chamadosComCidade.cha_data_fechamento),
-						isNotNull(chamadosComCidade.cha_responsavel),
-						...baseConditions,
-					),
-				),
-			])
-
-			// Se não há dados reais, retorna dados mock
-			if (total === 0) {
-				return reply.send({
-					total: 45,
-					resolvidos: 18,
-					pendentes: 15,
-					emAndamento: 12,
+				return reply.send(stats)
+			} catch (err) {
+				console.error("Erro ao buscar estatísticas:", err)
+				return reply.status(500).send({
+					error: "Internal Server Error",
+					message: "Erro ao buscar estatísticas de chamados.",
 				})
 			}
-
-			return reply.send({ total, resolvidos, pendentes, emAndamento })
-		} catch (err) {
-			console.error("Erro ao buscar estatísticas:", err)
-			// Em caso de erro, retorna dados mock
-			return reply.send({
-				total: 45,
-				resolvidos: 18,
-				pendentes: 15,
-				emAndamento: 12,
-			})
-		}
-	})
+		},
+	)
 }

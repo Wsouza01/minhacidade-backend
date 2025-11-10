@@ -12,6 +12,7 @@ const getChamadosQuerySchema = z.object({
 	limit: z.string().optional(),
 	cidadeId: z.string().optional(),
 	dep_id: z.string().optional(),
+	servidorId: z.string().optional(),
 })
 
 export const getChamadosRoute: FastifyPluginCallbackZod = (app) => {
@@ -25,7 +26,7 @@ export const getChamadosRoute: FastifyPluginCallbackZod = (app) => {
 		},
 		async (request, reply) => {
 			try {
-				const { limit, cidadeId, dep_id } = request.query
+				const { limit, cidadeId, dep_id, servidorId } = request.query
 				const limitNumber = limit ? Number.parseInt(limit, 10) : undefined
 
 				const baseQuery = db
@@ -68,6 +69,10 @@ export const getChamadosRoute: FastifyPluginCallbackZod = (app) => {
 
 				if (dep_id) {
 					conditions.push(eq(chamados.cha_departamento, dep_id))
+				}
+
+				if (servidorId) {
+					conditions.push(eq(chamados.cha_responsavel, servidorId))
 				}
 
 				const filteredQuery = conditions.length > 0
