@@ -2,7 +2,7 @@ import bcrypt from "bcrypt"
 import Fastify from "fastify"
 import request from "supertest"
 import { beforeEach, describe, expect, it, vi } from "vitest"
-import { db } from "../../../db/connection.ts"
+import { db } from "../../../db/index.ts"
 import { usuarios } from "../../../db/schema/usuarios.ts"
 import { loginRoute } from "./login.ts"
 

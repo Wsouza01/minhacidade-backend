@@ -9,7 +9,7 @@ import {
 	it,
 	vi,
 } from "vitest"
-import { db } from "../../../db/connection.ts"
+import { db } from "../../../db/index.ts"
 import { getRelatorioGeralRoute } from "./get-relatorio-geral.ts"
 
 // 🧩 Mock do drizzle e do banco

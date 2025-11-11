@@ -1,14 +1,14 @@
-import Fastify from "fastify"
-import request from "supertest"
-import { beforeEach, describe, expect, it, vi } from "vitest"
-import { db } from "../../../db/connection.ts"
-import { notificacoes } from "../../../db/schema/notificacoes.ts"
-import { postEtapasRoute } from "./post-etapas-route.ts"
+import Fastify from "fastify";
+import request from "supertest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { db } from "../../../db/index.ts";
+import { notificacoes } from "../../../db/schema/notificacoes.ts";
+import { postEtapasRoute } from "./post-etapas-route.ts";
 
 // =============================
 // 🔧 Mocks do banco de dados
 // =============================
-vi.mock("../../../db/connection", () => ({
+vi.mock("../../../db/index", () => ({
 	db: {
 		insert: vi.fn(() => ({
 			values: vi.fn().mockReturnThis(),
@@ -25,14 +25,14 @@ vi.mock("../../../db/connection", () => ({
 			]),
 		})),
 	},
-}))
+}));
 
 vi.mock("../../../db/schema/chamados", () => ({
 	chamados: {
 		cha_id: "cha_id",
 		usu_id: "usu_id",
 	},
-}))
+}));
 
 vi.mock("../../../db/schema/notificacoes", () => ({
 	notificacoes: {
@@ -43,32 +43,32 @@ vi.mock("../../../db/schema/notificacoes", () => ({
 		cha_id: "cha_id",
 		usu_id: "usu_id",
 	},
-}))
+}));
 
 vi.mock("../../../db/schema/index", () => ({
 	schema: {
 		etapas: "etapas",
 	},
-}))
+}));
 
 vi.mock("drizzle-orm", async () => {
 	const actual =
-		await vi.importActual<typeof import("drizzle-orm")>("drizzle-orm")
+		await vi.importActual<typeof import("drizzle-orm")>("drizzle-orm");
 	return {
 		...actual,
 		eq: vi.fn((a, b) => ({ field: a, value: b })),
-	}
-})
+	};
+});
 
 describe("POST /etapas (Supertest)", () => {
-	let app: ReturnType<typeof Fastify>
+	let app: ReturnType<typeof Fastify>;
 
 	beforeEach(async () => {
-		vi.clearAllMocks()
-		app = Fastify()
-		app.register(postEtapasRoute)
-		await app.ready()
-	})
+		vi.clearAllMocks();
+		app = Fastify();
+		app.register(postEtapasRoute);
+		await app.ready();
+	});
 
 	// =================================================
 	// ✅ Cenário 1 — Criação de etapa e notificação
@@ -82,20 +82,20 @@ describe("POST /etapas (Supertest)", () => {
 				data_inicio: new Date().toISOString(),
 				data_fim: new Date(Date.now() + 3600000).toISOString(),
 				chamado_id: "222e4567-e89b-12d3-a456-426614174000",
-			})
+			});
 
-		expect(response.status).toBe(201)
-		expect(response.body.message).toBe("Etapa criada")
+		expect(response.status).toBe(201);
+		expect(response.body.message).toBe("Etapa criada");
 
 		// Verifica se o insert foi chamado duas vezes:
 		// 1x para etapa e 1x para notificação
-		expect(db.insert).toHaveBeenCalledTimes(2)
-		expect(db.insert).toHaveBeenNthCalledWith(1, "etapas")
+		expect(db.insert).toHaveBeenCalledTimes(2);
+		expect(db.insert).toHaveBeenNthCalledWith(1, "etapas");
 		expect(db.insert).toHaveBeenNthCalledWith(
 			2,
 			expect.objectContaining(notificacoes),
-		)
-	})
+		);
+	});
 
 	// =================================================
 	// ❌ Cenário 2 — Falha ao criar notificação
@@ -103,8 +103,8 @@ describe("POST /etapas (Supertest)", () => {
 	it("deve criar etapa mesmo se falhar ao criar notificação", async () => {
 		// Simula erro na consulta de chamado
 		vi.mocked(db.select).mockImplementationOnce(() => {
-			throw new Error("Erro ao buscar chamado")
-		})
+			throw new Error("Erro ao buscar chamado");
+		});
 
 		const response = await request(app.server)
 			.post("/etapas")
@@ -114,10 +114,10 @@ describe("POST /etapas (Supertest)", () => {
 				data_inicio: new Date().toISOString(),
 				data_fim: new Date(Date.now() + 3600000).toISOString(),
 				chamado_id: "111e4567-e89b-12d3-a456-426614174000",
-			})
+			});
 
-		expect(response.status).toBe(201)
-		expect(response.body.message).toBe("Etapa criada")
-		expect(db.insert).toHaveBeenCalledWith("etapas")
-	})
-})
+		expect(response.status).toBe(201);
+		expect(response.body.message).toBe("Etapa criada");
+		expect(db.insert).toHaveBeenCalledWith("etapas");
+	});
+});

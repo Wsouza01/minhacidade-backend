@@ -1,4 +1,4 @@
-import { relations } from "drizzle-orm"
+import { relations } from "drizzle-orm";
 import {
 	boolean,
 	date,
@@ -6,12 +6,14 @@ import {
 	pgTable,
 	text,
 	timestamp,
-	uuid,
-} from "drizzle-orm/pg-core"
-import { cidades } from "./cidades.ts"
+} from "drizzle-orm/pg-core";
+import { cidades } from "./cidades.ts";
+import { uuidv7 } from "uuidv7";
 
 export const administradores = pgTable("administradores", {
-	adm_id: uuid("adm_id").primaryKey().defaultRandom(),
+	adm_id: text()
+		.primaryKey()
+		.$defaultFn(() => uuidv7()),
 	adm_nome: text("adm_nome").notNull(),
 	adm_email: text("adm_email").notNull().unique(),
 	adm_cpf: text("adm_cpf").notNull().unique(),
@@ -24,8 +26,10 @@ export const administradores = pgTable("administradores", {
 	adm_bloqueado_ate: timestamp("adm_bloqueado_ate"),
 	// Referência à cidade que o administrador gerencia
 	// Se for NULL, é o admin global (super admin)
-	cid_id: uuid("cid_id").references(() => cidades.cid_id),
-})
+	cid_id: text()
+		.references(() => cidades.cid_id)
+		.$defaultFn(() => uuidv7()),
+});
 
 export const administradoresRelations = relations(
 	administradores,
@@ -35,7 +39,7 @@ export const administradoresRelations = relations(
 			references: [cidades.cid_id],
 		}),
 	}),
-)
+);
 
-export type Administrador = typeof administradores.$inferSelect
-export type NovoAdministrador = typeof administradores.$inferInsert
+export type Administrador = typeof administradores.$inferSelect;
+export type NovoAdministrador = typeof administradores.$inferInsert;

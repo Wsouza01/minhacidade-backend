@@ -1,6 +1,7 @@
 services:
   tg-backend-pg:
-    image: pgvector/pgvector:pg18
+    image: pgvector/pgvector:pg18,
+    container_name: tg-backend-pg
     environment:
       POSTGRES_USER: docker
       POSTGRES_PASSWORD: docker

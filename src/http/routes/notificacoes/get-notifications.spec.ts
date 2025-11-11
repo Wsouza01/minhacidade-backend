@@ -1,7 +1,7 @@
 import Fastify from "fastify"
 import request from "supertest"
 import { beforeEach, describe, expect, it, vi } from "vitest"
-import { db } from "../../../db/connection.ts"
+import { db } from "../../../db/index.ts"
 import { notificacoes } from "../../../db/schema/notificacoes.ts"
 import { getNotificationsUserRoute } from "./get-notifications-user.ts"
 

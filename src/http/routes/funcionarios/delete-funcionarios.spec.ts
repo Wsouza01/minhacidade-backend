@@ -1,13 +1,13 @@
-import Fastify from "fastify"
-import request from "supertest"
-import { beforeEach, describe, expect, it, vi } from "vitest"
-import { db } from "../../../db/connection.ts"
-import { deleteFuncionariosRoute } from "./delete-funcionarios.ts"
+import Fastify from "fastify";
+import request from "supertest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { db } from "../../../db/index.ts";
+import { deleteFuncionariosRoute } from "./delete-funcionarios.ts";
 
 // =============================
 // 🔧 Mocks do banco e schema
 // =============================
-vi.mock("../../../db/connection", () => ({
+vi.mock("../../../db/index", () => ({
 	db: {
 		select: vi.fn(() => ({
 			from: vi.fn().mockReturnThis(),
@@ -23,7 +23,7 @@ vi.mock("../../../db/connection", () => ({
 			where: vi.fn().mockResolvedValue(undefined),
 		})),
 	},
-}))
+}));
 
 vi.mock("../../../db/schema/index", () => ({
 	schema: {
@@ -32,26 +32,26 @@ vi.mock("../../../db/schema/index", () => ({
 			fun_nome: "fun_nome",
 		},
 	},
-}))
+}));
 
 vi.mock("drizzle-orm", async () => {
 	const actual =
-		await vi.importActual<typeof import("drizzle-orm")>("drizzle-orm")
+		await vi.importActual<typeof import("drizzle-orm")>("drizzle-orm");
 	return {
 		...actual,
 		eq: vi.fn((a, b) => ({ field: a, value: b })),
-	}
-})
+	};
+});
 
 describe("DELETE /funcionarios/:id (Supertest)", () => {
-	let app: ReturnType<typeof Fastify>
+	let app: ReturnType<typeof Fastify>;
 
 	beforeEach(async () => {
-		vi.clearAllMocks()
-		app = Fastify()
-		app.register(deleteFuncionariosRoute)
-		await app.ready()
-	})
+		vi.clearAllMocks();
+		app = Fastify();
+		app.register(deleteFuncionariosRoute);
+		await app.ready();
+	});
 
 	// =================================================
 	// ✅ Cenário 1 — Exclusão bem-sucedida
@@ -59,14 +59,14 @@ describe("DELETE /funcionarios/:id (Supertest)", () => {
 	it("deve deletar o funcionário com sucesso", async () => {
 		const response = await request(app.server)
 			.delete("/funcionarios/111e4567-e89b-12d3-a456-426614174000")
-			.send()
+			.send();
 
-		expect(response.status).toBe(200)
-		expect(response.body.message).toBe("Funcionário deletado com sucesso")
+		expect(response.status).toBe(200);
+		expect(response.body.message).toBe("Funcionário deletado com sucesso");
 
-		expect(db.select).toHaveBeenCalled()
-		expect(db.delete).toHaveBeenCalled()
-	})
+		expect(db.select).toHaveBeenCalled();
+		expect(db.delete).toHaveBeenCalled();
+	});
 
 	// =================================================
 	// ❌ Cenário 2 — Funcionário não encontrado
@@ -76,32 +76,32 @@ describe("DELETE /funcionarios/:id (Supertest)", () => {
 			from: vi.fn().mockReturnThis(),
 			where: vi.fn().mockReturnThis(),
 			limit: vi.fn().mockResolvedValue([]),
-		} as any)
+		} as any);
 
 		const response = await request(app.server)
 			.delete("/funcionarios/999e4567-e89b-12d3-a456-426614174999")
-			.send()
+			.send();
 
-		expect(response.status).toBe(404)
-		expect(response.body.message).toBe("Funcionário não encontrado")
-		expect(db.delete).not.toHaveBeenCalled()
-	})
+		expect(response.status).toBe(404);
+		expect(response.body.message).toBe("Funcionário não encontrado");
+		expect(db.delete).not.toHaveBeenCalled();
+	});
 
 	// =================================================
 	// ❌ Cenário 3 — Erro inesperado
 	// =================================================
 	it("deve retornar 500 em erro inesperado", async () => {
 		vi.mocked(db.select).mockImplementationOnce(() => {
-			throw new Error("Erro inesperado no banco")
-		})
+			throw new Error("Erro inesperado no banco");
+		});
 
 		const response = await request(app.server)
 			.delete("/funcionarios/111e4567-e89b-12d3-a456-426614174000")
-			.send()
+			.send();
 
 		// Fastify retornará 500 automaticamente, pois não há try/catch
-		expect(response.status).toBe(500)
-	})
+		expect(response.status).toBe(500);
+	});
 
 	// =================================================
 	// ❌ Cenário 4 — ID inválido
@@ -109,8 +109,8 @@ describe("DELETE /funcionarios/:id (Supertest)", () => {
 	it("deve retornar 400 se o ID for inválido", async () => {
 		const response = await request(app.server)
 			.delete("/funcionarios/id_invalido")
-			.send()
+			.send();
 
-		expect(response.status).toBe(400)
-	})
-})
+		expect(response.status).toBe(400);
+	});
+});

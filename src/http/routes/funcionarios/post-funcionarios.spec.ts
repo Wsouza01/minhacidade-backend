@@ -1,9 +1,9 @@
-import { hash } from "bcryptjs"
-import Fastify from "fastify"
-import request from "supertest"
-import { beforeEach, describe, expect, it, vi } from "vitest"
-import { db } from "../../../db/connection.ts"
-import { postFuncionariosRoute } from "./post-funcionarios.ts"
+import { hash } from "bcryptjs";
+import Fastify from "fastify";
+import request from "supertest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { db } from "../../../db/index.ts";
+import { postFuncionariosRoute } from "./post-funcionarios.ts";
 
 // =============================
 // 🔧 Mocks do banco de dados
@@ -20,7 +20,7 @@ vi.mock("../../../db/connection", () => ({
 			returning: vi.fn().mockResolvedValue([{ fun_id: "1" }]),
 		})),
 	},
-}))
+}));
 
 vi.mock("../../../db/schema/index", () => ({
 	schema: {
@@ -46,30 +46,30 @@ vi.mock("../../../db/schema/index", () => ({
 			cid_id: "cid_id",
 		},
 	},
-}))
+}));
 
 vi.mock("bcryptjs", () => ({
 	hash: vi.fn().mockResolvedValue("hashedPassword"),
-}))
+}));
 
 vi.mock("drizzle-orm", async () => {
 	const actual =
-		await vi.importActual<typeof import("drizzle-orm")>("drizzle-orm")
+		await vi.importActual<typeof import("drizzle-orm")>("drizzle-orm");
 	return {
 		...actual,
 		eq: vi.fn((a, b) => ({ field: a, value: b })),
-	}
-})
+	};
+});
 
 describe("POST /funcionarios (Supertest)", () => {
-	let app: ReturnType<typeof Fastify>
+	let app: ReturnType<typeof Fastify>;
 
 	beforeEach(async () => {
-		vi.clearAllMocks()
-		app = Fastify()
-		app.register(postFuncionariosRoute)
-		await app.ready()
-	})
+		vi.clearAllMocks();
+		app = Fastify();
+		app.register(postFuncionariosRoute);
+		await app.ready();
+	});
 
 	const basePayload = {
 		nome: "Carlos Silva",
@@ -80,7 +80,7 @@ describe("POST /funcionarios (Supertest)", () => {
 		tipo: "servidor",
 		senha: "senhaSegura123",
 		cidadeId: "111e4567-e89b-12d3-a456-426614174000",
-	}
+	};
 
 	// =================================================
 	// ❌ Cenário 1 — CPF inválido
@@ -88,12 +88,12 @@ describe("POST /funcionarios (Supertest)", () => {
 	it("deve retornar 400 se o CPF for inválido", async () => {
 		const response = await request(app.server)
 			.post("/funcionarios")
-			.send({ ...basePayload, cpf: "11111111111" })
+			.send({ ...basePayload, cpf: "11111111111" });
 
-		expect(response.status).toBe(400)
-		expect(response.body.message).toBe("CPF inválido")
-		expect(db.insert).not.toHaveBeenCalled()
-	})
+		expect(response.status).toBe(400);
+		expect(response.body.message).toBe("CPF inválido");
+		expect(db.insert).not.toHaveBeenCalled();
+	});
 
 	// =================================================
 	// ❌ Cenário 2 — CPF já cadastrado
@@ -103,15 +103,15 @@ describe("POST /funcionarios (Supertest)", () => {
 			from: vi.fn().mockReturnThis(),
 			where: vi.fn().mockReturnThis(),
 			limit: vi.fn().mockResolvedValue([{ fun_id: "1" }]),
-		} as any)
+		} as any);
 
 		const response = await request(app.server)
 			.post("/funcionarios")
-			.send(basePayload)
+			.send(basePayload);
 
-		expect(response.status).toBe(400)
-		expect(response.body.message).toBe("CPF já cadastrado")
-	})
+		expect(response.status).toBe(400);
+		expect(response.body.message).toBe("CPF já cadastrado");
+	});
 
 	// =================================================
 	// ❌ Cenário 3 — Email já cadastrado
@@ -122,22 +122,22 @@ describe("POST /funcionarios (Supertest)", () => {
 			from: vi.fn().mockReturnThis(),
 			where: vi.fn().mockReturnThis(),
 			limit: vi.fn().mockResolvedValue([]),
-		} as any)
+		} as any);
 
 		// Segunda verificação (email) -> já existe
 		vi.mocked(db.select).mockReturnValueOnce({
 			from: vi.fn().mockReturnThis(),
 			where: vi.fn().mockReturnThis(),
 			limit: vi.fn().mockResolvedValue([{ fun_id: "2" }]),
-		} as any)
+		} as any);
 
 		const response = await request(app.server)
 			.post("/funcionarios")
-			.send(basePayload)
+			.send(basePayload);
 
-		expect(response.status).toBe(400)
-		expect(response.body.message).toBe("Email já cadastrado")
-	})
+		expect(response.status).toBe(400);
+		expect(response.body.message).toBe("Email já cadastrado");
+	});
 
 	// =================================================
 	// ❌ Cenário 4 — Menor de idade
@@ -145,13 +145,13 @@ describe("POST /funcionarios (Supertest)", () => {
 	it("deve retornar 400 se o funcionário tiver menos de 18 anos", async () => {
 		const response = await request(app.server)
 			.post("/funcionarios")
-			.send({ ...basePayload, dataNascimento: "2010-01-01" })
+			.send({ ...basePayload, dataNascimento: "2010-01-01" });
 
-		expect(response.status).toBe(400)
+		expect(response.status).toBe(400);
 		expect(response.body.message).toBe(
 			"Funcionário deve ter pelo menos 18 anos",
-		)
-	})
+		);
+	});
 
 	// =================================================
 	// ❌ Cenário 5 — Cidade não encontrada
@@ -174,15 +174,15 @@ describe("POST /funcionarios (Supertest)", () => {
 				from: vi.fn().mockReturnThis(),
 				where: vi.fn().mockReturnThis(),
 				limit: vi.fn().mockResolvedValue([]),
-			} as any)
+			} as any);
 
 		const response = await request(app.server)
 			.post("/funcionarios")
-			.send(basePayload)
+			.send(basePayload);
 
-		expect(response.status).toBe(400)
-		expect(response.body.message).toBe("Cidade não encontrada")
-	})
+		expect(response.status).toBe(400);
+		expect(response.body.message).toBe("Cidade não encontrada");
+	});
 
 	// =================================================
 	// ❌ Cenário 6 — Departamento inválido
@@ -212,17 +212,17 @@ describe("POST /funcionarios (Supertest)", () => {
 				from: vi.fn().mockReturnThis(),
 				where: vi.fn().mockReturnThis(),
 				limit: vi.fn().mockResolvedValue([{ dep_id: "DEP1", cid_id: "CITY2" }]),
-			} as any)
+			} as any);
 
 		const response = await request(app.server)
 			.post("/funcionarios")
-			.send({ ...basePayload, departamentoId: "DEP1" })
+			.send({ ...basePayload, departamentoId: "DEP1" });
 
-		expect(response.status).toBe(400)
+		expect(response.status).toBe(400);
 		expect(response.body.message).toBe(
 			"Departamento não encontrado ou não pertence à cidade",
-		)
-	})
+		);
+	});
 
 	// =================================================
 	// ✅ Cenário 7 — Criação bem-sucedida
@@ -250,16 +250,16 @@ describe("POST /funcionarios (Supertest)", () => {
 					.mockResolvedValue([
 						{ cid_id: "111e4567-e89b-12d3-a456-426614174000" },
 					]),
-			} as any)
+			} as any);
 
 		const response = await request(app.server)
 			.post("/funcionarios")
-			.send(basePayload)
+			.send(basePayload);
 
-		expect(response.status).toBe(201)
-		expect(response.body.message).toBe("Funcionário criado com sucesso")
+		expect(response.status).toBe(201);
+		expect(response.body.message).toBe("Funcionário criado com sucesso");
 
-		expect(hash).toHaveBeenCalledWith("senhaSegura123", 10)
-		expect(db.insert).toHaveBeenCalled()
-	})
-})
+		expect(hash).toHaveBeenCalledWith("senhaSegura123", 10);
+		expect(db.insert).toHaveBeenCalled();
+	});
+});
