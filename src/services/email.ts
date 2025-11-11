@@ -1,56 +1,56 @@
-import nodemailer from "nodemailer"
-import { env } from "../env.ts"
+import nodemailer from 'nodemailer'
+import { env } from '../env.ts'
 
 // Configuração do transporter
 // Para desenvolvimento, use um serviço como Ethereal (https://ethereal.email)
 // Para produção, configure com Gmail, SendGrid, AWS SES, etc.
 const transporter = nodemailer.createTransport({
-	host: env.SMTP_HOST,
-	port: env.SMTP_PORT,
-	secure: env.SMTP_PORT === 465,
-	auth: {
-		user: env.SMTP_USER,
-		pass: env.SMTP_PASS,
-	},
+  host: env.SMTP_HOST,
+  port: env.SMTP_PORT,
+  secure: env.SMTP_PORT === 465,
+  auth: {
+    user: env.SMTP_USER,
+    pass: env.SMTP_PASS,
+  },
 })
 
 interface EmailOptions {
-	to: string
-	subject: string
-	html: string
-	text?: string
+  to: string
+  subject: string
+  html: string
+  text?: string
 }
 
 export async function sendEmail(options: EmailOptions) {
-	try {
-		const info = await transporter.sendMail({
-			from: `"Minha Cidade" <${env.SMTP_USER}>`,
-			to: options.to,
-			subject: options.subject,
-			text: options.text,
-			html: options.html,
-		})
+  try {
+    const info = await transporter.sendMail({
+      from: `"Minha Cidade" <${env.SMTP_USER}>`,
+      to: options.to,
+      subject: options.subject,
+      text: options.text,
+      html: options.html,
+    })
 
-		console.log("Email enviado:", info.messageId)
+    console.log('Email enviado:', info.messageId)
 
-		// Para Ethereal, gera URL de preview
-		if (env.NODE_ENV !== "production") {
-			console.log("Preview URL:", nodemailer.getTestMessageUrl(info))
-		}
+    // Para Ethereal, gera URL de preview
+    if (env.NODE_ENV !== 'production') {
+      console.log('Preview URL:', nodemailer.getTestMessageUrl(info))
+    }
 
-		return { success: true, messageId: info.messageId }
-	} catch (error) {
-		console.error("Erro ao enviar email:", error)
-		return { success: false, error }
-	}
+    return { success: true, messageId: info.messageId }
+  } catch (error) {
+    console.error('Erro ao enviar email:', error)
+    return { success: false, error }
+  }
 }
 
 export function gerarEmailRecuperacaoSenha(nome: string, token: string) {
-	const url = `${env.FRONTEND_URL}/redefinir-senha?token=${token}`
+  const url = `${env.FRONTEND_URL}/redefinir-senha?token=${token}`
 
-	return {
-		subject: "Recuperação de Senha - Minha Cidade",
-		html: `
+  return {
+    subject: 'Recuperação de Senha - Minha Cidade',
+    html: `
       <!DOCTYPE html>
       <html lang="pt-BR">
       <head>
@@ -141,7 +141,7 @@ export function gerarEmailRecuperacaoSenha(nome: string, token: string) {
       </body>
       </html>
     `,
-		text: `
+    text: `
       Olá, ${nome}!
 
       Recebemos uma solicitação para redefinir a senha da sua conta no sistema Minha Cidade.
@@ -158,5 +158,5 @@ export function gerarEmailRecuperacaoSenha(nome: string, token: string) {
       Este é um email automático, por favor não responda.
       © 2025 Minha Cidade. Todos os direitos reservados.
     `,
-	}
+  }
 }

@@ -1,9 +1,14 @@
-import { pgTable, text, uuid } from "drizzle-orm/pg-core"
-import { chamados } from "./chamados.ts"
+import { pgTable, text } from 'drizzle-orm/pg-core'
+import { chamados } from './chamados.ts'
+import { uuidv7 } from 'uuidv7'
 
-export const anexos = pgTable("anexo", {
-	anx_id: uuid("anx_id").primaryKey().defaultRandom(),
-	anx_tipo: text("anx_tipo").notNull(),
-	anx_url: text("anx_url").notNull(),
-	cha_id: uuid("cha_id").references(() => chamados.cha_id),
+export const anexos = pgTable('anexo', {
+  anx_id: text('anx_id')
+    .primaryKey()
+    .$defaultFn(() => uuidv7()),
+  anx_tipo: text('anx_tipo').notNull(),
+  anx_url: text('anx_url').notNull(),
+  cha_id: text('cha_id')
+    .references(() => chamados.cha_id)
+    .$defaultFn(() => uuidv7()),
 })

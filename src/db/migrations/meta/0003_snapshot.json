@@ -91,12 +91,8 @@
           "name": "administradores_cid_id_cidades_cid_id_fk",
           "tableFrom": "administradores",
           "tableTo": "cidades",
-          "columnsFrom": [
-            "cid_id"
-          ],
-          "columnsTo": [
-            "cid_id"
-          ],
+          "columnsFrom": ["cid_id"],
+          "columnsTo": ["cid_id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -106,23 +102,17 @@
         "administradores_adm_email_unique": {
           "name": "administradores_adm_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "adm_email"
-          ]
+          "columns": ["adm_email"]
         },
         "administradores_adm_cpf_unique": {
           "name": "administradores_adm_cpf_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "adm_cpf"
-          ]
+          "columns": ["adm_cpf"]
         },
         "administradores_adm_login_unique": {
           "name": "administradores_adm_login_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "adm_login"
-          ]
+          "columns": ["adm_login"]
         }
       },
       "policies": {},
@@ -165,12 +155,8 @@
           "name": "anexo_cha_id_chamado_cha_id_fk",
           "tableFrom": "anexo",
           "tableTo": "chamado",
-          "columnsFrom": [
-            "cha_id"
-          ],
-          "columnsTo": [
-            "cha_id"
-          ],
+          "columnsFrom": ["cha_id"],
+          "columnsTo": ["cha_id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -304,12 +290,8 @@
           "name": "chamado_cha_departamento_departamentos_dep_id_fk",
           "tableFrom": "chamado",
           "tableTo": "departamentos",
-          "columnsFrom": [
-            "cha_departamento"
-          ],
-          "columnsTo": [
-            "dep_id"
-          ],
+          "columnsFrom": ["cha_departamento"],
+          "columnsTo": ["dep_id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -317,12 +299,8 @@
           "name": "chamado_cha_responsavel_funcionarios_fun_id_fk",
           "tableFrom": "chamado",
           "tableTo": "funcionarios",
-          "columnsFrom": [
-            "cha_responsavel"
-          ],
-          "columnsTo": [
-            "fun_id"
-          ],
+          "columnsFrom": ["cha_responsavel"],
+          "columnsTo": ["fun_id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -330,12 +308,8 @@
           "name": "chamado_usu_id_usuarios_usu_id_fk",
           "tableFrom": "chamado",
           "tableTo": "usuarios",
-          "columnsFrom": [
-            "usu_id"
-          ],
-          "columnsTo": [
-            "usu_id"
-          ],
+          "columnsFrom": ["usu_id"],
+          "columnsTo": ["usu_id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -343,12 +317,8 @@
           "name": "chamado_cat_id_categoria_cat_id_fk",
           "tableFrom": "chamado",
           "tableTo": "categoria",
-          "columnsFrom": [
-            "cat_id"
-          ],
-          "columnsTo": [
-            "cat_id"
-          ],
+          "columnsFrom": ["cat_id"],
+          "columnsTo": ["cat_id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -441,12 +411,8 @@
           "name": "departamentos_cid_id_cidades_cid_id_fk",
           "tableFrom": "departamentos",
           "tableTo": "cidades",
-          "columnsFrom": [
-            "cid_id"
-          ],
-          "columnsTo": [
-            "cid_id"
-          ],
+          "columnsFrom": ["cid_id"],
+          "columnsTo": ["cid_id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -505,12 +471,8 @@
           "name": "etapa_cha_id_chamado_cha_id_fk",
           "tableFrom": "etapa",
           "tableTo": "chamado",
-          "columnsFrom": [
-            "cha_id"
-          ],
-          "columnsTo": [
-            "cha_id"
-          ],
+          "columnsFrom": ["cha_id"],
+          "columnsTo": ["cha_id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -621,12 +583,8 @@
           "name": "funcionarios_dep_id_departamentos_dep_id_fk",
           "tableFrom": "funcionarios",
           "tableTo": "departamentos",
-          "columnsFrom": [
-            "dep_id"
-          ],
-          "columnsTo": [
-            "dep_id"
-          ],
+          "columnsFrom": ["dep_id"],
+          "columnsTo": ["dep_id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -634,12 +592,8 @@
           "name": "funcionarios_cid_id_cidades_cid_id_fk",
           "tableFrom": "funcionarios",
           "tableTo": "cidades",
-          "columnsFrom": [
-            "cid_id"
-          ],
-          "columnsTo": [
-            "cid_id"
-          ],
+          "columnsFrom": ["cid_id"],
+          "columnsTo": ["cid_id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -649,30 +603,22 @@
         "funcionarios_fun_email_unique": {
           "name": "funcionarios_fun_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "fun_email"
-          ]
+          "columns": ["fun_email"]
         },
         "funcionarios_fun_cpf_unique": {
           "name": "funcionarios_fun_cpf_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "fun_cpf"
-          ]
+          "columns": ["fun_cpf"]
         },
         "funcionarios_fun_login_unique": {
           "name": "funcionarios_fun_login_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "fun_login"
-          ]
+          "columns": ["fun_login"]
         },
         "funcionarios_fun_matricula_unique": {
           "name": "funcionarios_fun_matricula_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "fun_matricula"
-          ]
+          "columns": ["fun_matricula"]
         }
       },
       "policies": {},
@@ -753,12 +699,8 @@
           "name": "notificacao_cha_id_chamado_cha_id_fk",
           "tableFrom": "notificacao",
           "tableTo": "chamado",
-          "columnsFrom": [
-            "cha_id"
-          ],
-          "columnsTo": [
-            "cha_id"
-          ],
+          "columnsFrom": ["cha_id"],
+          "columnsTo": ["cha_id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -766,12 +708,8 @@
           "name": "notificacao_usu_id_usuarios_usu_id_fk",
           "tableFrom": "notificacao",
           "tableTo": "usuarios",
-          "columnsFrom": [
-            "usu_id"
-          ],
-          "columnsTo": [
-            "usu_id"
-          ],
+          "columnsFrom": ["usu_id"],
+          "columnsTo": ["usu_id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -779,12 +717,8 @@
           "name": "notificacao_fun_id_funcionarios_fun_id_fk",
           "tableFrom": "notificacao",
           "tableTo": "funcionarios",
-          "columnsFrom": [
-            "fun_id"
-          ],
-          "columnsTo": [
-            "fun_id"
-          ],
+          "columnsFrom": ["fun_id"],
+          "columnsTo": ["fun_id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -844,12 +778,8 @@
           "name": "sac_ouvidoria_usu_id_usuarios_usu_id_fk",
           "tableFrom": "sac_ouvidoria",
           "tableTo": "usuarios",
-          "columnsFrom": [
-            "usu_id"
-          ],
-          "columnsTo": [
-            "usu_id"
-          ],
+          "columnsFrom": ["usu_id"],
+          "columnsTo": ["usu_id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -915,9 +845,7 @@
         "tokens_recuperacao_tok_token_unique": {
           "name": "tokens_recuperacao_tok_token_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "tok_token"
-          ]
+          "columns": ["tok_token"]
         }
       },
       "policies": {},
@@ -1024,12 +952,8 @@
           "name": "usuarios_cid_id_cidades_cid_id_fk",
           "tableFrom": "usuarios",
           "tableTo": "cidades",
-          "columnsFrom": [
-            "cid_id"
-          ],
-          "columnsTo": [
-            "cid_id"
-          ],
+          "columnsFrom": ["cid_id"],
+          "columnsTo": ["cid_id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1039,23 +963,17 @@
         "usuarios_usu_email_unique": {
           "name": "usuarios_usu_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "usu_email"
-          ]
+          "columns": ["usu_email"]
         },
         "usuarios_usu_cpf_unique": {
           "name": "usuarios_usu_cpf_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "usu_cpf"
-          ]
+          "columns": ["usu_cpf"]
         },
         "usuarios_usu_login_unique": {
           "name": "usuarios_usu_login_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "usu_login"
-          ]
+          "columns": ["usu_login"]
         }
       },
       "policies": {},
