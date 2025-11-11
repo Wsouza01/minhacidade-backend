@@ -20,37 +20,8 @@ export const getStatsRoute: FastifyPluginAsyncZod = async (app) => {
 			const { cidadeId, servidorId } = request.query
 
 			try {
-				const baseQuery = db.select({ total: count() }).from(chamados)
-				const statsQuery = db
-					.select({
-						total: count(chamados.cha_id),
-						resolvidos: count(
-							and(
-								isNotNull(chamados.cha_data_fechamento),
-								servidorId ? eq(chamados.cha_responsavel, servidorId) : undefined,
-							),
-						),
-						pendentes: count(
-							and(
-								isNull(chamados.cha_data_fechamento),
-								isNull(chamados.cha_responsavel),
-							),
-						),
-						emAndamento: count(
-							and(
-								isNull(chamados.cha_data_fechamento),
-								isNotNull(chamados.cha_responsavel),
-								servidorId ? eq(chamados.cha_responsavel, servidorId) : undefined,
-							),
-						),
-						prioridadeAlta: count(
-							and(
-								eq(chamados.cha_prioridade, "Alta"),
-								isNull(chamados.cha_data_fechamento),
-							),
-						),
-					})
-					.from(chamados)
+				// Build WHERE conditions
+				const conditions: any[] = []
 
 				if (cidadeId) {
 					const subquery = db
@@ -58,14 +29,37 @@ export const getStatsRoute: FastifyPluginAsyncZod = async (app) => {
 						.from(departamentos)
 						.where(eq(departamentos.cid_id, cidadeId))
 
-					statsQuery.where(inArray(chamados.cha_departamento, subquery))
+					conditions.push(inArray(chamados.cha_departamento, subquery))
 				}
 
 				if (servidorId) {
-					statsQuery.where(eq(chamados.cha_responsavel, servidorId))
+					conditions.push(eq(chamados.cha_responsavel, servidorId))
 				}
 
-				const [stats] = await statsQuery
+				// Fetch all chamados matching the conditions
+				let query = db.select().from(chamados)
+
+				if (conditions.length > 0) {
+					query = query.where(and(...conditions)) as any
+				}
+
+				const allChamados = await query
+
+				// Calculate stats manually
+				const stats = {
+					total: allChamados.length,
+					resolvidos: allChamados.filter((c) => c.cha_data_fechamento !== null)
+						.length,
+					pendentes: allChamados.filter(
+						(c) => c.cha_data_fechamento === null && c.cha_responsavel === null,
+					).length,
+					emAndamento: allChamados.filter(
+						(c) => c.cha_data_fechamento === null && c.cha_responsavel !== null,
+					).length,
+					prioridadeAlta: allChamados.filter(
+						(c) => c.cha_prioridade === "Alta" && c.cha_data_fechamento === null,
+					).length,
+				}
 
 				return reply.send(stats)
 			} catch (err) {

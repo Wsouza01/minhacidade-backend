@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import { eq } from "drizzle-orm"
+import { eq, and } from "drizzle-orm"
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod"
 import { z } from "zod"
 import { db } from "../../../db/connection.ts"
@@ -96,12 +96,18 @@ export const postResolverChamado: FastifyPluginAsyncZod = async (app) => {
 				}
 
 				// Buscar atendente do departamento para notificar
-				const [atendente] = await db
-					.select()
-					.from(funcionarios)
-					.where(eq(funcionarios.dep_id, chamado.cha_departamento))
-					.where(eq(funcionarios.fun_tipo, "atendente"))
-					.limit(1)
+				const [atendente] = chamado.cha_departamento
+					? await db
+							.select()
+							.from(funcionarios)
+							.where(
+								and(
+									eq(funcionarios.dep_id, chamado.cha_departamento),
+									eq(funcionarios.fun_tipo, "atendente")
+								)
+							)
+							.limit(1)
+					: []
 
 				if (atendente) {
 					await db.insert(notificacoes).values({

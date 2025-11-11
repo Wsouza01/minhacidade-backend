@@ -618,10 +618,11 @@ async function runSeed() {
 			await db.insert(notificacoes).values({
 				not_titulo: titulosNotificacao[i % titulosNotificacao.length],
 				not_mensagem: mensagensNotificacao[i % mensagensNotificacao.length],
-				not_data_criacao: dataNotificacao,
+				not_data: dataNotificacao,
 				not_lida: i % 3 === 0, // 1/3 das notificações já lidas
 				not_tipo: tiposNotificacao[i % tiposNotificacao.length],
 				usu_id: usuarioSilas.usu_id,
+				fun_id: null,
 			})
 		}
 

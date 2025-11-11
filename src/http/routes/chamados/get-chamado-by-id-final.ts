@@ -6,6 +6,7 @@ import { anexos } from "../../../db/schema/anexos.ts"
 import { categorias } from "../../../db/schema/categorias.ts"
 import { chamados } from "../../../db/schema/chamados.ts"
 import { departamentos } from "../../../db/schema/departamentos.ts"
+import { etapas } from "../../../db/schema/etapas.ts"
 import { usuarios } from "../../../db/schema/usuarios.ts"
 import { env } from "../../../env.ts"
 
@@ -43,7 +44,7 @@ export const getChamadoByIdFinalRoute: FastifyPluginCallbackZod = (app) => {
 				console.log("👤 Usuário ID:", chamado.usu_id)
 
 				// Buscar informações relacionadas de forma segura
-				const [departamento, categoria, usuario, anexosList] =
+				const [departamento, categoria, usuario, anexosList, etapasList] =
 					await Promise.allSettled([
 						// Departamento
 						chamado.cha_departamento
@@ -55,7 +56,7 @@ export const getChamadoByIdFinalRoute: FastifyPluginCallbackZod = (app) => {
 									const result = await db
 										.select({ dep_nome: departamentos.dep_nome })
 										.from(departamentos)
-										.where(eq(departamentos.dep_id, chamado.cha_departamento))
+										.where(eq(departamentos.dep_id, chamado.cha_departamento!))
 										.limit(1)
 									console.log("📊 Resultado da busca de departamento:", result)
 									return result
@@ -67,7 +68,7 @@ export const getChamadoByIdFinalRoute: FastifyPluginCallbackZod = (app) => {
 							? db
 									.select({ cat_nome: categorias.cat_nome })
 									.from(categorias)
-									.where(eq(categorias.cat_id, chamado.cat_id))
+									.where(eq(categorias.cat_id, chamado.cat_id!))
 									.limit(1)
 							: Promise.resolve([]),
 
@@ -83,7 +84,7 @@ export const getChamadoByIdFinalRoute: FastifyPluginCallbackZod = (app) => {
 												usu_cpf: usuarios.usu_cpf,
 											})
 											.from(usuarios)
-											.where(eq(usuarios.usu_id, chamado.usu_id))
+											.where(eq(usuarios.usu_id, chamado.usu_id!))
 											.limit(1)
 										console.log("📊 Resultado da busca de usuário:", result)
 										return result
@@ -103,6 +104,19 @@ export const getChamadoByIdFinalRoute: FastifyPluginCallbackZod = (app) => {
 							})
 							.from(anexos)
 							.where(eq(anexos.cha_id, id)),
+
+						// Etapas
+						db
+							.select({
+								eta_id: etapas.eta_id,
+								eta_nome: etapas.eta_nome,
+								eta_descricao: etapas.eta_descricao,
+								eta_data_inicio: etapas.eta_data_inicio,
+								eta_data_fim: etapas.eta_data_fim,
+							})
+							.from(etapas)
+							.where(eq(etapas.cha_id, id))
+							.orderBy(etapas.eta_data_inicio),
 					])
 
 				// Extrair resultados de forma segura
@@ -120,6 +134,8 @@ export const getChamadoByIdFinalRoute: FastifyPluginCallbackZod = (app) => {
 						: null
 				const anexosData =
 					anexosList.status === "fulfilled" ? anexosList.value : []
+				const etapasData =
+					etapasList.status === "fulfilled" ? etapasList.value : []
 
 				console.log(
 					"🏢 Departamento encontrado:",
@@ -146,8 +162,8 @@ export const getChamadoByIdFinalRoute: FastifyPluginCallbackZod = (app) => {
 					responsavel_email: null,
 					// Anexos
 					anexos: anexosData,
-					// Etapas (vazio por enquanto)
-					etapas: [],
+					// Etapas ordenadas por data
+					etapas: etapasData,
 					// Determinar status baseado nos dados
 					status: chamado.cha_data_fechamento
 						? "resolvido"

@@ -17,6 +17,7 @@ export const getNotificationsUserRoute: FastifyPluginCallback = (app) => {
 					lida: notificacoes.not_lida,
 					data: notificacoes.not_data,
 					usuarioId: notificacoes.usu_id,
+					cha_id: notificacoes.cha_id,
 				})
 				.from(notificacoes)
 				.where(eq(notificacoes.usu_id, userId))
@@ -80,6 +81,7 @@ export const getNotificationsUserRoute: FastifyPluginCallback = (app) => {
 						data: notificacoes.not_data,
 						link: notificacoes.not_link,
 						funcionarioId: notificacoes.fun_id,
+						cha_id: notificacoes.cha_id,
 					})
 					.from(notificacoes)
 					.where(eq(notificacoes.fun_id, funcionarioId))

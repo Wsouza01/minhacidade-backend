@@ -23,14 +23,14 @@ export const getFuncionariosByDepartamentoRoute: FastifyPluginCallbackZod = (
 			try {
 				const { id: departamentoId } = request.params
 
-				// Subquery para contar chamados atribuídos a cada funcionário
+				// Subquery para contar chamados atribuídos a cada funcionário (chamados abertos)
 				const chamadosCountSubquery = db
 					.select({
 						funcionarioId: chamados.cha_responsavel,
 						count: count(chamados.cha_id).as("chamados_count"),
 					})
 					.from(chamados)
-					.where(and(eq(chamados.cha_status, "Em andamento")))
+					.where(isNull(chamados.cha_data_fechamento))
 					.groupBy(chamados.cha_responsavel)
 					.as("chamados_count_sq")
 
