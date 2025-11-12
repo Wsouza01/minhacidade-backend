@@ -1,11 +1,11 @@
-import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
-import { z } from "zod";
-import { db } from "../../../db/index.ts";
-import { schema } from "../../../db/schema/index.ts";
+import type { FastifyPluginCallbackZod } from 'fastify-type-provider-zod'
+import { z } from 'zod'
+import { db } from '../../../db/index.ts'
+import { schema } from '../../../db/schema/index.ts'
 
 export const postDepartamentosRoute: FastifyPluginCallbackZod = (app) => {
   app.post(
-    "/departamentos",
+    '/departamentos',
     {
       schema: {
         body: z.object({
@@ -15,12 +15,12 @@ export const postDepartamentosRoute: FastifyPluginCallbackZod = (app) => {
       },
     },
     async (request, reply) => {
-      const { nome, descricao } = request.body;
+      const { nome, descricao } = request.body
       await db.insert(schema.departamentos).values({
         dep_nome: nome,
         dep_descricao: descricao,
-      });
-      reply.status(201).send({ message: "Departamento criado" });
-    }
-  );
-};
+      })
+      reply.status(201).send({ message: 'Departamento criado' })
+    },
+  )
+}

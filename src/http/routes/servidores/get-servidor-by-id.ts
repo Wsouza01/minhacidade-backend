@@ -1,14 +1,14 @@
-import { eq } from "drizzle-orm";
-import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
-import { z } from "zod";
-import { db } from "../../../db/index.ts";
-import { cidades } from "../../../db/schema/cidades.ts";
-import { departamentos } from "../../../db/schema/departamentos.ts";
-import { funcionarios } from "../../../db/schema/funcionarios.ts";
+import { eq } from 'drizzle-orm'
+import type { FastifyPluginCallbackZod } from 'fastify-type-provider-zod'
+import { z } from 'zod'
+import { db } from '../../../db/index.ts'
+import { cidades } from '../../../db/schema/cidades.ts'
+import { departamentos } from '../../../db/schema/departamentos.ts'
+import { funcionarios } from '../../../db/schema/funcionarios.ts'
 
 export const getServidorByIdRoute: FastifyPluginCallbackZod = (app) => {
   app.get(
-    "/servidores/:servidorId",
+    '/servidores/:servidorId',
     {
       schema: {
         params: z.object({
@@ -18,7 +18,7 @@ export const getServidorByIdRoute: FastifyPluginCallbackZod = (app) => {
     },
     async (request, reply) => {
       try {
-        const { servidorId } = request.params;
+        const { servidorId } = request.params
 
         const [servidor] = await db
           .select({
@@ -30,20 +30,20 @@ export const getServidorByIdRoute: FastifyPluginCallbackZod = (app) => {
           .from(funcionarios)
           .leftJoin(
             departamentos,
-            eq(funcionarios.dep_id, departamentos.dep_id)
+            eq(funcionarios.dep_id, departamentos.dep_id),
           )
           .leftJoin(cidades, eq(departamentos.cid_id, cidades.cid_id))
-          .where(eq(funcionarios.fun_id, servidorId));
+          .where(eq(funcionarios.fun_id, servidorId))
 
         if (!servidor) {
-          return reply.status(404).send({ message: "Servidor não encontrado" });
+          return reply.status(404).send({ message: 'Servidor não encontrado' })
         }
 
-        return reply.send(servidor);
+        return reply.send(servidor)
       } catch (err) {
-        console.error("Erro ao buscar servidor:", err);
-        reply.status(500).send({ message: "Erro ao buscar servidor" });
+        console.error('Erro ao buscar servidor:', err)
+        reply.status(500).send({ message: 'Erro ao buscar servidor' })
       }
-    }
-  );
-};
+    },
+  )
+}

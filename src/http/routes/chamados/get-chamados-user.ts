@@ -1,20 +1,20 @@
-import { desc, eq } from "drizzle-orm";
-import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
-import { z } from "zod";
-import { db } from "../../../db/index.ts";
-import { categorias } from "../../../db/schema/categorias.ts";
-import { chamados } from "../../../db/schema/chamados.ts";
-import { cidades } from "../../../db/schema/cidades.ts";
-import { departamentos } from "../../../db/schema/departamentos.ts";
-import { usuarios } from "../../../db/schema/usuarios.ts";
+import { desc, eq } from 'drizzle-orm'
+import type { FastifyPluginCallbackZod } from 'fastify-type-provider-zod'
+import { z } from 'zod'
+import { db } from '../../../db/index.ts'
+import { categorias } from '../../../db/schema/categorias.ts'
+import { chamados } from '../../../db/schema/chamados.ts'
+import { cidades } from '../../../db/schema/cidades.ts'
+import { departamentos } from '../../../db/schema/departamentos.ts'
+import { usuarios } from '../../../db/schema/usuarios.ts'
 
 const getChamadosUserRequestSchema = z.object({
   usuarioId: z.string().uuid(),
-});
+})
 
 export const getChamadosUserRoute: FastifyPluginCallbackZod = (app) => {
   app.get(
-    "/chamados/user/:usuarioId",
+    '/chamados/user/:usuarioId',
     {
       schema: {
         params: getChamadosUserRequestSchema,
@@ -22,7 +22,7 @@ export const getChamadosUserRoute: FastifyPluginCallbackZod = (app) => {
     },
     async (request, reply) => {
       try {
-        const { usuarioId } = request.params;
+        const { usuarioId } = request.params
 
         const results = await db
           .select({
@@ -48,19 +48,19 @@ export const getChamadosUserRoute: FastifyPluginCallbackZod = (app) => {
           .from(chamados)
           .leftJoin(
             departamentos,
-            eq(chamados.cha_departamento, departamentos.dep_id)
+            eq(chamados.cha_departamento, departamentos.dep_id),
           )
           .leftJoin(categorias, eq(chamados.cat_id, categorias.cat_id))
           .leftJoin(usuarios, eq(chamados.usu_id, usuarios.usu_id))
           .leftJoin(cidades, eq(departamentos.cid_id, cidades.cid_id))
           .where(eq(chamados.usu_id, usuarioId))
-          .orderBy(desc(chamados.cha_data_abertura));
+          .orderBy(desc(chamados.cha_data_abertura))
 
-        reply.send(results);
+        reply.send(results)
       } catch (error) {
-        console.error("Erro ao buscar chamados do usuário:", error);
-        reply.status(500).send({ message: "Erro ao buscar chamados" });
+        console.error('Erro ao buscar chamados do usuário:', error)
+        reply.status(500).send({ message: 'Erro ao buscar chamados' })
       }
-    }
-  );
-};
+    },
+  )
+}

@@ -1,22 +1,22 @@
-import { eq } from "drizzle-orm";
-import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
-import { z } from "zod";
-import { db } from "../../../db/index.ts";
-import { anexos } from "../../../db/schema/anexos.ts";
-import { categorias } from "../../../db/schema/categorias.ts";
-import { chamados } from "../../../db/schema/chamados.ts";
-import { departamentos } from "../../../db/schema/departamentos.ts";
-import { etapas } from "../../../db/schema/etapas.ts";
-import { usuarios } from "../../../db/schema/usuarios.ts";
-import { env } from "../../../env.ts";
+import { eq } from 'drizzle-orm'
+import type { FastifyPluginCallbackZod } from 'fastify-type-provider-zod'
+import { z } from 'zod'
+import { db } from '../../../db/index.ts'
+import { anexos } from '../../../db/schema/anexos.ts'
+import { categorias } from '../../../db/schema/categorias.ts'
+import { chamados } from '../../../db/schema/chamados.ts'
+import { departamentos } from '../../../db/schema/departamentos.ts'
+import { etapas } from '../../../db/schema/etapas.ts'
+import { usuarios } from '../../../db/schema/usuarios.ts'
+import { env } from '../../../env.ts'
 
 const getChamadoByIdParamsSchema = z.object({
   id: z.string().uuid(),
-});
+})
 
 export const getChamadoByIdFinalRoute: FastifyPluginCallbackZod = (app) => {
   app.get(
-    "/chamados/:id",
+    '/chamados/:id',
     {
       schema: {
         params: getChamadoByIdParamsSchema,
@@ -24,24 +24,24 @@ export const getChamadoByIdFinalRoute: FastifyPluginCallbackZod = (app) => {
     },
     async (request, reply) => {
       try {
-        const { id } = request.params;
-        console.log("🔍 Buscando chamado ID:", id);
+        const { id } = request.params
+        console.log('🔍 Buscando chamado ID:', id)
 
         // Busca básica do chamado
         const chamadoBase = await db
           .select()
           .from(chamados)
           .where(eq(chamados.cha_id, id))
-          .limit(1);
+          .limit(1)
 
         if (chamadoBase.length === 0) {
-          return reply.status(404).send({ message: "Chamado não encontrado" });
+          return reply.status(404).send({ message: 'Chamado não encontrado' })
         }
 
-        const chamado = chamadoBase[0];
-        console.log("✅ Chamado encontrado:", chamado.cha_titulo);
-        console.log("📋 Departamento ID:", chamado.cha_departamento);
-        console.log("👤 Usuário ID:", chamado.usu_id);
+        const chamado = chamadoBase[0]
+        console.log('✅ Chamado encontrado:', chamado.cha_titulo)
+        console.log('📋 Departamento ID:', chamado.cha_departamento)
+        console.log('👤 Usuário ID:', chamado.usu_id)
 
         // Buscar informações relacionadas de forma segura
         const [departamento, categoria, usuario, anexosList, etapasList] =
@@ -50,16 +50,16 @@ export const getChamadoByIdFinalRoute: FastifyPluginCallbackZod = (app) => {
             chamado.cha_departamento
               ? (async () => {
                   console.log(
-                    "🔍 Buscando departamento com ID:",
-                    chamado.cha_departamento
-                  );
+                    '🔍 Buscando departamento com ID:',
+                    chamado.cha_departamento,
+                  )
                   const result = await db
                     .select({ dep_nome: departamentos.dep_nome })
                     .from(departamentos)
                     .where(eq(departamentos.dep_id, chamado.cha_departamento!))
-                    .limit(1);
-                  console.log("📊 Resultado da busca de departamento:", result);
-                  return result;
+                    .limit(1)
+                  console.log('📊 Resultado da busca de departamento:', result)
+                  return result
                 })()
               : Promise.resolve([]),
 
@@ -76,7 +76,7 @@ export const getChamadoByIdFinalRoute: FastifyPluginCallbackZod = (app) => {
             chamado.usu_id
               ? (async () => {
                   try {
-                    console.log("🔍 Buscando usuário com ID:", chamado.usu_id);
+                    console.log('🔍 Buscando usuário com ID:', chamado.usu_id)
                     const result = await db
                       .select({
                         usu_nome: usuarios.usu_nome,
@@ -85,12 +85,12 @@ export const getChamadoByIdFinalRoute: FastifyPluginCallbackZod = (app) => {
                       })
                       .from(usuarios)
                       .where(eq(usuarios.usu_id, chamado.usu_id!))
-                      .limit(1);
-                    console.log("📊 Resultado da busca de usuário:", result);
-                    return result;
+                      .limit(1)
+                    console.log('📊 Resultado da busca de usuário:', result)
+                    return result
                   } catch (err) {
-                    console.error("❌ Erro ao buscar usuário:", err);
-                    return [];
+                    console.error('❌ Erro ao buscar usuário:', err)
+                    return []
                   }
                 })()
               : Promise.resolve([]),
@@ -117,32 +117,32 @@ export const getChamadoByIdFinalRoute: FastifyPluginCallbackZod = (app) => {
               .from(etapas)
               .where(eq(etapas.cha_id, id))
               .orderBy(etapas.eta_data_inicio),
-          ]);
+          ])
 
         // Extrair resultados de forma segura
         const depData =
-          departamento.status === "fulfilled" && departamento.value.length > 0
+          departamento.status === 'fulfilled' && departamento.value.length > 0
             ? departamento.value[0]
-            : null;
+            : null
         const catData =
-          categoria.status === "fulfilled" && categoria.value.length > 0
+          categoria.status === 'fulfilled' && categoria.value.length > 0
             ? categoria.value[0]
-            : null;
+            : null
         const usuData =
-          usuario.status === "fulfilled" && usuario.value.length > 0
+          usuario.status === 'fulfilled' && usuario.value.length > 0
             ? usuario.value[0]
-            : null;
+            : null
         const anexosData =
-          anexosList.status === "fulfilled" ? anexosList.value : [];
+          anexosList.status === 'fulfilled' ? anexosList.value : []
         const etapasData =
-          etapasList.status === "fulfilled" ? etapasList.value : [];
+          etapasList.status === 'fulfilled' ? etapasList.value : []
 
         console.log(
-          "🏢 Departamento encontrado:",
-          depData?.dep_nome || "Nenhum"
-        );
-        console.log("👤 Usuário encontrado:", usuData?.usu_nome || "Nenhum");
-        console.log("📂 Categoria encontrada:", catData?.cat_nome || "Nenhum");
+          '🏢 Departamento encontrado:',
+          depData?.dep_nome || 'Nenhum',
+        )
+        console.log('👤 Usuário encontrado:', usuData?.usu_nome || 'Nenhum')
+        console.log('📂 Categoria encontrada:', catData?.cat_nome || 'Nenhum')
 
         // Montar resposta final
         const response = {
@@ -166,35 +166,35 @@ export const getChamadoByIdFinalRoute: FastifyPluginCallbackZod = (app) => {
           etapas: etapasData,
           // Determinar status baseado nos dados
           status: chamado.cha_data_fechamento
-            ? "resolvido"
+            ? 'resolvido'
             : chamado.cha_responsavel
-            ? "em_andamento"
-            : "pendente",
+              ? 'em_andamento'
+              : 'pendente',
           // Formatação de endereço
           endereco_completo:
             chamado.cha_cep && chamado.cha_numero_endereco
               ? `${chamado.cha_numero_endereco}, CEP: ${chamado.cha_cep}`
-              : chamado.cha_cep || "Não informado",
-        };
+              : chamado.cha_cep || 'Não informado',
+        }
 
-        console.log("✅ Resposta montada com sucesso");
-        reply.send(response);
+        console.log('✅ Resposta montada com sucesso')
+        reply.send(response)
       } catch (err) {
-        console.error("❌ Erro detalhado ao buscar chamado:", err);
+        console.error('❌ Erro detalhado ao buscar chamado:', err)
         console.error(
-          "Stack trace:",
-          err instanceof Error ? err.stack : "No stack trace"
-        );
+          'Stack trace:',
+          err instanceof Error ? err.stack : 'No stack trace',
+        )
         reply.status(500).send({
-          message: "Erro ao buscar chamado",
+          message: 'Erro ao buscar chamado',
           error:
-            env.NODE_ENV === "development"
+            env.NODE_ENV === 'development'
               ? err instanceof Error
                 ? err.message
-                : "Erro desconhecido"
+                : 'Erro desconhecido'
               : undefined,
-        });
+        })
       }
-    }
-  );
-};
+    },
+  )
+}

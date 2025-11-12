@@ -1,11 +1,11 @@
-import { eq } from "drizzle-orm";
-import type { FastifyPluginCallback } from "fastify";
-import { db } from "../../../db/index.ts";
-import { cidades } from "../../../db/schema/cidades.ts";
-import { usuarios } from "../../../db/schema/usuarios.ts";
+import { eq } from 'drizzle-orm'
+import type { FastifyPluginCallback } from 'fastify'
+import { db } from '../../../db/index.ts'
+import { cidades } from '../../../db/schema/cidades.ts'
+import { usuarios } from '../../../db/schema/usuarios.ts'
 
 export const getUsersRoute: FastifyPluginCallback = (app) => {
-  app.get("/users", async (_request, reply) => {
+  app.get('/users', async (_request, reply) => {
     try {
       const users = await db
         .select({
@@ -26,16 +26,16 @@ export const getUsersRoute: FastifyPluginCallback = (app) => {
         })
         .from(usuarios)
         .leftJoin(cidades, eq(usuarios.cid_id, cidades.cid_id))
-        .where(eq(usuarios.usu_ativo, true));
+        .where(eq(usuarios.usu_ativo, true))
 
-      return reply.send(users);
+      return reply.send(users)
     } catch (error) {
-      console.error("Erro ao buscar usuários:", error);
+      console.error('Erro ao buscar usuários:', error)
       return reply.status(500).send({
-        message: "Erro interno no servidor",
-        error: error instanceof Error ? error.message : "Erro desconhecido",
-        code: "INTERNAL_SERVER_ERROR",
-      });
+        message: 'Erro interno no servidor',
+        error: error instanceof Error ? error.message : 'Erro desconhecido',
+        code: 'INTERNAL_SERVER_ERROR',
+      })
     }
-  });
-};
+  })
+}

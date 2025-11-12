@@ -1,16 +1,16 @@
-import { eq } from "drizzle-orm";
-import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
-import { z } from "zod";
-import { db } from "../../../db/index.ts";
-import { schema } from "../../../db/schema/index.ts";
+import { eq } from 'drizzle-orm'
+import type { FastifyPluginCallbackZod } from 'fastify-type-provider-zod'
+import { z } from 'zod'
+import { db } from '../../../db/index.ts'
+import { schema } from '../../../db/schema/index.ts'
 
 const getFuncionariosQuerySchema = z.object({
   cidadeId: z.string().optional(),
-});
+})
 
 export const getFuncionariosRoute: FastifyPluginCallbackZod = (app) => {
   app.get(
-    "/funcionarios",
+    '/funcionarios',
     {
       schema: {
         querystring: getFuncionariosQuerySchema,
@@ -18,7 +18,7 @@ export const getFuncionariosRoute: FastifyPluginCallbackZod = (app) => {
     },
     async (request, reply) => {
       try {
-        const { cidadeId } = request.query;
+        const { cidadeId } = request.query
 
         // Busca todos os funcionários com joins para departamento e cidade
         let query = db
@@ -44,31 +44,31 @@ export const getFuncionariosRoute: FastifyPluginCallbackZod = (app) => {
           .from(schema.funcionarios)
           .leftJoin(
             schema.departamentos,
-            eq(schema.funcionarios.dep_id, schema.departamentos.dep_id)
+            eq(schema.funcionarios.dep_id, schema.departamentos.dep_id),
           )
           .leftJoin(
             schema.cidades,
-            eq(schema.funcionarios.cid_id, schema.cidades.cid_id)
-          );
+            eq(schema.funcionarios.cid_id, schema.cidades.cid_id),
+          )
 
         // Filtrar por cidade se cidadeId foi fornecido
         if (cidadeId) {
-          query = query.where(eq(schema.funcionarios.cid_id, cidadeId));
+          query = query.where(eq(schema.funcionarios.cid_id, cidadeId))
         }
 
-        const results = await query;
-        reply.send(results);
+        const results = await query
+        reply.send(results)
       } catch (error) {
-        console.error("Erro ao buscar funcionários:", error);
+        console.error('Erro ao buscar funcionários:', error)
         reply.code(500).send({
           statusCode: 500,
-          error: "Internal Server Error",
+          error: 'Internal Server Error',
           message:
             error instanceof Error
               ? error.message
-              : "Erro ao buscar funcionários",
-        });
+              : 'Erro ao buscar funcionários',
+        })
       }
-    }
-  );
-};
+    },
+  )
+}

@@ -1,16 +1,16 @@
-import { eq } from "drizzle-orm";
-import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
-import { z } from "zod";
-import { db } from "../../../db/index.ts";
-import { usuarios } from "../../../db/schema/usuarios.ts";
+import { eq } from 'drizzle-orm'
+import type { FastifyPluginCallbackZod } from 'fastify-type-provider-zod'
+import { z } from 'zod'
+import { db } from '../../../db/index.ts'
+import { usuarios } from '../../../db/schema/usuarios.ts'
 
 const getUserByCpfRequestSchema = z.object({
   cpf: z.string().min(11).max(11),
-});
+})
 
 export const getUserByCpfRoute: FastifyPluginCallbackZod = (app) => {
   app.get(
-    "/users/cpf/:cpf",
+    '/users/cpf/:cpf',
     {
       schema: {
         params: getUserByCpfRequestSchema,
@@ -18,7 +18,7 @@ export const getUserByCpfRoute: FastifyPluginCallbackZod = (app) => {
     },
     async (request, reply) => {
       try {
-        const { cpf } = request.params;
+        const { cpf } = request.params
 
         const user = await db
           .select({
@@ -33,17 +33,17 @@ export const getUserByCpfRoute: FastifyPluginCallbackZod = (app) => {
           })
           .from(usuarios)
           .where(eq(usuarios.usu_cpf, cpf))
-          .limit(1);
+          .limit(1)
 
         if (user.length === 0) {
-          return reply.status(404).send({ error: "Usuário não encontrado" });
+          return reply.status(404).send({ error: 'Usuário não encontrado' })
         }
 
-        reply.send(user[0]);
+        reply.send(user[0])
       } catch (error) {
-        console.error("Erro ao buscar usuário por CPF:", error);
-        reply.status(500).send({ message: "Erro ao buscar usuário" });
+        console.error('Erro ao buscar usuário por CPF:', error)
+        reply.status(500).send({ message: 'Erro ao buscar usuário' })
       }
-    }
-  );
-};
+    },
+  )
+}

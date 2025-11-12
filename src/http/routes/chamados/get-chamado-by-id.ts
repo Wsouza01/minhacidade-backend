@@ -1,16 +1,16 @@
-import { eq } from "drizzle-orm";
-import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
-import { z } from "zod";
-import { db } from "../../../db/index.ts";
-import { categorias } from "../../../db/schema/categorias.ts";
-import { chamados } from "../../../db/schema/chamados.ts";
-import { cidades } from "../../../db/schema/cidades.ts";
-import { departamentos } from "../../../db/schema/departamentos.ts";
-import { usuarios } from "../../../db/schema/usuarios.ts";
+import { eq } from 'drizzle-orm'
+import type { FastifyPluginCallbackZod } from 'fastify-type-provider-zod'
+import { z } from 'zod'
+import { db } from '../../../db/index.ts'
+import { categorias } from '../../../db/schema/categorias.ts'
+import { chamados } from '../../../db/schema/chamados.ts'
+import { cidades } from '../../../db/schema/cidades.ts'
+import { departamentos } from '../../../db/schema/departamentos.ts'
+import { usuarios } from '../../../db/schema/usuarios.ts'
 
 export const getChamadoByIdRoute: FastifyPluginCallbackZod = (app) => {
   app.get(
-    "/chamados/:chamadoId",
+    '/chamados/:chamadoId',
     {
       schema: {
         params: z.object({
@@ -20,7 +20,7 @@ export const getChamadoByIdRoute: FastifyPluginCallbackZod = (app) => {
     },
     async (request, reply) => {
       try {
-        const { chamadoId } = request.params;
+        const { chamadoId } = request.params
 
         const [chamado] = await db
           .select({
@@ -47,22 +47,22 @@ export const getChamadoByIdRoute: FastifyPluginCallbackZod = (app) => {
           .from(chamados)
           .leftJoin(
             departamentos,
-            eq(chamados.cha_departamento, departamentos.dep_id)
+            eq(chamados.cha_departamento, departamentos.dep_id),
           )
           .leftJoin(cidades, eq(departamentos.cid_id, cidades.cid_id))
           .leftJoin(categorias, eq(chamados.cat_id, categorias.cat_id))
           .leftJoin(usuarios, eq(chamados.usu_id, usuarios.usu_id))
-          .where(eq(chamados.cha_id, chamadoId));
+          .where(eq(chamados.cha_id, chamadoId))
 
         if (!chamado) {
-          return reply.status(404).send({ message: "Chamado não encontrado" });
+          return reply.status(404).send({ message: 'Chamado não encontrado' })
         }
 
-        return reply.send(chamado);
+        return reply.send(chamado)
       } catch (err) {
-        console.error("Erro ao buscar chamado:", err);
-        reply.status(500).send({ message: "Erro ao buscar chamado" });
+        console.error('Erro ao buscar chamado:', err)
+        reply.status(500).send({ message: 'Erro ao buscar chamado' })
       }
-    }
-  );
-};
+    },
+  )
+}

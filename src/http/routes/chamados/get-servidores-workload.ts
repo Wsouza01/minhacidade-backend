@@ -1,13 +1,13 @@
-import { and, eq, isNull } from "drizzle-orm";
-import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
-import { z } from "zod";
-import { db } from "../../../db/index.ts";
-import { chamados } from "../../../db/schema/chamados.ts";
-import { funcionarios } from "../../../db/schema/funcionarios.ts";
+import { and, eq, isNull } from 'drizzle-orm'
+import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
+import { z } from 'zod'
+import { db } from '../../../db/index.ts'
+import { chamados } from '../../../db/schema/chamados.ts'
+import { funcionarios } from '../../../db/schema/funcionarios.ts'
 
 export const getServidoresWorkload: FastifyPluginAsyncZod = async (app) => {
   app.get(
-    "/servidores/workload",
+    '/servidores/workload',
     {
       schema: {
         querystring: z.object({
@@ -16,7 +16,7 @@ export const getServidoresWorkload: FastifyPluginAsyncZod = async (app) => {
       },
     },
     async (req, reply) => {
-      const { cidadeId } = req.query;
+      const { cidadeId } = req.query
 
       try {
         // Buscar todos os servidores da cidade
@@ -31,9 +31,9 @@ export const getServidoresWorkload: FastifyPluginAsyncZod = async (app) => {
           .where(
             and(
               eq(funcionarios.cid_id, cidadeId),
-              eq(funcionarios.fun_tipo, "servidor")
-            )
-          );
+              eq(funcionarios.fun_tipo, 'servidor'),
+            ),
+          )
 
         // Para cada servidor, contar chamados abertos
         const servidoresComWorkload = await Promise.all(
@@ -44,9 +44,9 @@ export const getServidoresWorkload: FastifyPluginAsyncZod = async (app) => {
               .where(
                 and(
                   eq(chamados.cha_responsavel, servidor.fun_id),
-                  isNull(chamados.cha_data_fechamento)
-                )
-              );
+                  isNull(chamados.cha_data_fechamento),
+                ),
+              )
 
             const chamadosAbertos = await db
               .select()
@@ -54,27 +54,27 @@ export const getServidoresWorkload: FastifyPluginAsyncZod = async (app) => {
               .where(
                 and(
                   eq(chamados.cha_responsavel, servidor.fun_id),
-                  isNull(chamados.cha_data_fechamento)
-                )
-              );
+                  isNull(chamados.cha_data_fechamento),
+                ),
+              )
 
             return {
               fun_id: servidor.fun_id,
               fun_nome: servidor.fun_nome,
               fun_email: servidor.fun_email,
               chamados_abertos: chamadosAbertos.length,
-            };
-          })
-        );
+            }
+          }),
+        )
 
-        return reply.status(200).send(servidoresComWorkload);
+        return reply.status(200).send(servidoresComWorkload)
       } catch (error) {
-        console.error("[GET /servidores/workload] Erro:", error);
+        console.error('[GET /servidores/workload] Erro:', error)
         return reply.status(500).send({
-          error: "Erro ao buscar workload dos servidores",
+          error: 'Erro ao buscar workload dos servidores',
           details: error instanceof Error ? error.message : String(error),
-        });
+        })
       }
-    }
-  );
-};
+    },
+  )
+}

@@ -1,13 +1,13 @@
-import { eq } from "drizzle-orm";
-import type { FastifyPluginCallback } from "fastify";
-import { z } from "zod";
-import { db } from "../../../db/index.ts";
-import { administradores } from "../../../db/schema/administradores.ts";
-import { cidades } from "../../../db/schema/cidades.ts";
+import { eq } from 'drizzle-orm'
+import type { FastifyPluginCallback } from 'fastify'
+import { z } from 'zod'
+import { db } from '../../../db/index.ts'
+import { administradores } from '../../../db/schema/administradores.ts'
+import { cidades } from '../../../db/schema/cidades.ts'
 
 export const getAdministradoresRoute: FastifyPluginCallback = (app) => {
   app.get(
-    "/administradores",
+    '/administradores',
     {
       schema: {
         querystring: z.object({
@@ -31,14 +31,14 @@ export const getAdministradoresRoute: FastifyPluginCallback = (app) => {
                   estado: z.string(),
                 })
                 .nullable(),
-            })
+            }),
           ),
         },
       },
     },
     async (request, reply) => {
       try {
-        const { cidadeId, ativo } = request.query;
+        const { cidadeId, ativo } = request.query
 
         let query = db
           .select({
@@ -54,24 +54,24 @@ export const getAdministradoresRoute: FastifyPluginCallback = (app) => {
             cidadeEstado: cidades.cid_estado,
           })
           .from(administradores)
-          .leftJoin(cidades, eq(administradores.cid_id, cidades.cid_id));
+          .leftJoin(cidades, eq(administradores.cid_id, cidades.cid_id))
 
         // Aplicar filtros
-        const conditions = [];
+        const conditions = []
         if (cidadeId) {
-          conditions.push(eq(administradores.cid_id, cidadeId));
+          conditions.push(eq(administradores.cid_id, cidadeId))
         }
         if (ativo !== undefined) {
-          conditions.push(eq(administradores.adm_ativo, ativo === "true"));
+          conditions.push(eq(administradores.adm_ativo, ativo === 'true'))
         }
 
         if (conditions.length > 0) {
           query = query.where(
-            conditions.reduce((acc, cond) => (acc ? eq(acc, cond) : cond))
-          ) as any;
+            conditions.reduce((acc, cond) => (acc ? eq(acc, cond) : cond)),
+          ) as any
         }
 
-        const result = await query;
+        const result = await query
 
         const formatted = result.map((row) => ({
           id: row.id,
@@ -88,22 +88,22 @@ export const getAdministradoresRoute: FastifyPluginCallback = (app) => {
                 estado: row.cidadeEstado!,
               }
             : null,
-        }));
+        }))
 
-        return reply.send(formatted);
+        return reply.send(formatted)
       } catch (error) {
-        console.error("Erro ao buscar administradores:", error);
+        console.error('Erro ao buscar administradores:', error)
         return reply.status(500).send({
-          message: "Erro ao buscar administradores",
+          message: 'Erro ao buscar administradores',
           error: error instanceof Error ? error.message : String(error),
-        });
+        })
       }
-    }
-  );
+    },
+  )
 
   // Buscar administrador por ID
   app.get(
-    "/administradores/:id",
+    '/administradores/:id',
     {
       schema: {
         params: z.object({
@@ -132,7 +132,7 @@ export const getAdministradoresRoute: FastifyPluginCallback = (app) => {
     },
     async (request, reply) => {
       try {
-        const { id } = request.params;
+        const { id } = request.params
 
         const result = await db
           .select({
@@ -150,22 +150,22 @@ export const getAdministradoresRoute: FastifyPluginCallback = (app) => {
           })
           .from(administradores)
           .leftJoin(cidades, eq(administradores.cid_id, cidades.cid_id))
-          .where(eq(administradores.adm_id, id));
+          .where(eq(administradores.adm_id, id))
 
         if (result.length === 0) {
           return reply.status(404).send({
-            message: "Administrador não encontrado",
-          });
+            message: 'Administrador não encontrado',
+          })
         }
 
-        const row = result[0];
+        const row = result[0]
 
         return reply.send({
           id: row.id,
           nome: row.nome,
           email: row.email,
           cpf: row.cpf,
-          dataNascimento: row.dataNascimento.toISOString().split("T")[0],
+          dataNascimento: row.dataNascimento.toISOString().split('T')[0],
           login: row.login,
           ativo: row.ativo,
           criado: row.criado,
@@ -176,14 +176,14 @@ export const getAdministradoresRoute: FastifyPluginCallback = (app) => {
                 estado: row.cidadeEstado!,
               }
             : null,
-        });
+        })
       } catch (error) {
-        console.error("Erro ao buscar administrador:", error);
+        console.error('Erro ao buscar administrador:', error)
         return reply.status(500).send({
-          message: "Erro ao buscar administrador",
+          message: 'Erro ao buscar administrador',
           error: error instanceof Error ? error.message : String(error),
-        });
+        })
       }
-    }
-  );
-};
+    },
+  )
+}

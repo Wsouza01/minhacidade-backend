@@ -1,19 +1,19 @@
-import { and, count, eq, isNull } from "drizzle-orm";
-import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
-import { z } from "zod";
-import { db } from "../../../db/index.ts";
-import { chamados } from "../../../db/schema/chamados.ts";
-import { funcionarios } from "../../../db/schema/funcionarios.ts";
+import { and, count, eq, isNull } from 'drizzle-orm'
+import type { FastifyPluginCallbackZod } from 'fastify-type-provider-zod'
+import { z } from 'zod'
+import { db } from '../../../db/index.ts'
+import { chamados } from '../../../db/schema/chamados.ts'
+import { funcionarios } from '../../../db/schema/funcionarios.ts'
 
 const getFuncionariosByDepartamentoParamsSchema = z.object({
-  id: z.string().uuid("ID do departamento deve ser um UUID válido"),
-});
+  id: z.string().uuid('ID do departamento deve ser um UUID válido'),
+})
 
 export const getFuncionariosByDepartamentoRoute: FastifyPluginCallbackZod = (
-  app
+  app,
 ) => {
   app.get(
-    "/funcionarios/departamento/:id",
+    '/funcionarios/departamento/:id',
     {
       schema: {
         params: getFuncionariosByDepartamentoParamsSchema,
@@ -21,18 +21,18 @@ export const getFuncionariosByDepartamentoRoute: FastifyPluginCallbackZod = (
     },
     async (request, reply) => {
       try {
-        const { id: departamentoId } = request.params;
+        const { id: departamentoId } = request.params
 
         // Subquery para contar chamados atribuídos a cada funcionário (chamados abertos)
         const chamadosCountSubquery = db
           .select({
             funcionarioId: chamados.cha_responsavel,
-            count: count(chamados.cha_id).as("chamados_count"),
+            count: count(chamados.cha_id).as('chamados_count'),
           })
           .from(chamados)
           .where(isNull(chamados.cha_data_fechamento))
           .groupBy(chamados.cha_responsavel)
-          .as("chamados_count_sq");
+          .as('chamados_count_sq')
 
         // Busca todos os servidores do departamento e junta com a contagem de chamados
         const results = await db
@@ -45,31 +45,31 @@ export const getFuncionariosByDepartamentoRoute: FastifyPluginCallbackZod = (
           .where(
             and(
               eq(funcionarios.dep_id, departamentoId),
-              eq(funcionarios.fun_tipo, "servidor")
-            )
+              eq(funcionarios.fun_tipo, 'servidor'),
+            ),
           )
           .leftJoin(
             chamadosCountSubquery,
-            eq(funcionarios.fun_id, chamadosCountSubquery.funcionarioId)
-          );
+            eq(funcionarios.fun_id, chamadosCountSubquery.funcionarioId),
+          )
 
         const finalResults = results.map((r) => ({
           ...r,
           chamados_atribuidos: r.chamados_atribuidos ?? 0,
-        }));
+        }))
 
-        reply.send(finalResults);
+        reply.send(finalResults)
       } catch (error) {
-        console.error("Erro ao buscar funcionários por departamento:", error);
+        console.error('Erro ao buscar funcionários por departamento:', error)
         reply.code(500).send({
           statusCode: 500,
-          error: "Internal Server Error",
+          error: 'Internal Server Error',
           message:
             error instanceof Error
               ? error.message
-              : "Erro ao buscar funcionários do departamento",
-        });
+              : 'Erro ao buscar funcionários do departamento',
+        })
       }
-    }
-  );
-};
+    },
+  )
+}

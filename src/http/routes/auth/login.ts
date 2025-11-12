@@ -1,21 +1,21 @@
-import bcrypt from "bcryptjs";
-import { eq, ilike, or } from "drizzle-orm";
-import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
-import { z } from "zod";
-import { db } from "../../../db/index.ts";
-import { administradores } from "../../../db/schema/administradores.ts";
-import { cidades } from "../../../db/schema/cidades.ts";
-import { funcionarios } from "../../../db/schema/funcionarios.ts";
-import { usuarios } from "../../../db/schema/usuarios.ts";
+import bcrypt from 'bcryptjs'
+import { eq, ilike, or } from 'drizzle-orm'
+import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
+import { z } from 'zod'
+import { db } from '../../../db/index.ts'
+import { administradores } from '../../../db/schema/administradores.ts'
+import { cidades } from '../../../db/schema/cidades.ts'
+import { funcionarios } from '../../../db/schema/funcionarios.ts'
+import { usuarios } from '../../../db/schema/usuarios.ts'
 
 export const authLoginRoute: FastifyPluginAsyncZod = async (app) => {
   app.post(
-    "/auth/login",
+    '/auth/login',
     {
       schema: {
         body: z.object({
-          login: z.string().min(1, "Login é obrigatório"),
-          senha: z.string().min(1, "Senha é obrigatória"),
+          login: z.string().min(1, 'Login é obrigatório'),
+          senha: z.string().min(1, 'Senha é obrigatória'),
         }),
         response: {
           200: z.object({
@@ -26,11 +26,11 @@ export const authLoginRoute: FastifyPluginAsyncZod = async (app) => {
               nome: z.string(),
               email: z.string(),
               tipo: z.enum([
-                "admin",
-                "municipe",
-                "atendente",
-                "servidor",
-                "admin-global",
+                'admin',
+                'municipe',
+                'atendente',
+                'servidor',
+                'admin-global',
               ]),
               departamento: z.string().nullish(),
               cidadeId: z.string().uuid().nullish(),
@@ -70,7 +70,7 @@ export const authLoginRoute: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, reply) => {
       try {
-        const { login, senha } = request.body;
+        const { login, senha } = request.body
 
         // Primeiro tenta encontrar como administrador (admin global ou admin de cidade)
         const administrador = await db
@@ -80,18 +80,18 @@ export const authLoginRoute: FastifyPluginAsyncZod = async (app) => {
             or(
               eq(administradores.adm_login, login),
               eq(administradores.adm_cpf, login),
-              eq(administradores.adm_email, login)
-            )
+              eq(administradores.adm_email, login),
+            ),
           )
-          .then((res) => res[0]);
+          .then((res) => res[0])
 
         if (administrador) {
           // Verificar se está ativo
           if (!administrador.adm_ativo) {
             return reply.status(403).send({
-              message: "Conta desativada",
-              code: "ACCOUNT_DISABLED",
-            });
+              message: 'Conta desativada',
+              code: 'ACCOUNT_DISABLED',
+            })
           }
 
           // Verificar bloqueio
@@ -100,21 +100,21 @@ export const authLoginRoute: FastifyPluginAsyncZod = async (app) => {
             administrador.adm_bloqueado_ate > new Date()
           ) {
             return reply.status(403).send({
-              message: "Conta temporariamente bloqueada",
-              code: "ACCOUNT_LOCKED",
-            });
+              message: 'Conta temporariamente bloqueada',
+              code: 'ACCOUNT_LOCKED',
+            })
           }
 
           // Verificar senha
           const senhaCorreta = await bcrypt.compare(
             senha,
-            administrador.adm_senha
-          );
+            administrador.adm_senha,
+          )
 
           if (!senhaCorreta) {
-            const tentativas = (administrador.adm_tentativas_login || 0) + 1;
+            const tentativas = (administrador.adm_tentativas_login || 0) + 1
             const bloquearAte =
-              tentativas >= 5 ? new Date(Date.now() + 30 * 60 * 1000) : null;
+              tentativas >= 5 ? new Date(Date.now() + 30 * 60 * 1000) : null
 
             await db
               .update(administradores)
@@ -122,15 +122,15 @@ export const authLoginRoute: FastifyPluginAsyncZod = async (app) => {
                 adm_tentativas_login: tentativas,
                 adm_bloqueado_ate: bloquearAte,
               })
-              .where(eq(administradores.adm_id, administrador.adm_id));
+              .where(eq(administradores.adm_id, administrador.adm_id))
 
             return reply.status(401).send({
               message: `Senha incorreta. ${Math.max(
                 0,
-                5 - tentativas
+                5 - tentativas,
               )} tentativa(s) restante(s)`,
-              code: "INVALID_CREDENTIALS",
-            });
+              code: 'INVALID_CREDENTIALS',
+            })
           }
 
           // Login bem-sucedido - resetar tentativas
@@ -140,14 +140,14 @@ export const authLoginRoute: FastifyPluginAsyncZod = async (app) => {
               adm_tentativas_login: 0,
               adm_bloqueado_ate: null,
             })
-            .where(eq(administradores.adm_id, administrador.adm_id));
+            .where(eq(administradores.adm_id, administrador.adm_id))
 
           // Determinar tipo: admin-global (sem cidade) ou admin (com cidade)
-          const tipo = administrador.cid_id ? "admin" : "admin-global";
+          const tipo = administrador.cid_id ? 'admin' : 'admin-global'
 
           return reply.send({
             success: true,
-            message: "Login realizado com sucesso",
+            message: 'Login realizado com sucesso',
             data: {
               id: administrador.adm_id,
               nome: administrador.adm_nome,
@@ -156,7 +156,7 @@ export const authLoginRoute: FastifyPluginAsyncZod = async (app) => {
               departamento: null,
               cidadeId: administrador.cid_id,
             },
-          });
+          })
         }
 
         // Segundo tenta encontrar como usuário (munícipe)
@@ -167,18 +167,18 @@ export const authLoginRoute: FastifyPluginAsyncZod = async (app) => {
             or(
               eq(usuarios.usu_login, login),
               eq(usuarios.usu_cpf, login),
-              eq(usuarios.usu_email, login)
-            )
+              eq(usuarios.usu_email, login),
+            ),
           )
-          .then((res) => res[0]);
+          .then((res) => res[0])
 
         if (usuario) {
           // Verificar se está ativo
           if (!usuario.usu_ativo) {
             return reply.status(403).send({
-              message: "Conta desativada",
-              code: "ACCOUNT_DISABLED",
-            });
+              message: 'Conta desativada',
+              code: 'ACCOUNT_DISABLED',
+            })
           }
 
           // Verificar bloqueio
@@ -187,18 +187,18 @@ export const authLoginRoute: FastifyPluginAsyncZod = async (app) => {
             usuario.usu_bloqueado_ate > new Date()
           ) {
             return reply.status(403).send({
-              message: "Conta temporariamente bloqueada",
-              code: "ACCOUNT_LOCKED",
-            });
+              message: 'Conta temporariamente bloqueada',
+              code: 'ACCOUNT_LOCKED',
+            })
           }
 
           // Verificar senha
-          const senhaCorreta = await bcrypt.compare(senha, usuario.usu_senha);
+          const senhaCorreta = await bcrypt.compare(senha, usuario.usu_senha)
 
           if (!senhaCorreta) {
-            const tentativas = (usuario.usu_tentativas_login || 0) + 1;
+            const tentativas = (usuario.usu_tentativas_login || 0) + 1
             const bloquearAte =
-              tentativas >= 5 ? new Date(Date.now() + 30 * 60 * 1000) : null;
+              tentativas >= 5 ? new Date(Date.now() + 30 * 60 * 1000) : null
 
             await db
               .update(usuarios)
@@ -206,15 +206,15 @@ export const authLoginRoute: FastifyPluginAsyncZod = async (app) => {
                 usu_tentativas_login: tentativas,
                 usu_bloqueado_ate: bloquearAte,
               })
-              .where(eq(usuarios.usu_id, usuario.usu_id));
+              .where(eq(usuarios.usu_id, usuario.usu_id))
 
             return reply.status(401).send({
               message: `Senha incorreta. ${Math.max(
                 0,
-                5 - tentativas
+                5 - tentativas,
               )} tentativa(s) restante(s)`,
-              code: "INVALID_CREDENTIALS",
-            });
+              code: 'INVALID_CREDENTIALS',
+            })
           }
 
           // Login bem-sucedido - resetar tentativas
@@ -224,17 +224,17 @@ export const authLoginRoute: FastifyPluginAsyncZod = async (app) => {
               usu_tentativas_login: 0,
               usu_bloqueado_ate: null,
             })
-            .where(eq(usuarios.usu_id, usuario.usu_id));
+            .where(eq(usuarios.usu_id, usuario.usu_id))
 
           const endereco = (usuario.usu_endereco ?? null) as {
-            cidadeId?: string | null;
-            cidade?: string | null;
-            cep?: string | null;
-            [key: string]: unknown;
-          } | null;
+            cidadeId?: string | null
+            cidade?: string | null
+            cep?: string | null
+            [key: string]: unknown
+          } | null
 
-          let resolvedCidadeId = usuario.cid_id ?? endereco?.cidadeId ?? null;
-          let resolvedCidadeNome = endereco?.cidade ?? null;
+          let resolvedCidadeId = usuario.cid_id ?? endereco?.cidadeId ?? null
+          let resolvedCidadeNome = endereco?.cidade ?? null
 
           if (!resolvedCidadeId && endereco?.cidade) {
             const cidadeMatch = await db
@@ -245,17 +245,17 @@ export const authLoginRoute: FastifyPluginAsyncZod = async (app) => {
               .from(cidades)
               .where(ilike(cidades.cid_nome, endereco.cidade))
               .limit(1)
-              .then((res) => res[0] || null);
+              .then((res) => res[0] || null)
 
             if (cidadeMatch) {
-              resolvedCidadeId = cidadeMatch.id;
-              resolvedCidadeNome = cidadeMatch.nome;
+              resolvedCidadeId = cidadeMatch.id
+              resolvedCidadeNome = cidadeMatch.nome
               await db
                 .update(usuarios)
                 .set({ cid_id: cidadeMatch.id })
-                .where(eq(usuarios.usu_id, usuario.usu_id));
+                .where(eq(usuarios.usu_id, usuario.usu_id))
             } else {
-              resolvedCidadeNome = endereco.cidade;
+              resolvedCidadeNome = endereco.cidade
             }
           }
 
@@ -265,13 +265,13 @@ export const authLoginRoute: FastifyPluginAsyncZod = async (app) => {
               .from(cidades)
               .where(eq(cidades.cid_id, resolvedCidadeId))
               .limit(1)
-              .then((res) => res[0] || null);
-            resolvedCidadeNome = cidadeAtual?.nome ?? resolvedCidadeNome;
+              .then((res) => res[0] || null)
+            resolvedCidadeNome = cidadeAtual?.nome ?? resolvedCidadeNome
           }
 
           return reply.send({
             success: true,
-            message: "Login realizado com sucesso",
+            message: 'Login realizado com sucesso',
             data: {
               id: usuario.usu_id,
               nome: usuario.usu_nome,
@@ -282,7 +282,7 @@ export const authLoginRoute: FastifyPluginAsyncZod = async (app) => {
               cidade: resolvedCidadeNome,
               endereco,
             },
-          });
+          })
         }
 
         // Se não encontrou como usuário, tenta como funcionário (atendente ou servidor)
@@ -307,39 +307,39 @@ export const authLoginRoute: FastifyPluginAsyncZod = async (app) => {
             or(
               eq(funcionarios.fun_login, login),
               eq(funcionarios.fun_cpf, login),
-              eq(funcionarios.fun_email, login)
-            )
+              eq(funcionarios.fun_email, login),
+            ),
           )
-          .then((res) => res[0]);
+          .then((res) => res[0])
 
         if (!funcionario) {
           return reply.status(401).send({
-            message: "Credenciais inválidas",
-            code: "INVALID_CREDENTIALS",
-          });
+            message: 'Credenciais inválidas',
+            code: 'INVALID_CREDENTIALS',
+          })
         }
 
         // Verificar se está ativo
         if (!funcionario.fun_ativo) {
           return reply.status(403).send({
-            message: "Conta desativada",
-            code: "ACCOUNT_DISABLED",
-          });
+            message: 'Conta desativada',
+            code: 'ACCOUNT_DISABLED',
+          })
         }
 
         // Verificar senha do funcionário
-        const senhaCorreta = await bcrypt.compare(senha, funcionario.fun_senha);
+        const senhaCorreta = await bcrypt.compare(senha, funcionario.fun_senha)
 
         if (!senhaCorreta) {
           return reply.status(401).send({
-            message: "Senha incorreta",
-            code: "INVALID_CREDENTIALS",
-          });
+            message: 'Senha incorreta',
+            code: 'INVALID_CREDENTIALS',
+          })
         }
 
         return reply.send({
           success: true,
-          message: "Login realizado com sucesso",
+          message: 'Login realizado com sucesso',
           data: {
             id: funcionario.fun_id,
             nome: funcionario.fun_nome,
@@ -348,14 +348,14 @@ export const authLoginRoute: FastifyPluginAsyncZod = async (app) => {
             departamento: funcionario.dep_id || null,
             cidadeId: funcionario.cid_id,
           },
-        });
+        })
       } catch (error) {
-        console.error("Erro no login:", error);
+        console.error('Erro no login:', error)
         return reply.status(500).send({
-          message: "Erro interno no servidor",
-          code: "INTERNAL_SERVER_ERROR",
-        });
+          message: 'Erro interno no servidor',
+          code: 'INTERNAL_SERVER_ERROR',
+        })
       }
-    }
-  );
-};
+    },
+  )
+}

@@ -1,14 +1,14 @@
-import bcrypt from "bcryptjs";
-import { eq } from "drizzle-orm";
-import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
-import { z } from "zod";
-import { db } from "../../../db/index.ts";
-import { administradores } from "../../../db/schema/administradores.ts";
-import { getCPFDuplicateMessage } from "../../../utils/check-duplicate-cpf.ts";
+import bcrypt from 'bcryptjs'
+import { eq } from 'drizzle-orm'
+import type { FastifyPluginCallbackZod } from 'fastify-type-provider-zod'
+import { z } from 'zod'
+import { db } from '../../../db/index.ts'
+import { administradores } from '../../../db/schema/administradores.ts'
+import { getCPFDuplicateMessage } from '../../../utils/check-duplicate-cpf.ts'
 
 export const putAdministradoresRoute: FastifyPluginCallbackZod = (app) => {
   app.put(
-    "/administradores/:id",
+    '/administradores/:id',
     {
       schema: {
         params: z.object({
@@ -28,7 +28,7 @@ export const putAdministradoresRoute: FastifyPluginCallbackZod = (app) => {
     },
     async (request, reply) => {
       try {
-        const { id } = request.params;
+        const { id } = request.params
         const {
           nome,
           email,
@@ -38,36 +38,36 @@ export const putAdministradoresRoute: FastifyPluginCallbackZod = (app) => {
           senha,
           cidadeId,
           ativo,
-        } = request.body;
+        } = request.body
 
         // Validar CPF duplicado se estiver sendo alterado
         if (cpf) {
-          const cpfSemFormatacao = cpf.replace(/\D/g, "");
+          const cpfSemFormatacao = cpf.replace(/\D/g, '')
           const cpfDuplicadoMsg = await getCPFDuplicateMessage(
             cpfSemFormatacao,
-            id
-          );
+            id,
+          )
           if (cpfDuplicadoMsg) {
             return reply.status(400).send({
               message: cpfDuplicadoMsg,
-            });
+            })
           }
         }
 
         // Preparar dados para atualização
-        const updateData: any = {};
+        const updateData: any = {}
 
-        if (nome) updateData.adm_nome = nome;
-        if (email) updateData.adm_email = email;
-        if (cpf) updateData.adm_cpf = cpf.replace(/\D/g, "");
-        if (dataNascimento) updateData.adm_data_nascimento = dataNascimento;
-        if (login) updateData.adm_login = login;
-        if (cidadeId !== undefined) updateData.cid_id = cidadeId;
-        if (ativo !== undefined) updateData.adm_ativo = ativo;
+        if (nome) updateData.adm_nome = nome
+        if (email) updateData.adm_email = email
+        if (cpf) updateData.adm_cpf = cpf.replace(/\D/g, '')
+        if (dataNascimento) updateData.adm_data_nascimento = dataNascimento
+        if (login) updateData.adm_login = login
+        if (cidadeId !== undefined) updateData.cid_id = cidadeId
+        if (ativo !== undefined) updateData.adm_ativo = ativo
 
         // Hash da nova senha se fornecida
         if (senha) {
-          updateData.adm_senha = await bcrypt.hash(senha, 10);
+          updateData.adm_senha = await bcrypt.hash(senha, 10)
         }
 
         // Atualizar administrador
@@ -83,32 +83,32 @@ export const putAdministradoresRoute: FastifyPluginCallbackZod = (app) => {
             login: administradores.adm_login,
             ativo: administradores.adm_ativo,
             cidadeId: administradores.cid_id,
-          });
+          })
 
         if (!adminAtualizado) {
           return reply.status(404).send({
-            message: "Administrador não encontrado",
-          });
+            message: 'Administrador não encontrado',
+          })
         }
 
-        return reply.send(adminAtualizado);
+        return reply.send(adminAtualizado)
       } catch (error) {
-        console.error("Erro ao atualizar administrador:", error);
+        console.error('Erro ao atualizar administrador:', error)
 
         // Verificar erro de unicidade
-        if (error instanceof Error && error.message.includes("unique")) {
+        if (error instanceof Error && error.message.includes('unique')) {
           return reply.status(400).send({
             message:
-              "Email, CPF ou login já cadastrado. Verifique os dados e tente novamente.",
-            code: "DUPLICATE_ENTRY",
-          });
+              'Email, CPF ou login já cadastrado. Verifique os dados e tente novamente.',
+            code: 'DUPLICATE_ENTRY',
+          })
         }
 
         return reply.status(500).send({
-          message: "Erro ao atualizar administrador",
+          message: 'Erro ao atualizar administrador',
           error: error instanceof Error ? error.message : String(error),
-        });
+        })
       }
-    }
-  );
-};
+    },
+  )
+}

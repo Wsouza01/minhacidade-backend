@@ -1,24 +1,24 @@
-import { and, desc, eq, sql } from "drizzle-orm";
-import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
-import { z } from "zod";
-import { db } from "../../../db/index.ts";
-import { categorias } from "../../../db/schema/categorias.ts";
-import { chamados } from "../../../db/schema/chamados.ts";
-import { cidades } from "../../../db/schema/cidades.ts";
-import { departamentos } from "../../../db/schema/departamentos.ts";
-import { usuarios } from "../../../db/schema/usuarios.ts";
+import { and, desc, eq, sql } from 'drizzle-orm'
+import type { FastifyPluginCallbackZod } from 'fastify-type-provider-zod'
+import { z } from 'zod'
+import { db } from '../../../db/index.ts'
+import { categorias } from '../../../db/schema/categorias.ts'
+import { chamados } from '../../../db/schema/chamados.ts'
+import { cidades } from '../../../db/schema/cidades.ts'
+import { departamentos } from '../../../db/schema/departamentos.ts'
+import { usuarios } from '../../../db/schema/usuarios.ts'
 
 const getChamadosQuerySchema = z.object({
   limit: z.string().optional(),
   cidadeId: z.string().optional(),
   dep_id: z.string().optional(),
   servidorId: z.string().optional(),
-});
+})
 
 export const getChamadosRoute: FastifyPluginCallbackZod = (app) => {
   // Route to get all tickets with optional limit
   app.get(
-    "/chamados",
+    '/chamados',
     {
       schema: {
         querystring: getChamadosQuerySchema,
@@ -26,8 +26,8 @@ export const getChamadosRoute: FastifyPluginCallbackZod = (app) => {
     },
     async (request, reply) => {
       try {
-        const { limit, cidadeId, dep_id, servidorId } = request.query;
-        const limitNumber = limit ? Number.parseInt(limit, 10) : undefined;
+        const { limit, cidadeId, dep_id, servidorId } = request.query
+        const limitNumber = limit ? Number.parseInt(limit, 10) : undefined
 
         const baseQuery = db
           .select({
@@ -54,61 +54,61 @@ export const getChamadosRoute: FastifyPluginCallbackZod = (app) => {
           .from(chamados)
           .leftJoin(
             departamentos,
-            eq(chamados.cha_departamento, departamentos.dep_id)
+            eq(chamados.cha_departamento, departamentos.dep_id),
           )
           .leftJoin(cidades, eq(departamentos.cid_id, cidades.cid_id))
           .leftJoin(categorias, eq(chamados.cat_id, categorias.cat_id))
-          .leftJoin(usuarios, eq(chamados.usu_id, usuarios.usu_id));
+          .leftJoin(usuarios, eq(chamados.usu_id, usuarios.usu_id))
 
         // Aplicar filtros dinamicamente
-        const conditions = [];
+        const conditions = []
 
         if (cidadeId) {
-          conditions.push(eq(departamentos.cid_id, cidadeId));
+          conditions.push(eq(departamentos.cid_id, cidadeId))
         }
 
         if (dep_id) {
-          conditions.push(eq(chamados.cha_departamento, dep_id));
+          conditions.push(eq(chamados.cha_departamento, dep_id))
         }
 
         if (servidorId) {
-          conditions.push(eq(chamados.cha_responsavel, servidorId));
+          conditions.push(eq(chamados.cha_responsavel, servidorId))
         }
 
         const filteredQuery =
           conditions.length > 0
             ? baseQuery.where(and(...conditions))
-            : baseQuery;
+            : baseQuery
 
         const orderedQuery = filteredQuery.orderBy(
-          desc(chamados.cha_data_abertura)
-        );
+          desc(chamados.cha_data_abertura),
+        )
 
         const limitedQuery = limitNumber
           ? orderedQuery.limit(limitNumber)
-          : orderedQuery;
+          : orderedQuery
 
-        const results = await limitedQuery;
-        reply.send(results);
+        const results = await limitedQuery
+        reply.send(results)
       } catch (err) {
-        console.error("Erro ao buscar chamados:", err);
-        reply.status(500).send({ message: "Erro ao buscar chamados" });
+        console.error('Erro ao buscar chamados:', err)
+        reply.status(500).send({ message: 'Erro ao buscar chamados' })
       }
-    }
-  );
+    },
+  )
 
   // Route to get chamados count
-  app.get("/chamados/count", async (_, reply) => {
+  app.get('/chamados/count', async (_, reply) => {
     try {
       const result = await db
         .select({ count: sql<number>`count(${chamados.cha_id})::int` })
-        .from(chamados);
+        .from(chamados)
 
-      const totalChamados = Number(result[0]?.count) || 0;
-      reply.send({ total: totalChamados });
+      const totalChamados = Number(result[0]?.count) || 0
+      reply.send({ total: totalChamados })
     } catch (err) {
-      console.error("Erro ao contar chamados:", err);
-      reply.status(500).send({ message: "Erro ao contar chamados" });
+      console.error('Erro ao contar chamados:', err)
+      reply.status(500).send({ message: 'Erro ao contar chamados' })
     }
-  });
-};
+  })
+}
