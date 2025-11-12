@@ -68,12 +68,28 @@ export const postChamadosRoute: FastifyPluginCallbackZod = (app) => {
         const nome_chamado =
           body.titulo || `Chamado - ${body.motivo || "Solicitação"}`;
 
+        // Buscar atendente da cidade para atribuir ao chamado
+        const atendente = await db
+          .select()
+          .from(funcionarios)
+          .where(
+            and(
+              eq(funcionarios.fun_tipo, "atendente"),
+              eq(funcionarios.cid_id, departamento[0].cid_id as string), // Assegure-se de que o tipo seja compatível
+              eq(funcionarios.fun_ativo, true)
+            )
+          )
+          .limit(1); // Pega o primeiro atendente ativo encontrado
+
+        const fun_id = atendente.length > 0 ? atendente[0].fun_id : null;
+
         // Log dos dados antes de inserir
         console.log("📝 Dados do chamado a ser criado:", {
           usuario_id: body.usuario_id || null,
           anonimo: body.anonimo,
           departamento_id: body.departamento_id,
           categoria_id,
+          fun_id, // Responsável pelo chamado
         });
 
         const novoChamado = await db
@@ -88,8 +104,8 @@ export const postChamadosRoute: FastifyPluginCallbackZod = (app) => {
             usu_id: body.usuario_id || null,
             cat_id: categoria_id,
             cha_departamento: body.departamento_id,
+            cha_responsavel: fun_id, // Atribuindo atendente ao chamado
             cha_data_abertura: new Date(),
-            // cha_responsavel pode ser null inicialmente
           })
           .returning();
 
@@ -138,52 +154,26 @@ export const postChamadosRoute: FastifyPluginCallbackZod = (app) => {
           console.log("ℹ️ Chamado anônimo - notificação de usuário não criada");
         }
 
-        // Buscar atendentes da cidade para notificar
-        try {
-          const departamentoInfo = await db
-            .select()
-            .from(departamentos)
-            .where(eq(departamentos.dep_id, body.departamento_id))
-            .limit(1);
-
-          console.log("🔍 Departamento encontrado:", departamentoInfo[0]);
-
-          if (departamentoInfo.length > 0 && departamentoInfo[0].cid_id) {
-            // Buscar TODOS os atendentes da cidade
-            const atendentes = await db
-              .select()
-              .from(funcionarios)
-              .where(
-                and(
-                  eq(funcionarios.fun_tipo, "atendente"),
-                  eq(funcionarios.cid_id, departamentoInfo[0].cid_id),
-                  eq(funcionarios.fun_ativo, true)
-                )
-              );
-
-            console.log(
-              `📢 Encontrados ${atendentes.length} atendentes ativos na cidade`
+        // Notificar o atendente
+        if (fun_id) {
+          try {
+            await db.insert(notificacoes).values({
+              not_id: randomUUID(),
+              not_titulo: "Novo chamado recebido",
+              not_mensagem: `Novo chamado "${body.titulo}" criado no departamento ${departamento[0].dep_nome}. Prioridade: ${body.prioridade}`,
+              not_tipo: "info",
+              not_lida: false,
+              not_data: new Date(),
+              usu_id: null,
+              fun_id: fun_id, // Envia para o atendente
+            });
+            console.log(`✅ Notificação criada para atendente: ${fun_id}`);
+          } catch (atendenteNotifError) {
+            console.error(
+              "❌ Erro ao criar notificação para atendente:",
+              atendenteNotifError
             );
-
-            // Criar notificação para CADA atendente
-            for (const atendente of atendentes) {
-              await db.insert(notificacoes).values({
-                not_id: randomUUID(),
-                not_titulo: "Novo chamado recebido",
-                not_mensagem: `Novo chamado "${body.titulo}" criado no departamento ${departamento[0].dep_nome}. Prioridade: ${body.prioridade}`,
-                not_tipo: "info",
-                not_lida: false,
-                not_data: new Date(),
-                usu_id: null,
-                fun_id: atendente.fun_id,
-              });
-              console.log(
-                `✅ Notificação criada para atendente: ${atendente.fun_nome}`
-              );
-            }
           }
-        } catch (atendenteError) {
-          console.error("❌ Erro ao notificar atendente:", atendenteError);
         }
 
         reply.status(201).send({

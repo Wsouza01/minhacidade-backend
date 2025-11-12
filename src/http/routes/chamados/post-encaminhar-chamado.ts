@@ -1,11 +1,12 @@
-import { randomUUID } from "node:crypto";
+import { randomUUID } from "crypto";
 import { eq } from "drizzle-orm";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
-import { z } from "zod";
-import { db } from "../../../db/index.ts";
-import { chamados } from "../../../db/schema/chamados.ts";
-import { etapas } from "../../../db/schema/etapas.ts";
-import { notificacoes } from "../../../db/schema/notificacoes.ts";
+import z from "zod";
+import { db } from "@/db/index.ts";
+import { chamados } from "@/db/schema/chamados.ts";
+import { etapas } from "@/db/schema/etapas.ts";
+import { funcionarios } from "@/db/schema/funcionarios.ts";
+import { notificacoes } from "@/db/schema/notificacoes.ts";
 
 export const postEncaminharChamado: FastifyPluginAsyncZod = async (app) => {
   app.post(
@@ -37,6 +38,20 @@ export const postEncaminharChamado: FastifyPluginAsyncZod = async (app) => {
 
         if (!chamado) {
           return reply.status(404).send({ error: "Chamado não encontrado" });
+        }
+
+        // Verificar se o responsavel_id existe na tabela de funcionários
+        if (responsavel_id) {
+          const [funcionario] = await db
+            .select()
+            .from(funcionarios)
+            .where(eq(funcionarios.fun_id, responsavel_id));
+
+          if (!funcionario) {
+            return reply
+              .status(400)
+              .send({ error: "Funcionário não encontrado" });
+          }
         }
 
         // Atualiza o chamado com o novo departamento e prioridade
