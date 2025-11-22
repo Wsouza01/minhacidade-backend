@@ -2,10 +2,10 @@ import bcrypt from 'bcrypt'
 import { and, eq } from 'drizzle-orm'
 import type { FastifyPluginCallback } from 'fastify'
 import { z } from 'zod'
-import { db } from '../../../db/index.ts'
-import { cidades } from '../../../db/schema/cidades.ts'
-import { usuarios } from '../../../db/schema/usuarios.ts'
-import { getCPFDuplicateMessage } from '../../../utils/check-duplicate-cpf.ts'
+import { db } from '../../../db/index.js'
+import { cidades } from '../../../db/schema/cidades.js'
+import { usuarios } from '../../../db/schema/usuarios.js'
+import { getCPFDuplicateMessage } from '../../../utils/check-duplicate-cpf.js'
 
 function validarCPF(cpf: string): boolean {
   cpf = cpf.replace(/\D/g, '')

@@ -1,0 +1,12 @@
+name: aws-node-infra
+description: MINHACIDADE+ Backend Infrastructure on AWS
+runtime:
+  name: nodejs
+  options:
+    packagemanager: pnpm
+config:
+  pulumi:tags:
+    value:
+      pulumi:template: aws-typescript
+  aws-node-infra:dbPassword: YourSecurePassword123!
+  aws-node-infra:jwtSecret: minha-cidade-jwt-secret-2025

@@ -1,85 +1,80 @@
+import path from "node:path";
 import { fastifyCors } from "@fastify/cors";
 import multipart from "@fastify/multipart";
 import fastifyStatic from "@fastify/static";
 import { fastifySwagger } from "@fastify/swagger";
 import ScalarApiReference from "@scalar/fastify-api-reference";
 import { fastify } from "fastify";
-import path from "node:path";
 import {
-	jsonSchemaTransform,
 	serializerCompiler,
 	validatorCompiler,
 	type ZodTypeProvider,
 } from "fastify-type-provider-zod";
-import { env } from "./env.ts";
-import { jwtPlugin } from "./http/plugins/jwt.ts";
+import { env } from "./env.js";
+import { jwtPlugin } from "./http/plugins/jwt.js";
 
 // ================================================================
 // 📦 Rotas Importadas
 // ================================================================
-import { deleteAdministradoresRoute } from "./http/routes/administradores/delete-administradores.ts";
-import { getAdministradoresRoute } from "./http/routes/administradores/get-administradores.ts";
-import { getFuncionariosPorAdminRoute } from "./http/routes/administradores/get-funcionarios-por-admin.ts";
-import { postAdministradoresRoute } from "./http/routes/administradores/post-administradores.ts";
-import { designateAttendantRoute } from "./http/routes/administradores/post-designate-attendant.ts";
-import { putAdministradoresRoute } from "./http/routes/administradores/put-administradores.ts";
-import { getAnexosRoute } from "./http/routes/anexos/get-anexos.ts";
-import { postAnexosRoute } from "./http/routes/anexos/post-anexos.ts";
-import { authLoginRoute } from "./http/routes/auth/login.ts";
-import { redefinirSenhaRoute } from "./http/routes/auth/redefinir-senha.ts";
-import { solicitarRecuperacaoSenhaRoute } from "./http/routes/auth/solicitar-recuperacao-senha.ts";
-import { getCategoriasRoute } from "./http/routes/categorias/get-categorias.ts";
-import { getCategoriasByDepartamentoRoute } from "./http/routes/categorias/get-categorias-by-departamento.ts";
-import { getPrioridadesByDepartamentoRoute } from "./http/routes/categorias/get-prioridades-by-departamento.ts";
-import { postCategoriasRoute } from "./http/routes/categorias/post-categorias.ts";
-import { createTestChamadoRoute } from "./http/routes/chamados/create-test-chamado.ts";
-import { getChamadoByIdFinalRoute } from "./http/routes/chamados/get-chamado-by-id-final.ts";
-import { getChamadoByIdSimpleRoute } from "./http/routes/chamados/get-chamado-by-id-simple.ts";
-import { getChamadoDebugRoute } from "./http/routes/chamados/get-chamado-debug.ts";
-import { getChamadoStepByStepRoute } from "./http/routes/chamados/get-chamado-step-by-step.ts";
-import { getChamadosRoute } from "./http/routes/chamados/get-chamados.ts";
-import { getChamadosUserRoute } from "./http/routes/chamados/get-chamados-user.ts";
-import { getDistributionRoute } from "./http/routes/chamados/get-distribution-route.ts";
-import { getServidoresWorkload } from "./http/routes/chamados/get-servidores-workload.ts";
-import { getStatsRoute } from "./http/routes/chamados/get-stats-route.ts";
-import { getTrendRoute } from "./http/routes/chamados/get-trend-route.ts";
-import { postAtribuirServidor } from "./http/routes/chamados/post-atribuir-servidor.ts";
-import { postCancelarChamado } from "./http/routes/chamados/post-cancelar-chamado.ts";
-import { postChamadosRoute } from "./http/routes/chamados/post-chamados.ts";
-import { postEncaminharChamado } from "./http/routes/chamados/post-encaminhar-chamado.ts";
-import { postEncerrarChamado } from "./http/routes/chamados/post-encerrar-chamado.ts";
-import { postResolverChamado } from "./http/routes/chamados/post-resolver-chamado.ts";
-import { fixStatusRoute } from "./http/routes/chamados/fix-status.ts";
-import { cidadesRoute } from "./http/routes/cidades/cidades-route.ts";
-import { getDepartamentoByIdRoute } from "./http/routes/departamento/get-departamento-by-id.ts";
-import { getDepartamentoStatsRoute } from "./http/routes/departamento/get-departamento-stats.ts";
-import { getDepartamentosRoute } from "./http/routes/departamento/get-departamentos.ts";
-import { postDepartamentosRoute } from "./http/routes/departamento/post-departamentos.ts";
-import { deleteDepartamentoRoute } from "./http/routes/departamento/delete-departamento.ts";
-import { getEtapasRoute } from "./http/routes/etapas/get-etapas.ts";
-import { postEtapasRoute } from "./http/routes/etapas/post-etapas.ts";
-import { deleteFuncionariosRoute } from "./http/routes/funcionarios/delete-funcionarios.ts";
-import { getFuncionariosRoute } from "./http/routes/funcionarios/get-funcionarios.ts";
-import { getFuncionariosByDepartamentoRoute } from "./http/routes/funcionarios/get-funcionarios-by-departamento.ts";
-import { getServidorByIdRoute } from "./http/routes/servidores/get-servidor-by-id.ts";
-import { alterarSenhaServidorRoute } from "./http/routes/servidores/put-alterar-senha.ts";
-import { postFuncionariosRoute } from "./http/routes/funcionarios/post-funcionarios.ts";
-import { putFuncionariosRoute } from "./http/routes/funcionarios/put-funcionarios.ts";
-import { loginRoute } from "./http/routes/login/login.ts";
-import { getNotificationsUserRoute } from "./http/routes/notificacoes/get-notifications-user.ts";
-import { postNotificationRoute } from "./http/routes/notificacoes/post-notification.ts";
-import { deleteNotificationRoute } from "./http/routes/notificacoes/delete-notification.ts";
-import { getRelatorioGeralRoute } from "./http/routes/relatorios/get-relatorio-geral.ts";
-import { getSacOuvidoriaRoute } from "./http/routes/sac-ouvidoria/get-sac-ouvidoria.ts";
-import { postSacOuvidoriaRoute } from "./http/routes/sac-ouvidoria/post-sac-ouvidoria.ts";
-import { getSacByCidadeRoute } from "./http/routes/sac-ouvidoria/get-sac-by-cidade.ts";
-import { alterarEmailRoute } from "./http/routes/users/alterar-email.ts";
-import { alterarSenhaRoute } from "./http/routes/users/alterar-senha.ts";
-import { checkCpfRoute } from "./http/routes/users/check-cpf.ts";
-import { createTestUserRoute } from "./http/routes/users/create-test-user.ts";
-import { getUserByCpfRoute } from "./http/routes/users/get-user-by-cpf.ts";
-import { getUsersRoute } from "./http/routes/users/get-users.ts";
-import { postUsersRoute } from "./http/routes/users/post-users.ts";
+import { deleteAdministradoresRoute } from "./http/routes/administradores/delete-administradores.js";
+import { getAdministradoresRoute } from "./http/routes/administradores/get-administradores.js";
+import { getFuncionariosPorAdminRoute } from "./http/routes/administradores/get-funcionarios-por-admin.js";
+import { postAdministradoresRoute } from "./http/routes/administradores/post-administradores.js";
+import { designateAttendantRoute } from "./http/routes/administradores/post-designate-attendant.js";
+import { putAdministradoresRoute } from "./http/routes/administradores/put-administradores.js";
+import { getAnexosRoute } from "./http/routes/anexos/get-anexos.js";
+import { postAnexosRoute } from "./http/routes/anexos/post-anexos.js";
+import { authLoginRoute } from "./http/routes/auth/login.js";
+import { redefinirSenhaRoute } from "./http/routes/auth/redefinir-senha.js";
+import { solicitarRecuperacaoSenhaRoute } from "./http/routes/auth/solicitar-recuperacao-senha.js";
+import { getCategoriasRoute } from "./http/routes/categorias/get-categorias.js";
+import { getCategoriasByDepartamentoRoute } from "./http/routes/categorias/get-categorias-by-departamento.js";
+import { getPrioridadesByDepartamentoRoute } from "./http/routes/categorias/get-prioridades-by-departamento.js";
+import { postCategoriasRoute } from "./http/routes/categorias/post-categorias.js";
+import { createTestChamadoRoute } from "./http/routes/chamados/create-test-chamado.js";
+import { fixStatusRoute } from "./http/routes/chamados/fix-status.js";
+import { getChamadoByIdFinalRoute } from "./http/routes/chamados/get-chamado-by-id-final.js";
+import { getChamadosRoute } from "./http/routes/chamados/get-chamados.js";
+import { getChamadosUserRoute } from "./http/routes/chamados/get-chamados-user.js";
+import { getDistributionRoute } from "./http/routes/chamados/get-distribution-route.js";
+import { getServidoresWorkload } from "./http/routes/chamados/get-servidores-workload.js";
+import { getStatsRoute } from "./http/routes/chamados/get-stats-route.js";
+import { getTrendRoute } from "./http/routes/chamados/get-trend-route.js";
+import { postAtribuirServidor } from "./http/routes/chamados/post-atribuir-servidor.js";
+import { postCancelarChamado } from "./http/routes/chamados/post-cancelar-chamado.js";
+import { postChamadosRoute } from "./http/routes/chamados/post-chamados.js";
+import { postEncaminharChamado } from "./http/routes/chamados/post-encaminhar-chamado.js";
+import { postEncerrarChamado } from "./http/routes/chamados/post-encerrar-chamado.js";
+import { postResolverChamado } from "./http/routes/chamados/post-resolver-chamado.js";
+import { cidadesRoute } from "./http/routes/cidades/cidades-route.js";
+import { deleteDepartamentoRoute } from "./http/routes/departamento/delete-departamento.js";
+import { getDepartamentoByIdRoute } from "./http/routes/departamento/get-departamento-by-id.js";
+import { getDepartamentoStatsRoute } from "./http/routes/departamento/get-departamento-stats.js";
+import { getDepartamentosRoute } from "./http/routes/departamento/get-departamentos.js";
+import { postDepartamentosRoute } from "./http/routes/departamento/post-departamentos.js";
+import { getEtapasRoute } from "./http/routes/etapas/get-etapas.js";
+import { postEtapasRoute } from "./http/routes/etapas/post-etapas.js";
+import { deleteFuncionariosRoute } from "./http/routes/funcionarios/delete-funcionarios.js";
+import { getFuncionariosRoute } from "./http/routes/funcionarios/get-funcionarios.js";
+import { getFuncionariosByDepartamentoRoute } from "./http/routes/funcionarios/get-funcionarios-by-departamento.js";
+import { postFuncionariosRoute } from "./http/routes/funcionarios/post-funcionarios.js";
+import { putFuncionariosRoute } from "./http/routes/funcionarios/put-funcionarios.js";
+import { loginRoute } from "./http/routes/login/login.js";
+import { deleteNotificationRoute } from "./http/routes/notificacoes/delete-notification.js";
+import { getNotificationsUserRoute } from "./http/routes/notificacoes/get-notifications-user.js";
+import { postNotificationRoute } from "./http/routes/notificacoes/post-notification.js";
+import { getRelatorioGeralRoute } from "./http/routes/relatorios/get-relatorio-geral.js";
+import { getSacByCidadeRoute } from "./http/routes/sac-ouvidoria/get-sac-by-cidade.js";
+import { getSacOuvidoriaRoute } from "./http/routes/sac-ouvidoria/get-sac-ouvidoria.js";
+import { postSacOuvidoriaRoute } from "./http/routes/sac-ouvidoria/post-sac-ouvidoria.js";
+import { getServidorByIdRoute } from "./http/routes/servidores/get-servidor-by-id.js";
+import { alterarSenhaServidorRoute } from "./http/routes/servidores/put-alterar-senha.js";
+import { alterarEmailRoute } from "./http/routes/users/alterar-email.js";
+import { alterarSenhaRoute } from "./http/routes/users/alterar-senha.js";
+import { checkCpfRoute } from "./http/routes/users/check-cpf.js";
+import { getUserByCpfRoute } from "./http/routes/users/get-user-by-cpf.js";
+import { getUsersRoute } from "./http/routes/users/get-users.js";
+import { postUsersRoute } from "./http/routes/users/post-users.js";
 
 // ================================================================
 // 🌐 CONFIGURAÇÃO DO SERVIDOR FASTIFY
@@ -119,12 +114,16 @@ app.register(jwtPlugin);
 app.register(fastifySwagger, {
 	openapi: {
 		info: {
-			title: "Minha Cidade API",
-			description:
-				"Documentação oficial da API do sistema Minha Cidade — gestão de chamados e usuários.",
+			title: "MinhaCidade+ API",
+			description: "API REST para gestão municipal",
 			version: "1.0.0",
 		},
-		transform: jsonSchemaTransform,
+		servers: [
+			{
+				url: "http://localhost:3333",
+				description: "Development server",
+			},
+		],
 	},
 });
 
@@ -170,9 +169,6 @@ app.register(getDepartamentoByIdRoute);
 app.register(getChamadosRoute);
 app.register(getServidoresWorkload);
 app.register(getChamadoByIdFinalRoute);
-app.register(getChamadoByIdSimpleRoute);
-app.register(getChamadoDebugRoute);
-app.register(getChamadoStepByStepRoute);
 app.register(getStatsRoute);
 app.register(getDistributionRoute);
 app.register(getTrendRoute);
@@ -193,7 +189,6 @@ app.register(getAnexosRoute);
 app.register(postAnexosRoute);
 app.register(getUsersRoute);
 app.register(getUserByCpfRoute);
-app.register(createTestUserRoute);
 app.register(alterarSenhaRoute);
 app.register(alterarEmailRoute);
 app.register(getNotificationsUserRoute);

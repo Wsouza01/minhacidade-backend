@@ -1,9 +1,9 @@
 import { and, desc, eq, type SQL } from 'drizzle-orm'
 import type { FastifyPluginCallbackZod } from 'fastify-type-provider-zod'
 import { z } from 'zod'
-import { db } from '../../../db/index.ts'
-import { sacOuvidoria } from '../../../db/schema/sac-ouvidoria.ts'
-import { usuarios } from '../../../db/schema/usuarios.ts'
+import { db } from '../../../db/index.js'
+import { sacOuvidoria } from '../../../db/schema/sac-ouvidoria.js'
+import { usuarios } from '../../../db/schema/usuarios.js'
 
 export const getSacOuvidoriaRoute: FastifyPluginCallbackZod = (app) => {
   app.get(

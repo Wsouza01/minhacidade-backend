@@ -1,11 +1,11 @@
 import { eq } from 'drizzle-orm'
 import type { FastifyPluginCallbackZod } from 'fastify-type-provider-zod'
 import { z } from 'zod'
-import { db } from '../../../db/index.ts'
-import { categorias } from '../../../db/schema/categorias.ts'
-import { chamados } from '../../../db/schema/chamados.ts'
-import { departamentos } from '../../../db/schema/departamentos.ts'
-import { usuarios } from '../../../db/schema/usuarios.ts'
+import { db } from '../../../db/index.js'
+import { categorias } from '../../../db/schema/categorias.js'
+import { chamados } from '../../../db/schema/chamados.js'
+import { departamentos } from '../../../db/schema/departamentos.js'
+import { usuarios } from '../../../db/schema/usuarios.js'
 
 const createTestChamadoRequestSchema = z.object({
   cpf: z.string().min(11).max(11),

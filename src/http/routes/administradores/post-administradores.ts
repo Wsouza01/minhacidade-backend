@@ -2,10 +2,10 @@ import bcrypt from 'bcryptjs'
 import { eq } from 'drizzle-orm'
 import type { FastifyPluginCallbackZod } from 'fastify-type-provider-zod'
 import { z } from 'zod'
-import { db } from '../../../db/index.ts'
-import { administradores } from '../../../db/schema/administradores.ts'
-import { schema } from '../../../db/schema/index.ts'
-import { getCPFDuplicateMessage } from '../../../utils/check-duplicate-cpf.ts'
+import { db } from '../../../db/index.js'
+import { administradores } from '../../../db/schema/administradores.js'
+import { schema } from '../../../db/schema/index.js'
+import { getCPFDuplicateMessage } from '../../../utils/check-duplicate-cpf.js'
 
 // Função auxiliar para validar CPF
 function validarCPF(cpf: string): boolean {

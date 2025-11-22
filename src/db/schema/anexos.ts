@@ -1,6 +1,6 @@
 import { pgTable, text } from 'drizzle-orm/pg-core'
-import { chamados } from './chamados.ts'
 import { uuidv7 } from 'uuidv7'
+import { chamados } from './chamados.js'
 
 export const anexos = pgTable('anexo', {
   anx_id: text('anx_id')

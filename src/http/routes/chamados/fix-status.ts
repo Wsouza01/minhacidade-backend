@@ -1,6 +1,6 @@
 import { sql } from 'drizzle-orm'
 import type { FastifyPluginCallbackZod } from 'fastify-type-provider-zod'
-import { db } from '../../../db/index.ts'
+import { db } from '../../../db/index.js'
 
 export const fixStatusRoute: FastifyPluginCallbackZod = (app) => {
   app.post('/chamados/fix-status', async (_, reply) => {

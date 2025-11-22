@@ -1,6 +1,6 @@
 import { pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 import { uuidv7 } from 'uuidv7'
-import { chamados } from './chamados.ts'
+import { chamados } from './chamados.js'
 
 export const etapas = pgTable('etapa', {
   eta_id: text('eta_id')

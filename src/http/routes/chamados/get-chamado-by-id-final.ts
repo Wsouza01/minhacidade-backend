@@ -1,14 +1,14 @@
 import { eq } from 'drizzle-orm'
 import type { FastifyPluginCallbackZod } from 'fastify-type-provider-zod'
 import { z } from 'zod'
-import { db } from '../../../db/index.ts'
-import { anexos } from '../../../db/schema/anexos.ts'
-import { categorias } from '../../../db/schema/categorias.ts'
-import { chamados } from '../../../db/schema/chamados.ts'
-import { departamentos } from '../../../db/schema/departamentos.ts'
-import { etapas } from '../../../db/schema/etapas.ts'
-import { usuarios } from '../../../db/schema/usuarios.ts'
-import { env } from '../../../env.ts'
+import { db } from '../../../db/index.js'
+import { anexos } from '../../../db/schema/anexos.js'
+import { categorias } from '../../../db/schema/categorias.js'
+import { chamados } from '../../../db/schema/chamados.js'
+import { departamentos } from '../../../db/schema/departamentos.js'
+import { etapas } from '../../../db/schema/etapas.js'
+import { usuarios } from '../../../db/schema/usuarios.js'
+import { env } from '../../../env.js'
 
 const getChamadoByIdParamsSchema = z.object({
   id: z.string().uuid(),

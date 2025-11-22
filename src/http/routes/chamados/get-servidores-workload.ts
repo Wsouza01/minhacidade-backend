@@ -1,9 +1,9 @@
 import { and, eq, isNull } from 'drizzle-orm'
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
 import { z } from 'zod'
-import { db } from '../../../db/index.ts'
-import { chamados } from '../../../db/schema/chamados.ts'
-import { funcionarios } from '../../../db/schema/funcionarios.ts'
+import { db } from '../../../db/index.js'
+import { chamados } from '../../../db/schema/chamados.js'
+import { funcionarios } from '../../../db/schema/funcionarios.js'
 
 export const getServidoresWorkload: FastifyPluginAsyncZod = async (app) => {
   app.get(

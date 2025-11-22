@@ -1,6 +1,6 @@
 import jwt from '@fastify/jwt'
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
-import { env } from '../../env.ts'
+import { env } from '../../env.js'
 
 declare module '@fastify/jwt' {
   export interface FastifyJWT {

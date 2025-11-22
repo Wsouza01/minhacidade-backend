@@ -2,8 +2,8 @@ import bcrypt from 'bcrypt'
 import { eq, or } from 'drizzle-orm'
 import type { FastifyPluginCallback } from 'fastify'
 import { z } from 'zod'
-import { db } from '../../../db/index.ts'
-import { usuarios } from '../../../db/schema/usuarios.ts'
+import { db } from '../../../db/index.js'
+import { usuarios } from '../../../db/schema/usuarios.js'
 
 export const loginRoute: FastifyPluginCallback = (app) => {
   app.post(

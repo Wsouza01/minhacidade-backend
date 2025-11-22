@@ -1,8 +1,8 @@
 import { eq } from 'drizzle-orm'
 import type { FastifyPluginCallbackZod } from 'fastify-type-provider-zod'
 import { z } from 'zod'
-import { db } from '../../../db/index.ts'
-import { schema } from '../../../db/schema/index.ts'
+import { db } from '../../../db/index.js'
+import { schema } from '../../../db/schema/index.js'
 
 const getDepartamentosQuerySchema = z.object({
   cidadeId: z.string().optional(),
@@ -24,7 +24,7 @@ export const getDepartamentosRoute: FastifyPluginCallbackZod = (app) => {
 
         // Filtrar por cidade se cidadeId foi fornecido
         if (cidadeId) {
-          query = query.where(eq(schema.departamentos.cid_id, cidadeId))
+          const result = query.where(eq(schema.departamentos.cid_id, cidadeId))
         }
 
         const dados = await query

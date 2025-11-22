@@ -1,9 +1,9 @@
 import { pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 import { uuidv7 } from 'uuidv7'
-import { categorias } from './categorias.ts'
-import { departamentos } from './departamentos.ts'
-import { funcionarios } from './funcionarios.ts'
-import { usuarios } from './usuarios.ts'
+import { categorias } from './categorias.js'
+import { departamentos } from './departamentos.js'
+import { funcionarios } from './funcionarios.js'
+import { usuarios } from './usuarios.js'
 
 export const chamados = pgTable('chamado', {
   cha_id: text('cha_id')

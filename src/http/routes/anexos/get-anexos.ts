@@ -1,7 +1,7 @@
 import type { FastifyPluginCallback } from 'fastify'
 import { z } from 'zod'
-import { db } from '../../../db/index.ts'
-import { anexos } from '../../../db/schema/anexos.ts'
+import { db } from '../../../db/index.js'
+import { anexos } from '../../../db/schema/anexos.js'
 
 // Schema de resposta
 const GetAnexosResponse = z.object({

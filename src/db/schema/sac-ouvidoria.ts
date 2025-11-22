@@ -1,6 +1,6 @@
 import { pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 import { uuidv7 } from 'uuidv7'
-import { usuarios } from './usuarios.ts'
+import { usuarios } from './usuarios.js'
 
 export const sacOuvidoria = pgTable('sac_ouvidoria', {
   sac_id: text('sac_id')

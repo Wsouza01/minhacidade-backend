@@ -1,64 +1,48 @@
-// postEtapasRoute.ts
-
 import { eq } from 'drizzle-orm'
-import type { FastifyPluginCallbackZod } from 'fastify-type-provider-zod'
-import { z } from 'zod'
-import { db } from '../../../db/index.ts'
-import { chamados } from '../../../db/schema/chamados.ts'
-import { schema } from '../../../db/schema/index.ts'
-import { notificacoes } from '../../../db/schema/notificacoes.ts'
+import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
+import z from 'zod'
+import { db } from '../../../db/index.js'
+import { chamados } from '../../../db/schema/chamados.js'
+import { etapas } from '../../../db/schema/etapas.js'
 
-export const postEtapasRoute: FastifyPluginCallbackZod = (app) => {
+export const postEtapasRoute: FastifyPluginAsyncZod = async (app) => {
   app.post(
-    '/etapas',
+    '/chamados/:id/etapas',
     {
       schema: {
+        params: z.object({
+          id: z.string().uuid(),
+        }),
         body: z.object({
           nome: z.string(),
-          descricao: z.string(),
-          data_inicio: z.string().datetime(),
-          data_fim: z.string().datetime(),
-          chamado_id: z.string().uuid(),
+          descricao: z.string().optional(),
         }),
       },
     },
     async (request, reply) => {
-      const { nome, descricao, data_inicio, data_fim, chamado_id } =
-        request.body
+      const { id } = request.params as { id: string }
+      const { nome, descricao } = request.body as { nome: string; descricao?: string }
 
-      await db.insert(schema.etapas).values({
-        eta_nome: nome,
-        eta_descricao: descricao,
-        eta_data_inicio: data_inicio, // String ISO
-        eta_data_fim: data_fim, // String ISO
-        cha_id: chamado_id,
-      })
+      const chamado = await db
+        .select()
+        .from(chamados)
+        .where(eq(chamados.cha_id, id))
+        .limit(1)
 
-      // Buscar o chamado para obter o usuário
-      try {
-        const chamado = await db
-          .select()
-          .from(chamados)
-          .where(eq(chamados.cha_id, chamado_id))
-          .limit(1)
-
-        if (chamado.length > 0 && chamado[0].usu_id) {
-          // Criar notificação para o usuário
-          await db.insert(notificacoes).values({
-            not_titulo: 'Atualização no seu chamado',
-            not_mensagem: `Nova etapa adicionada: "${nome}". ${descricao}`,
-            not_tipo: 'info',
-            not_lida: false,
-            cha_id: chamado_id,
-            usu_id: chamado[0].usu_id,
-          })
-          console.log('✅ Notificação criada para atualização de etapa')
-        }
-      } catch (notifError) {
-        console.error('❌ Erro ao criar notificação de etapa:', notifError)
+      if (!chamado.length) {
+        return reply.status(404).send({ message: 'Chamado não encontrado' })
       }
 
-      reply.status(201).send({ message: 'Etapa criada' })
+      const novaEtapa = await db
+        .insert(etapas)
+        .values({
+          eta_nome: nome,
+          eta_descricao: descricao || '',
+          cha_id: id,
+        })
+        .returning()
+
+      return reply.status(201).send(novaEtapa[0])
     },
   )
 }

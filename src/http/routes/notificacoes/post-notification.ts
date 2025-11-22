@@ -1,8 +1,8 @@
 import { randomUUID } from 'node:crypto'
 import type { FastifyPluginCallbackZod } from 'fastify-type-provider-zod'
 import { z } from 'zod'
-import { db } from '../../../db/index.ts'
-import { notificacoes } from '../../../db/schema/notificacoes.ts'
+import { db } from '../../../db/index.js'
+import { notificacoes } from '../../../db/schema/notificacoes.js'
 
 const postNotificationBodySchema = z
   .object({

@@ -1,7 +1,7 @@
 import type { FastifyPluginCallbackZod } from 'fastify-type-provider-zod'
 import { z } from 'zod'
-import { db } from '../../../db/index.ts'
-import { schema } from '../../../db/schema/index.ts'
+import { db } from '../../../db/index.js'
+import { schema } from '../../../db/schema/index.js'
 
 export const postDepartamentosRoute: FastifyPluginCallbackZod = (app) => {
   app.post(

@@ -1,8 +1,8 @@
-import { eq, or } from 'drizzle-orm'
-import { db } from '../db/index.ts'
-import { administradores } from '../db/schema/administradores.ts'
-import { funcionarios } from '../db/schema/funcionarios.ts'
-import { usuarios } from '../db/schema/usuarios.ts'
+import { eq } from 'drizzle-orm'
+import { db } from '../db/index.js'
+import { administradores } from '../db/schema/administradores.js'
+import { funcionarios } from '../db/schema/funcionarios.js'
+import { usuarios } from '../db/schema/usuarios.js'
 
 /**
  * Verifica se um CPF já existe no banco de dados

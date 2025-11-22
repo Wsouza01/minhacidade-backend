@@ -1,9 +1,9 @@
 import { eq } from 'drizzle-orm'
 import type { FastifyPluginCallbackZod } from 'fastify-type-provider-zod'
 import { z } from 'zod'
-import { db } from '../../../db/index.ts'
-import { categorias } from '../../../db/schema/categorias.ts'
-import { departamentos } from '../../../db/schema/departamentos.ts'
+import { db } from '../../../db/index.js'
+import { categorias } from '../../../db/schema/categorias.js'
+import { departamentos } from '../../../db/schema/departamentos.js'
 
 const getCategoriasByDepartamentoRequestSchema = z.object({
   departamentoId: z.string().uuid(),

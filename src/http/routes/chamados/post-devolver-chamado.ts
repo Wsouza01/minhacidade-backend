@@ -2,11 +2,11 @@ import { randomUUID } from 'node:crypto'
 import { and, eq } from 'drizzle-orm'
 import type { FastifyPluginCallbackZod } from 'fastify-type-provider-zod'
 import { z } from 'zod'
-import { db } from '../../../db/index.ts'
-import { chamados } from '../../../db/schema/chamados.ts'
-import { etapas } from '../../../db/schema/etapas.ts'
-import { funcionarios } from '../../../db/schema/funcionarios.ts'
-import { notificacoes } from '../../../db/schema/notificacoes.ts'
+import { db } from '../../../db/index.js'
+import { chamados } from '../../../db/schema/chamados.js'
+import { etapas } from '../../../db/schema/etapas.js'
+import { funcionarios } from '../../../db/schema/funcionarios.js'
+import { notificacoes } from '../../../db/schema/notificacoes.js'
 
 export const devolverChamadoRoute: FastifyPluginCallbackZod = (app) => {
   app.post(

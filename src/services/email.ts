@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer'
-import { env } from '../env.ts'
+import { env } from '../env.js'
 
 // Configuração do transporter
 // Para desenvolvimento, use um serviço como Ethereal (https://ethereal.email)

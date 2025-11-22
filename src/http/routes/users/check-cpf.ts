@@ -1,23 +1,19 @@
-import { eq } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import type { FastifyPluginCallback } from 'fastify'
-import { db } from '../../../db/index.ts'
-import { usuarios } from '../../../db/schema/usuarios.ts'
+import { db } from '../../../db/index.js'
+import { usuarios } from '../../../db/schema/usuarios.js'
 
 export const checkCpfRoute: FastifyPluginCallback = (app) => {
-  app.post('/users/check-cpf', async (request, reply) => {
-    try {
-      const { cpf } = request.body as { cpf: string }
-      // Verifica se já existe usuário ativo com esse CPF
-      const [existing] = await db
-        .select({ count: db.raw<number>`count(*)` })
-        .from(usuarios)
-        .where(eq(usuarios.usu_cpf, cpf))
-        .and(eq(usuarios.usu_ativo, true))
+  app.get('/users/check-cpf/:cpf', async (request, reply) => {
+    const { cpf } = request.params as { cpf: string }
 
-      return reply.send({ available: existing.count === 0 })
-    } catch (error) {
-      console.error('Erro ao checar CPF:', error)
-      return reply.status(500).send({ available: false })
-    }
+    const result = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(usuarios)
+      .where(eq(usuarios.usu_cpf, cpf))
+
+    const exists = Number(result[0]?.count) > 0
+
+    return reply.send({ exists })
   })
 }

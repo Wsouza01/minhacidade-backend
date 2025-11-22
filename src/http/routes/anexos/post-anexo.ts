@@ -3,9 +3,9 @@ import path from 'node:path'
 import { pipeline } from 'node:stream/promises'
 import { eq } from 'drizzle-orm'
 import type { FastifyPluginCallback } from 'fastify'
-import { db } from '../../../db/index.ts'
-import { anexos } from '../../../db/schema/anexos.ts'
-import { chamados } from '../../../db/schema/chamados.ts'
+import { db } from '../../../db/index.js'
+import { anexos } from '../../../db/schema/anexos.js'
+import { chamados } from '../../../db/schema/chamados.js'
 
 export const postAnexoRoute: FastifyPluginCallback = (app) => {
   app.post('/anexos', async (request, reply) => {
@@ -18,8 +18,8 @@ export const postAnexoRoute: FastifyPluginCallback = (app) => {
       }
 
       // Obter campos do form
-      const chamado_id = data.fields.chamado_id?.value as string
-      const tipo = data.fields.tipo?.value as string
+      const chamado_id = (data.fields.chamado_id as any)?.value as string
+      const tipo = (data.fields.tipo as any)?.value as string
 
       if (!chamado_id) {
         return reply.status(400).send({ error: 'chamado_id é obrigatório' })

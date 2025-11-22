@@ -1,8 +1,8 @@
 import { boolean, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 import { uuidv7 } from 'uuidv7'
-import { chamados } from './chamados.ts'
-import { funcionarios } from './funcionarios.ts'
-import { usuarios } from './usuarios.ts'
+import { chamados } from './chamados.js'
+import { funcionarios } from './funcionarios.js'
+import { usuarios } from './usuarios.js'
 
 export const notificacoes = pgTable('notificacao', {
   not_id: text('not_id')

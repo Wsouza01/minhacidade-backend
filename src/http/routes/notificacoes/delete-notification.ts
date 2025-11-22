@@ -1,8 +1,8 @@
 import { eq } from 'drizzle-orm'
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
 import z from 'zod'
-import { db } from '../../../db/index.ts'
-import { notificacoes } from '../../../db/schema/notificacoes.ts'
+import { db } from '../../../db/index.js'
+import { notificacoes } from '../../../db/schema/notificacoes.js'
 
 export const deleteNotificationRoute: FastifyPluginAsyncZod = async (app) => {
   app.delete(

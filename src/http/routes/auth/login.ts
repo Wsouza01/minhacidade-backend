@@ -2,11 +2,11 @@ import bcrypt from 'bcryptjs'
 import { eq, ilike, or } from 'drizzle-orm'
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
 import { z } from 'zod'
-import { db } from '../../../db/index.ts'
-import { administradores } from '../../../db/schema/administradores.ts'
-import { cidades } from '../../../db/schema/cidades.ts'
-import { funcionarios } from '../../../db/schema/funcionarios.ts'
-import { usuarios } from '../../../db/schema/usuarios.ts'
+import { db } from '../../../db/index.js'
+import { administradores } from '../../../db/schema/administradores.js'
+import { cidades } from '../../../db/schema/cidades.js'
+import { funcionarios } from '../../../db/schema/funcionarios.js'
+import { usuarios } from '../../../db/schema/usuarios.js'
 
 export const authLoginRoute: FastifyPluginAsyncZod = async (app) => {
   app.post(

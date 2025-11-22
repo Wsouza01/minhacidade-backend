@@ -1,0 +1,16 @@
+{
+	"name": "aws-node-infra",
+	"main": "index.ts",
+	"devDependencies": {
+		"@types/node": "^18",
+		"drizzle-kit": "^0.31.7",
+		"ts-node": "^10.9.2",
+		"typescript": "^5.0.0"
+	},
+	"dependencies": {
+		"@pulumi/aws": "latest",
+		"@pulumi/awsx": "latest",
+		"@pulumi/docker-build": "latest",
+		"@pulumi/pulumi": "latest"
+	}
+}

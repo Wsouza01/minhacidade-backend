@@ -3,10 +3,10 @@ import { and, eq, gt, isNull } from 'drizzle-orm'
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import { z } from 'zod'
-import { db } from '../../../db/index.ts'
-import { funcionarios } from '../../../db/schema/funcionarios.ts'
-import { tokensRecuperacao } from '../../../db/schema/tokens-recuperacao.ts'
-import { usuarios } from '../../../db/schema/usuarios.ts'
+import { db } from '../../../db/index.js'
+import { funcionarios } from '../../../db/schema/funcionarios.js'
+import { tokensRecuperacao } from '../../../db/schema/tokens-recuperacao.js'
+import { usuarios } from '../../../db/schema/usuarios.js'
 
 export async function redefinirSenhaRoute(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().post(
@@ -80,7 +80,7 @@ export async function redefinirSenhaRoute(app: FastifyInstance) {
             })
             .where(eq(usuarios.usu_email, tokenValido.tok_email))
 
-          if (resultado.rowCount === 0) {
+          if (resultado.length === 0) {
             return reply.status(404).send({
               message: 'Usuário não encontrado',
             })
@@ -94,7 +94,7 @@ export async function redefinirSenhaRoute(app: FastifyInstance) {
             })
             .where(eq(funcionarios.fun_email, tokenValido.tok_email))
 
-          if (resultado.rowCount === 0) {
+          if (resultado.length === 0) {
             return reply.status(404).send({
               message: 'Funcionário não encontrado',
             })

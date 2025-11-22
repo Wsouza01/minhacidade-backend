@@ -1,8 +1,8 @@
 import { eq } from 'drizzle-orm'
 import type { FastifyPluginCallback } from 'fastify'
-import { db } from '../../../db/index.ts'
-import { cidades } from '../../../db/schema/cidades.ts'
-import { usuarios } from '../../../db/schema/usuarios.ts'
+import { db } from '../../../db/index.js'
+import { cidades } from '../../../db/schema/cidades.js'
+import { usuarios } from '../../../db/schema/usuarios.js'
 
 export const getUsersRoute: FastifyPluginCallback = (app) => {
   app.get('/users', async (_request, reply) => {

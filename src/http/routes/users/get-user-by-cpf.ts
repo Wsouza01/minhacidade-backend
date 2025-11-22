@@ -1,8 +1,8 @@
 import { eq } from 'drizzle-orm'
 import type { FastifyPluginCallbackZod } from 'fastify-type-provider-zod'
 import { z } from 'zod'
-import { db } from '../../../db/index.ts'
-import { usuarios } from '../../../db/schema/usuarios.ts'
+import { db } from '../../../db/index.js'
+import { usuarios } from '../../../db/schema/usuarios.js'
 
 const getUserByCpfRequestSchema = z.object({
   cpf: z.string().min(11).max(11),

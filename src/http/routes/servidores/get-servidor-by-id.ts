@@ -1,10 +1,10 @@
 import { eq } from 'drizzle-orm'
 import type { FastifyPluginCallbackZod } from 'fastify-type-provider-zod'
 import { z } from 'zod'
-import { db } from '../../../db/index.ts'
-import { cidades } from '../../../db/schema/cidades.ts'
-import { departamentos } from '../../../db/schema/departamentos.ts'
-import { funcionarios } from '../../../db/schema/funcionarios.ts'
+import { db } from '../../../db/index.js'
+import { cidades } from '../../../db/schema/cidades.js'
+import { departamentos } from '../../../db/schema/departamentos.js'
+import { funcionarios } from '../../../db/schema/funcionarios.js'
 
 export const getServidorByIdRoute: FastifyPluginCallbackZod = (app) => {
   app.get(

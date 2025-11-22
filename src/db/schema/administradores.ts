@@ -7,8 +7,8 @@ import {
   text,
   timestamp,
 } from 'drizzle-orm/pg-core'
-import { cidades } from './cidades.ts'
 import { uuidv7 } from 'uuidv7'
+import { cidades } from './cidades.js'
 
 export const administradores = pgTable('administradores', {
   adm_id: text()

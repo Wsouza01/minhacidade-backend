@@ -3,14 +3,14 @@ import { eq, or } from 'drizzle-orm'
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import { z } from 'zod'
-import { db } from '../../../db/index.ts'
-import { funcionarios } from '../../../db/schema/funcionarios.ts'
-import { tokensRecuperacao } from '../../../db/schema/tokens-recuperacao.ts'
-import { usuarios } from '../../../db/schema/usuarios.ts'
+import { db } from '../../../db/index.js'
+import { funcionarios } from '../../../db/schema/funcionarios.js'
+import { tokensRecuperacao } from '../../../db/schema/tokens-recuperacao.js'
+import { usuarios } from '../../../db/schema/usuarios.js'
 import {
   gerarEmailRecuperacaoSenha,
   sendEmail,
-} from '../../../services/email.ts'
+} from '../../../services/email.js'
 
 export async function solicitarRecuperacaoSenhaRoute(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().post(

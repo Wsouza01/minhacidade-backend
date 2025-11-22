@@ -2,8 +2,8 @@ import { compare, hash } from 'bcrypt'
 import { eq } from 'drizzle-orm'
 import type { FastifyPluginCallbackZod } from 'fastify-type-provider-zod'
 import { z } from 'zod'
-import { db } from '../../../db/index.ts'
-import { funcionarios } from '../../../db/schema/funcionarios.ts'
+import { db } from '../../../db/index.js'
+import { funcionarios } from '../../../db/schema/funcionarios.js'
 
 export const alterarSenhaServidorRoute: FastifyPluginCallbackZod = (app) => {
   app.put(

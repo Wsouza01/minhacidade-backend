@@ -1,9 +1,9 @@
-import { and, count, eq, inArray, isNotNull, isNull } from 'drizzle-orm'
+import { and, eq, inArray } from 'drizzle-orm'
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
 import { z } from 'zod'
-import { db } from '../../../db/index.ts'
-import { chamados } from '../../../db/schema/chamados.ts'
-import { departamentos } from '../../../db/schema/departamentos.ts'
+import { db } from '../../../db/index.js'
+import { chamados } from '../../../db/schema/chamados.js'
+import { departamentos } from '../../../db/schema/departamentos.js'
 
 export const getStatsRoute: FastifyPluginAsyncZod = async (app) => {
   app.get(

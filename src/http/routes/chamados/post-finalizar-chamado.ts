@@ -1,8 +1,8 @@
 import { eq } from 'drizzle-orm'
 import type { FastifyPluginCallbackZod } from 'fastify-type-provider-zod'
 import { z } from 'zod'
-import { db } from '../../../db/index.ts'
-import { chamados } from '../../../db/schema/chamados.ts'
+import { db } from '../../../db/index.js'
+import { chamados } from '../../../db/schema/chamados.js'
 
 export const finalizarChamadoRoute: FastifyPluginCallbackZod = (app) => {
   app.post(

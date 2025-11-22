@@ -1,8 +1,8 @@
 import { eq } from 'drizzle-orm'
 import type { FastifyPluginCallbackZod } from 'fastify-type-provider-zod'
 import { z } from 'zod'
-import { db } from '../../../db/index.ts'
-import { departamentos } from '../../../db/schema/departamentos.ts'
+import { db } from '../../../db/index.js'
+import { departamentos } from '../../../db/schema/departamentos.js'
 
 const getPrioridadesByDepartamentoRequestSchema = z.object({
   departamentoId: z.string().uuid(),

@@ -1,18 +1,18 @@
 import 'dotenv/config'
 import bcrypt from 'bcrypt'
-import { db } from './index.ts'
+import { db } from './index.js'
 
 // Schemas
-import { administradores } from './schema/administradores.ts'
-import { anexos } from './schema/anexos.ts'
-import { categorias } from './schema/categorias.ts'
-import { chamados } from './schema/chamados.ts'
-import { cidades } from './schema/cidades.ts'
-import { departamentos } from './schema/departamentos.ts'
-import { etapas } from './schema/etapas.ts'
-import { funcionarios } from './schema/funcionarios.ts'
-import { notificacoes } from './schema/notificacoes.ts'
-import { usuarios } from './schema/usuarios.ts'
+import { administradores } from './schema/administradores.js'
+import { anexos } from './schema/anexos.js'
+import { categorias } from './schema/categorias.js'
+import { chamados } from './schema/chamados.js'
+import { cidades } from './schema/cidades.js'
+import { departamentos } from './schema/departamentos.js'
+import { etapas } from './schema/etapas.js'
+import { funcionarios } from './schema/funcionarios.js'
+import { notificacoes } from './schema/notificacoes.js'
+import { usuarios } from './schema/usuarios.js'
 
 // ------------------------------
 // Utils
@@ -166,7 +166,7 @@ async function runSeed() {
       ])
       .returning()
 
-    const depsBarueri = await db
+    const _depsBarueri = await db
       .insert(departamentos)
       .values([
         {
@@ -182,7 +182,7 @@ async function runSeed() {
       ])
       .returning()
 
-    const depsOsasco = await db
+    const _depsOsasco = await db
       .insert(departamentos)
       .values([
         {
@@ -413,15 +413,15 @@ async function runSeed() {
     console.log(`Chamados inseridos: ${todosChamados.length}`)
 
     // 9) Notificações do Silas
-    const tiposNotificacao = ['info', 'success', 'warning', 'error'] as const
-    const titulosNotificacao = [
+    const _tiposNotificacao = ['info', 'success', 'warning', 'error'] as const
+    const _titulosNotificacao = [
       'Chamado atualizado',
       'Novo chamado criado',
       'Chamado finalizado',
       'Atenção necessária',
       'Prazo se aproxima',
     ]
-    const mensagensNotificacao = [
+    const _mensagensNotificacao = [
       'Seu chamado foi atualizado pelo responsável',
       'Um novo chamado foi criado com sucesso',
       'Seu chamado foi finalizado',

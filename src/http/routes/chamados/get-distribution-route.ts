@@ -1,9 +1,9 @@
 import { and, eq, sql } from 'drizzle-orm'
 import type { FastifyPluginCallbackZod } from 'fastify-type-provider-zod'
 import { z } from 'zod'
-import { db } from '../../../db/index.ts'
-import { chamados } from '../../../db/schema/chamados.ts'
-import { departamentos } from '../../../db/schema/departamentos.ts'
+import { db } from '../../../db/index.js'
+import { chamados } from '../../../db/schema/chamados.js'
+import { departamentos } from '../../../db/schema/departamentos.js'
 
 export const getDistributionRoute: FastifyPluginCallbackZod = (app) => {
   app.get(

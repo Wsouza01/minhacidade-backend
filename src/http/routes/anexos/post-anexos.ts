@@ -2,8 +2,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { pipeline } from 'node:stream/promises'
 import type { FastifyPluginCallback } from 'fastify'
-import { db } from '../../../db/index.ts'
-import { schema } from '../../../db/schema/index.ts'
+import { db } from '../../../db/index.js'
+import { schema } from '../../../db/schema/index.js'
 
 export const postAnexosRoute: FastifyPluginCallback = (app) => {
   // Rota para upload de arquivo usando parts()

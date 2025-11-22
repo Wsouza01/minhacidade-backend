@@ -2,9 +2,9 @@ import { hash } from "bcryptjs";
 import { eq } from "drizzle-orm";
 import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
 import { z } from "zod";
-import { db } from "../../../db/index.ts";
-import { schema } from "../../../db/schema/index.ts";
-import { getCPFDuplicateMessage } from "../../../utils/check-duplicate-cpf.ts";
+import { db } from "../../../db/index.js";
+import { schema } from "../../../db/schema/index.js";
+import { getCPFDuplicateMessage } from "../../../utils/check-duplicate-cpf.js";
 
 export const putFuncionariosRoute: FastifyPluginCallbackZod = (app) => {
 	app.put(
@@ -73,7 +73,6 @@ export const putFuncionariosRoute: FastifyPluginCallbackZod = (app) => {
 				fun_nome?: string;
 				fun_email?: string;
 				fun_cpf?: string;
-				fun_data_nascimento?: Date;
 				fun_matricula?: string;
 				fun_tipo?: "atendente" | "servidor";
 				dep_id?: string | null;
@@ -84,22 +83,6 @@ export const putFuncionariosRoute: FastifyPluginCallbackZod = (app) => {
 			if (nome !== undefined) updateData.fun_nome = nome;
 			if (email !== undefined) updateData.fun_email = email;
 			if (cpf !== undefined) updateData.fun_cpf = cpf.replace(/\D/g, "");
-			if (dataNascimento !== undefined)
-				updateData.fun_data_nascimento = new Date(dataNascimento);
-			if (matricula !== undefined) updateData.fun_matricula = matricula;
-			if (tipo !== undefined) updateData.fun_tipo = tipo;
-			if (departamentoId !== undefined)
-				updateData.dep_id =
-					departamentoId && departamentoId.trim() !== ""
-						? departamentoId
-						: null;
-			if (cidadeId !== undefined) updateData.cid_id = cidadeId;
-
-			// Se houver senha, faz hash
-			if (senha !== undefined) {
-				const senhaHash = await hash(senha, 10);
-				updateData.fun_senha = senhaHash;
-			}
 
 			// Atualiza funcionário
 			await db

@@ -1,9 +1,9 @@
 import { and, count, eq, isNull } from 'drizzle-orm'
 import type { FastifyPluginCallbackZod } from 'fastify-type-provider-zod'
 import { z } from 'zod'
-import { db } from '../../../db/index.ts'
-import { chamados } from '../../../db/schema/chamados.ts'
-import { funcionarios } from '../../../db/schema/funcionarios.ts'
+import { db } from '../../../db/index.js'
+import { chamados } from '../../../db/schema/chamados.js'
+import { funcionarios } from '../../../db/schema/funcionarios.js'
 
 const getFuncionariosByDepartamentoParamsSchema = z.object({
   id: z.string().uuid('ID do departamento deve ser um UUID válido'),

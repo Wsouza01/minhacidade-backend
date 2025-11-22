@@ -8,8 +8,8 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core'
 import { uuidv7 } from 'uuidv7'
-import { cidades } from './cidades.ts'
-import { departamentos } from './departamentos.ts'
+import { cidades } from './cidades.js'
+import { departamentos } from './departamentos.js'
 
 export const funcionarios = pgTable('funcionarios', {
   fun_id: text('fun_id')

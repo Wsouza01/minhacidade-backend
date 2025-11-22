@@ -1,7 +1,7 @@
 import { relations } from 'drizzle-orm'
 import { pgTable, text } from 'drizzle-orm/pg-core'
 import { uuidv7 } from 'uuidv7'
-import { cidades } from './cidades.ts'
+import { cidades } from './cidades.js'
 
 export const departamentos = pgTable('departamentos', {
   dep_id: text('dep_id')

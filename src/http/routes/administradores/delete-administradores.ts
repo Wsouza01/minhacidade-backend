@@ -1,8 +1,8 @@
 import { eq } from 'drizzle-orm'
 import type { FastifyPluginCallbackZod } from 'fastify-type-provider-zod'
 import { z } from 'zod'
-import { db } from '../../../db/index.ts'
-import { administradores } from '../../../db/schema/administradores.ts'
+import { db } from '../../../db/index.js'
+import { administradores } from '../../../db/schema/administradores.js'
 
 export const deleteAdministradoresRoute: FastifyPluginCallbackZod = (app) => {
   app.delete(

@@ -1,8 +1,8 @@
 // routes/postCategorias.ts
 import type { FastifyPluginCallbackZod } from 'fastify-type-provider-zod'
 import { z } from 'zod'
-import { db } from '../../../db/index.ts'
-import { categorias } from '../../../db/schema/categorias.ts'
+import { db } from '../../../db/index.js'
+import { categorias } from '../../../db/schema/categorias.js'
 
 export const postCategoriasRoute: FastifyPluginCallbackZod = (app) => {
   app.post(
