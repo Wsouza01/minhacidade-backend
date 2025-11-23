@@ -1,16 +1,30 @@
 const fs = require("fs");
 
-// lê o arquivo TS original
-let content = fs.readFileSync("./drizzle.config.ts", "utf8");
+// Gera drizzle.config.js para produção
+// Detecta automaticamente AWS RDS pela URL e adiciona sslmode=require
+const config = `const { defineConfig } = require("drizzle-kit");
 
-// converte para CommonJS
-content = content
-	.replace(
-		'import { defineConfig } from "drizzle-kit";',
-		'const { defineConfig } = require("drizzle-kit");',
-	)
-	.replace("export default", "module.exports =");
+let databaseUrl = process.env.DATABASE_URL || "postgresql://docker:docker@localhost:5432/tg_backend";
+const isAWS = databaseUrl.includes("rds.amazonaws.com");
 
-fs.writeFileSync("./drizzle.config.js", content);
+// Para AWS RDS, adiciona sslmode=require na URL
+if (isAWS && !databaseUrl.includes("sslmode")) {
+	databaseUrl += "?sslmode=require";
+}
 
-console.log("✔ drizzle.config.js gerado com sucesso");
+module.exports = defineConfig({
+	dialect: "postgresql",
+	casing: "snake_case",
+	schema: "./src/db/schema/**.ts",
+	out: "./src/db/migrations",
+	dbCredentials: {
+		url: databaseUrl,
+	},
+});
+`;
+
+fs.writeFileSync("./drizzle.config.js", config);
+
+console.log(
+	"✔ drizzle.config.js gerado (auto-detecta AWS RDS + sslmode=require)",
+);

@@ -35,14 +35,38 @@ async function runSeed() {
 		console.log("🏙️ Cidade padrão:", cidade.cid_nome);
 
 		// Verifica se admin global já existe
-		const exists = await db
+		const [adminGlobal] = await db
 			.select()
 			.from(administradores)
 			.where(eq(administradores.adm_login, "admin.global"))
 			.limit(1);
 
-		if (exists.length > 0) {
-			console.log("🔁 Admin global já existe, ignorando seed.");
+		if (adminGlobal) {
+			if (adminGlobal.cid_id !== null) {
+				console.log(
+					"🔁 Admin global existe mas está vinculado a uma cidade. Atualizando para admin-global...",
+				);
+
+				await db
+					.update(administradores)
+					.set({
+						cid_id: null,
+						adm_nome: "Administrador Global",
+						adm_email: "admin.global@minhacidade.com",
+						adm_cpf: "00000000000",
+						adm_data_nascimento: "1975-01-01",
+						adm_login: "admin.global",
+						adm_senha: await bcrypt.hash("AdminGlobal@123", 10),
+						adm_ativo: true,
+					})
+					.where(eq(administradores.adm_id, adminGlobal.adm_id));
+				console.log("✅ Admin global atualizado para acesso correto.");
+			} else {
+				console.log(
+					"🔁 Admin global já existe e está configurado corretamente, ignorando seed.",
+				);
+			}
+
 			return;
 		}
 

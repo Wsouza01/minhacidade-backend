@@ -26,7 +26,9 @@ RUN pnpm run build
 FROM base AS production
 WORKDIR /app
 
+# IMPORTANTE: ativa SSL e modo produção no backend
 ENV NODE_ENV=production
+ENV IS_DOCKER=true
 
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/pnpm-lock.yaml ./
