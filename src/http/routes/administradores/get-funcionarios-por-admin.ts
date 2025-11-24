@@ -33,7 +33,7 @@ export const getFuncionariosPorAdminRoute: FastifyPluginCallbackZod = (app) => {
         }
 
         // Buscar funcionários da mesma cidade do administrador
-        let query = db
+        const query = db
           .select({
             fun_id: schema.funcionarios.fun_id,
             fun_nome: schema.funcionarios.fun_nome,
@@ -47,7 +47,7 @@ export const getFuncionariosPorAdminRoute: FastifyPluginCallbackZod = (app) => {
           .from(schema.funcionarios)
 
         // Filtrar por cidade se o admin tiver uma cidade associada
-        const resultFuncionarios = admin.cidadeId 
+        const resultFuncionarios = admin.cidadeId
           ? await query.where(eq(schema.funcionarios.cid_id, admin.cidadeId))
           : await query
 

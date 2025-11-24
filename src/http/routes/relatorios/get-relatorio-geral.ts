@@ -64,7 +64,7 @@ export async function getRelatorioGeralRoute(app: FastifyInstance) {
 
         // Função helper para contar chamados com filtro de cidade
         const countChamadosComFiltro = async () => {
-          let query = db
+          const query = db
             .select({ count: sql<number>`count(*)::int` })
             .from(chamados)
             .leftJoin(
@@ -82,7 +82,7 @@ export async function getRelatorioGeralRoute(app: FastifyInstance) {
 
         // Função helper para queries de chamados com filtro de cidade
         const queryChamadosComFiltro = (selectClause: any) => {
-          let query = selectClause
+          const query = selectClause
             .from(chamados)
             .leftJoin(
               departamentos,
@@ -149,16 +149,18 @@ export async function getRelatorioGeralRoute(app: FastifyInstance) {
           }),
         ).groupBy(chamados.cha_prioridade)
 
-        const prioridadeComPercentual = chamadosPorPrioridade.map((item: any) => ({
-          prioridade: item.prioridade,
-          quantidade: item.quantidade,
-          percentual:
-            totalParaPercentual > 0
-              ? Number(
-                  ((item.quantidade / totalParaPercentual) * 100).toFixed(2),
-                )
-              : 0,
-        }))
+        const prioridadeComPercentual = chamadosPorPrioridade.map(
+          (item: any) => ({
+            prioridade: item.prioridade,
+            quantidade: item.quantidade,
+            percentual:
+              totalParaPercentual > 0
+                ? Number(
+                    ((item.quantidade / totalParaPercentual) * 100).toFixed(2),
+                  )
+                : 0,
+          }),
+        )
 
         // -------------------------------------------------------------
         // 🏢 Chamados por Departamento
@@ -187,7 +189,7 @@ export async function getRelatorioGeralRoute(app: FastifyInstance) {
         // -------------------------------------------------------------
         // 🗂️ Chamados por Categoria
         // -------------------------------------------------------------
-        let chamadosCategQuery = db
+        const chamadosCategQuery = db
           .select({
             categoria: categorias.cat_nome,
             quantidade: sql<number>`count(*)::int`,
@@ -211,7 +213,9 @@ export async function getRelatorioGeralRoute(app: FastifyInstance) {
         // ⏱️ Tempo Médio de Resolução
         // -------------------------------------------------------------
         let whereTempoMedio = eq(chamados.cha_status, 'Resolvido')
-        whereTempoMedio = whereFilters ? and(whereTempoMedio, whereFilters)! : whereTempoMedio
+        whereTempoMedio = whereFilters
+          ? and(whereTempoMedio, whereFilters)!
+          : whereTempoMedio
 
         const tempoMedioQry = db
           .select({
@@ -243,8 +247,8 @@ export async function getRelatorioGeralRoute(app: FastifyInstance) {
         // 📊 Taxa de Resolução
         // -------------------------------------------------------------
         const resolvidos =
-          chamadosPorStatus.find((s: any) => s.status === 'Resolvido')?.quantidade ??
-          0
+          chamadosPorStatus.find((s: any) => s.status === 'Resolvido')
+            ?.quantidade ?? 0
 
         const taxaResolucao =
           totalParaPercentual > 0
@@ -293,8 +297,7 @@ export async function getRelatorioGeralRoute(app: FastifyInstance) {
         return reply.status(200).send(response)
       } catch (error) {
         console.error('[RELATORIO_GERAL] Erro:', error)
-        return reply.status(500).send({
-        })
+        return reply.status(500).send({})
       }
     },
   )

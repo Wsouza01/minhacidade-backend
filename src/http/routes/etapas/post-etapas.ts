@@ -21,7 +21,10 @@ export const postEtapasRoute: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, reply) => {
       const { id } = request.params as { id: string }
-      const { nome, descricao } = request.body as { nome: string; descricao?: string }
+      const { nome, descricao } = request.body as {
+        nome: string
+        descricao?: string
+      }
 
       const chamado = await db
         .select()

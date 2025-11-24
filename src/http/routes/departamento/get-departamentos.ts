@@ -20,7 +20,7 @@ export const getDepartamentosRoute: FastifyPluginCallbackZod = (app) => {
       try {
         const { cidadeId } = request.query
 
-        let query = db.select().from(schema.departamentos)
+        const query = db.select().from(schema.departamentos)
 
         // Filtrar por cidade se cidadeId foi fornecido
         if (cidadeId) {

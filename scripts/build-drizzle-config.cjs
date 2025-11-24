@@ -1,4 +1,4 @@
-const fs = require("fs");
+const fs = require('fs')
 
 // Gera drizzle.config.js para produção
 // Detecta automaticamente AWS RDS pela URL e adiciona sslmode=require
@@ -21,10 +21,10 @@ module.exports = defineConfig({
 		url: databaseUrl,
 	},
 });
-`;
+`
 
-fs.writeFileSync("./drizzle.config.js", config);
+fs.writeFileSync('./drizzle.config.js', config)
 
 console.log(
-	"✔ drizzle.config.js gerado (auto-detecta AWS RDS + sslmode=require)",
-);
+  '✔ drizzle.config.js gerado (auto-detecta AWS RDS + sslmode=require)',
+)

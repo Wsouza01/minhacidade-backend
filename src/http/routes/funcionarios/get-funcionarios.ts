@@ -21,7 +21,7 @@ export const getFuncionariosRoute: FastifyPluginCallbackZod = (app) => {
         const { cidadeId } = request.query
 
         // Busca todos os funcionários com joins para departamento e cidade
-        let query = db
+        const query = db
           .select({
             fun_id: schema.funcionarios.fun_id,
             fun_nome: schema.funcionarios.fun_nome,

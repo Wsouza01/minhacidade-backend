@@ -1,38 +1,44 @@
-import { eq } from 'drizzle-orm';
-import { z } from 'zod';
-import { db } from '../../../db/index.js';
-import { cidades } from '../../../db/schema/cidades.js';
-import { departamentos } from '../../../db/schema/departamentos.js';
-import { funcionarios } from '../../../db/schema/funcionarios.js';
+import { eq } from 'drizzle-orm'
+import { z } from 'zod'
+import { db } from '../../../db/index.js'
+import { cidades } from '../../../db/schema/cidades.js'
+import { departamentos } from '../../../db/schema/departamentos.js'
+import { funcionarios } from '../../../db/schema/funcionarios.js'
 export const getServidorByIdRoute = (app) => {
-    app.get('/servidores/:servidorId', {
-        schema: {
-            params: z.object({
-                servidorId: z.string().uuid(),
-            }),
-        },
-    }, async (request, reply) => {
-        try {
-            const { servidorId } = request.params;
-            const [servidor] = await db
-                .select({
-                id: funcionarios.fun_id,
-                nome: funcionarios.fun_nome,
-                email: funcionarios.fun_email,
-                cidade: cidades.cid_nome,
-            })
-                .from(funcionarios)
-                .leftJoin(departamentos, eq(funcionarios.dep_id, departamentos.dep_id))
-                .leftJoin(cidades, eq(departamentos.cid_id, cidades.cid_id))
-                .where(eq(funcionarios.fun_id, servidorId));
-            if (!servidor) {
-                return reply.status(404).send({ message: 'Servidor não encontrado' });
-            }
-            return reply.send(servidor);
+  app.get(
+    '/servidores/:servidorId',
+    {
+      schema: {
+        params: z.object({
+          servidorId: z.string().uuid(),
+        }),
+      },
+    },
+    async (request, reply) => {
+      try {
+        const { servidorId } = request.params
+        const [servidor] = await db
+          .select({
+            id: funcionarios.fun_id,
+            nome: funcionarios.fun_nome,
+            email: funcionarios.fun_email,
+            cidade: cidades.cid_nome,
+          })
+          .from(funcionarios)
+          .leftJoin(
+            departamentos,
+            eq(funcionarios.dep_id, departamentos.dep_id),
+          )
+          .leftJoin(cidades, eq(departamentos.cid_id, cidades.cid_id))
+          .where(eq(funcionarios.fun_id, servidorId))
+        if (!servidor) {
+          return reply.status(404).send({ message: 'Servidor não encontrado' })
         }
-        catch (err) {
-            console.error('Erro ao buscar servidor:', err);
-            reply.status(500).send({ message: 'Erro ao buscar servidor' });
-        }
-    });
-};
+        return reply.send(servidor)
+      } catch (err) {
+        console.error('Erro ao buscar servidor:', err)
+        reply.status(500).send({ message: 'Erro ao buscar servidor' })
+      }
+    },
+  )
+}

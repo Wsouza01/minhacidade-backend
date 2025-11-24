@@ -1,29 +1,33 @@
-import { eq } from 'drizzle-orm';
-import { z } from 'zod';
-import { db } from '../../../db/index.js';
-import { schema } from '../../../db/schema/index.js';
+import { eq } from 'drizzle-orm'
+import { z } from 'zod'
+import { db } from '../../../db/index.js'
+import { schema } from '../../../db/schema/index.js'
+
 const getDepartamentosQuerySchema = z.object({
-    cidadeId: z.string().optional(),
-});
+  cidadeId: z.string().optional(),
+})
 export const getDepartamentosRoute = (app) => {
-    app.get('/departamentos', {
-        schema: {
-            querystring: getDepartamentosQuerySchema,
-        },
-    }, async (request, reply) => {
-        try {
-            const { cidadeId } = request.query;
-            let query = db.select().from(schema.departamentos);
-            // Filtrar por cidade se cidadeId foi fornecido
-            if (cidadeId) {
-                const result = query.where(eq(schema.departamentos.cid_id, cidadeId));
-            }
-            const dados = await query;
-            reply.send(dados);
+  app.get(
+    '/departamentos',
+    {
+      schema: {
+        querystring: getDepartamentosQuerySchema,
+      },
+    },
+    async (request, reply) => {
+      try {
+        const { cidadeId } = request.query
+        const query = db.select().from(schema.departamentos)
+        // Filtrar por cidade se cidadeId foi fornecido
+        if (cidadeId) {
+          const result = query.where(eq(schema.departamentos.cid_id, cidadeId))
         }
-        catch (err) {
-            console.error('Erro ao buscar departamentos:', err);
-            reply.status(500).send({ message: 'Erro ao buscar departamentos' });
-        }
-    });
-};
+        const dados = await query
+        reply.send(dados)
+      } catch (err) {
+        console.error('Erro ao buscar departamentos:', err)
+        reply.status(500).send({ message: 'Erro ao buscar departamentos' })
+      }
+    },
+  )
+}
