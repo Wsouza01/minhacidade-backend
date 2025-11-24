@@ -6,6 +6,7 @@ import { db } from '../../../db/index.js'
 import { administradores } from '../../../db/schema/administradores.js'
 import { schema } from '../../../db/schema/index.js'
 import { getCPFDuplicateMessage } from '../../../utils/check-duplicate-cpf.js'
+import { hashCPF } from '../../../utils/cpfHash.js'
 
 // Função auxiliar para validar CPF
 function validarCPF(cpf: string): boolean {
@@ -160,11 +161,12 @@ export const postAdministradoresRoute: FastifyPluginCallbackZod = (app) => {
         // ✅ Hash de senha
         const senhaHash = await bcrypt.hash(senha, 10)
 
+        const cpfHash = await hashCPF(cpfSemFormatacao)
         // ✅ Insere administrador no banco
         await db.insert(administradores).values({
           adm_nome: nome,
           adm_email: email,
-          adm_cpf: cpfSemFormatacao,
+          adm_cpf: cpfHash,
           adm_data_nascimento: dataNascimento,
           adm_login: login,
           adm_senha: senhaHash,

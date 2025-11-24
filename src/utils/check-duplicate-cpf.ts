@@ -1,8 +1,9 @@
-import { eq } from 'drizzle-orm'
-import { db } from '../db/index.js'
-import { administradores } from '../db/schema/administradores.js'
-import { funcionarios } from '../db/schema/funcionarios.js'
-import { usuarios } from '../db/schema/usuarios.js'
+import { eq } from "drizzle-orm";
+import { db } from "../db/index.js";
+import { administradores } from "../db/schema/administradores.js";
+import { funcionarios } from "../db/schema/funcionarios.js";
+import { usuarios } from "../db/schema/usuarios.js";
+import { verifyCPF } from "./cpfHash.js";
 
 /**
  * Verifica se um CPF já existe no banco de dados
@@ -12,59 +13,49 @@ import { usuarios } from '../db/schema/usuarios.js'
  * @returns true se o CPF já existe, false caso contrário
  */
 export async function checkDuplicateCPF(
-  cpf: string,
-  excludeId?: string,
+	cpf: string,
+	excludeId?: string,
 ): Promise<boolean> {
-  // Remove formatação do CPF
-  const cleanCPF = cpf.replace(/[.-]/g, '')
+	// Remove formatação do CPF
+	const cleanCPF = cpf.replace(/[.-]/g, "");
 
-  // Buscar em administradores
-  const adminWithCPF = await db
-    .select()
-    .from(administradores)
-    .where(eq(administradores.adm_cpf, cleanCPF))
-    .limit(1)
+	// Buscar em administradores
+	const admins = await db
+		.select({
+			adm_id: administradores.adm_id,
+			adm_cpf: administradores.adm_cpf,
+		})
+		.from(administradores);
 
-  if (adminWithCPF.length > 0) {
-    // Se está excluindo um ID específico, verifica se não é o mesmo registro
-    if (excludeId && adminWithCPF[0].adm_id === excludeId) {
-      // É o mesmo registro, continua verificando outras tabelas
-    } else {
-      return true // CPF duplicado encontrado
-    }
-  }
+	for (const admin of admins) {
+		if (excludeId && admin.adm_id === excludeId) continue;
+		const match = await verifyCPF(cleanCPF, admin.adm_cpf);
+		if (match) return true;
+	}
 
-  // Buscar em funcionarios
-  const funcionarioWithCPF = await db
-    .select()
-    .from(funcionarios)
-    .where(eq(funcionarios.fun_cpf, cleanCPF))
-    .limit(1)
+	// Buscar em funcionarios
+	const funcs = await db
+		.select({ fun_id: funcionarios.fun_id, fun_cpf: funcionarios.fun_cpf })
+		.from(funcionarios);
 
-  if (funcionarioWithCPF.length > 0) {
-    if (excludeId && funcionarioWithCPF[0].fun_id === excludeId) {
-      // É o mesmo registro
-    } else {
-      return true // CPF duplicado encontrado
-    }
-  }
+	for (const func of funcs) {
+		if (excludeId && func.fun_id === excludeId) continue;
+		const match = await verifyCPF(cleanCPF, func.fun_cpf);
+		if (match) return true;
+	}
 
-  // Buscar em usuarios
-  const usuarioWithCPF = await db
-    .select()
-    .from(usuarios)
-    .where(eq(usuarios.usu_cpf, cleanCPF))
-    .limit(1)
+	// Buscar em usuarios
+	const users = await db
+		.select({ usu_id: usuarios.usu_id, usu_cpf: usuarios.usu_cpf })
+		.from(usuarios);
 
-  if (usuarioWithCPF.length > 0) {
-    if (excludeId && usuarioWithCPF[0].usu_id === excludeId) {
-      // É o mesmo registro
-    } else {
-      return true // CPF duplicado encontrado
-    }
-  }
+	for (const user of users) {
+		if (excludeId && user.usu_id === excludeId) continue;
+		const match = await verifyCPF(cleanCPF, user.usu_cpf);
+		if (match) return true;
+	}
 
-  return false // CPF não encontrado, pode ser usado
+	return false; // CPF não encontrado, pode ser usado
 }
 
 /**
@@ -73,40 +64,61 @@ export async function checkDuplicateCPF(
  * @param excludeId - ID opcional para excluir da busca (usado em updates)
  */
 export async function getCPFDuplicateMessage(
-  cpf: string,
-  excludeId?: string,
+	cpf: string,
+	excludeId?: string,
 ): Promise<string | null> {
-  const cleanCPF = cpf.replace(/[.-]/g, '')
+	const cleanCPF = cpf.replace(/[.-]/g, "");
 
-  const adminWithCPF = await db
-    .select({ id: administradores.adm_id, nome: administradores.adm_nome })
-    .from(administradores)
-    .where(eq(administradores.adm_cpf, cleanCPF))
-    .limit(1)
+	// Buscar em administradores
+	const admins = await db
+		.select({
+			id: administradores.adm_id,
+			nome: administradores.adm_nome,
+			cpf: administradores.adm_cpf,
+		})
+		.from(administradores);
 
-  if (adminWithCPF.length > 0 && adminWithCPF[0].id !== excludeId) {
-    return `CPF já cadastrado para o administrador: ${adminWithCPF[0].nome}`
-  }
+	for (const admin of admins) {
+		if (excludeId && admin.id === excludeId) continue;
+		const match = await verifyCPF(cleanCPF, admin.cpf);
+		if (match) {
+			return `CPF já cadastrado para o administrador: ${admin.nome}`;
+		}
+	}
 
-  const funcionarioWithCPF = await db
-    .select({ id: funcionarios.fun_id, nome: funcionarios.fun_nome })
-    .from(funcionarios)
-    .where(eq(funcionarios.fun_cpf, cleanCPF))
-    .limit(1)
+	// Buscar em funcionarios
+	const funcs = await db
+		.select({
+			id: funcionarios.fun_id,
+			nome: funcionarios.fun_nome,
+			cpf: funcionarios.fun_cpf,
+		})
+		.from(funcionarios);
 
-  if (funcionarioWithCPF.length > 0 && funcionarioWithCPF[0].id !== excludeId) {
-    return `CPF já cadastrado para o funcionário: ${funcionarioWithCPF[0].nome}`
-  }
+	for (const func of funcs) {
+		if (excludeId && func.id === excludeId) continue;
+		const match = await verifyCPF(cleanCPF, func.cpf);
+		if (match) {
+			return `CPF já cadastrado para o funcionário: ${func.nome}`;
+		}
+	}
 
-  const usuarioWithCPF = await db
-    .select({ id: usuarios.usu_id, nome: usuarios.usu_nome })
-    .from(usuarios)
-    .where(eq(usuarios.usu_cpf, cleanCPF))
-    .limit(1)
+	// Buscar em usuarios
+	const users = await db
+		.select({
+			id: usuarios.usu_id,
+			nome: usuarios.usu_nome,
+			cpf: usuarios.usu_cpf,
+		})
+		.from(usuarios);
 
-  if (usuarioWithCPF.length > 0 && usuarioWithCPF[0].id !== excludeId) {
-    return `CPF já cadastrado para o usuário: ${usuarioWithCPF[0].nome}`
-  }
+	for (const user of users) {
+		if (excludeId && user.id === excludeId) continue;
+		const match = await verifyCPF(cleanCPF, user.cpf);
+		if (match) {
+			return `CPF já cadastrado para o usuário: ${user.nome}`;
+		}
+	}
 
-  return null
+	return null;
 }

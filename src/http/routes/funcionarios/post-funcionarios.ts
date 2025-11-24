@@ -6,6 +6,7 @@ import { db } from '../../../db/index.js'
 import { schema } from '../../../db/schema/index.js'
 import { getCPFDuplicateMessage } from '../../../utils/check-duplicate-cpf.js'
 
+import { hashCPF } from '../../../utils/cpfHash.js'
 // Função auxiliar para validar CPF
 function validarCPF(cpf: string): boolean {
   const cpfLimpo = cpf.replace(/\D/g, '')
@@ -162,6 +163,7 @@ export const postFuncionariosRoute: FastifyPluginCallbackZod = (app) => {
 
       // ✅ Hash de senha
       const senhaHash = await hash(senha, 10)
+      const cpfHash = await hashCPF(cpfLimpo)
 
       // ✅ Gera um login único a partir do email
       const login = email.split('@')[0]
@@ -170,7 +172,7 @@ export const postFuncionariosRoute: FastifyPluginCallbackZod = (app) => {
       await db.insert(schema.funcionarios).values({
         fun_nome: nome,
         fun_email: email,
-        fun_cpf: cpfLimpo,
+        fun_cpf: cpfHash,
         fun_data_nascimento: dataNascimento,
         fun_login: login,
         fun_senha: senhaHash,

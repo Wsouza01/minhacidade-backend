@@ -1,5 +1,6 @@
 import 'dotenv/config'
 import bcrypt from 'bcrypt'
+import { hashCPF } from '../utils/cpfHash.js'
 import { eq } from 'drizzle-orm'
 import { db } from './index.js'
 
@@ -53,7 +54,7 @@ async function runSeed() {
             cid_id: null,
             adm_nome: 'Administrador Global',
             adm_email: 'admin.global@minhacidade.com',
-            adm_cpf: '00000000000',
+            adm_cpf: await hashCPF('00000000000'),
             adm_data_nascimento: '1975-01-01',
             adm_login: 'admin.global',
             adm_senha: await bcrypt.hash('AdminGlobal@123', 10),
@@ -75,7 +76,7 @@ async function runSeed() {
     await db.insert(administradores).values({
       adm_nome: 'Administrador Global',
       adm_email: 'admin.global@minhacidade.com',
-      adm_cpf: '00000000000',
+      adm_cpf: await hashCPF('00000000000'),
       adm_data_nascimento: '1975-01-01',
       adm_login: 'admin.global',
       adm_senha: await bcrypt.hash('AdminGlobal@123', 10),

@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { db } from '../../../db/index.js'
 import { schema } from '../../../db/schema/index.js'
 import { getCPFDuplicateMessage } from '../../../utils/check-duplicate-cpf.js'
+import { hashCPF } from '../../../utils/cpfHash.js'
 
 export const putFuncionariosRoute: FastifyPluginCallbackZod = (app) => {
   app.put(
@@ -82,7 +83,7 @@ export const putFuncionariosRoute: FastifyPluginCallbackZod = (app) => {
 
       if (nome !== undefined) updateData.fun_nome = nome
       if (email !== undefined) updateData.fun_email = email
-      if (cpf !== undefined) updateData.fun_cpf = cpf.replace(/\D/g, '')
+      if (cpf !== undefined) updateData.fun_cpf = await hashCPF(cpf.replace(/\D/g, ''))
 
       // Atualiza funcionário
       await db

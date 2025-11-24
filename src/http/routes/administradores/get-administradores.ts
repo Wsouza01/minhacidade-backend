@@ -26,7 +26,6 @@ export const getAdministradoresRoute: FastifyPluginCallback = (app) => {
             id: administradores.adm_id,
             nome: administradores.adm_nome,
             email: administradores.adm_email,
-            cpf: administradores.adm_cpf,
             login: administradores.adm_login,
             ativo: administradores.adm_ativo,
             criado: administradores.adm_criado,
@@ -55,7 +54,6 @@ export const getAdministradoresRoute: FastifyPluginCallback = (app) => {
           id: row.id,
           nome: row.nome,
           email: row.email,
-          cpf: row.cpf,
           login: row.login,
           ativo: row.ativo,
           criado: row.criado,
@@ -99,7 +97,6 @@ export const getAdministradoresRoute: FastifyPluginCallback = (app) => {
             id: administradores.adm_id,
             nome: administradores.adm_nome,
             email: administradores.adm_email,
-            cpf: administradores.adm_cpf,
             dataNascimento: administradores.adm_data_nascimento,
             login: administradores.adm_login,
             ativo: administradores.adm_ativo,
@@ -124,7 +121,6 @@ export const getAdministradoresRoute: FastifyPluginCallback = (app) => {
           id: row.id,
           nome: row.nome,
           email: row.email,
-          cpf: row.cpf,
           dataNascimento:
             typeof row.dataNascimento === 'string'
               ? row.dataNascimento

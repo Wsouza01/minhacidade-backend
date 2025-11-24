@@ -1,5 +1,6 @@
 import 'dotenv/config'
 import bcrypt from 'bcrypt'
+import { hashCPF } from '../utils/cpfHash.js'
 import { db } from './index.js'
 
 // Schemas
@@ -96,7 +97,7 @@ async function runSeed() {
     await db.insert(administradores).values({
       adm_nome: 'Administrador Global',
       adm_email: 'admin.global@minhacidade.com',
-      adm_cpf: '00000000000',
+      adm_cpf: await hashCPF('00000000000'),
       adm_data_nascimento: '1975-01-01',
       adm_login: 'admin.global',
       adm_senha: await bcrypt.hash('AdminGlobal@123', 10),
@@ -108,7 +109,7 @@ async function runSeed() {
       {
         adm_nome: 'Admin Santana de Parnaíba',
         adm_email: 'admin.santana@minhacidade.com',
-        adm_cpf: '11111111111',
+        adm_cpf: await hashCPF('11111111111'),
         adm_data_nascimento: '1980-05-15',
         adm_login: 'admin.santana',
         adm_senha: await bcrypt.hash('Admin@123', 10),
@@ -118,7 +119,7 @@ async function runSeed() {
       {
         adm_nome: 'Admin Barueri',
         adm_email: 'admin.barueri@minhacidade.com',
-        adm_cpf: '22222222222',
+        adm_cpf: await hashCPF('22222222222'),
         adm_data_nascimento: '1982-08-20',
         adm_login: 'admin.barueri',
         adm_senha: await bcrypt.hash('Admin@123', 10),
@@ -128,7 +129,7 @@ async function runSeed() {
       {
         adm_nome: 'Admin Osasco',
         adm_email: 'admin.osasco@minhacidade.com',
-        adm_cpf: '33333333333',
+        adm_cpf: await hashCPF('33333333333'),
         adm_data_nascimento: '1985-12-10',
         adm_login: 'admin.osasco',
         adm_senha: await bcrypt.hash('Admin@123', 10),
@@ -226,7 +227,7 @@ async function runSeed() {
       .values({
         usu_nome: 'Silas Martins',
         usu_email: 'silas@email.com',
-        usu_cpf: '33640692047',
+        usu_cpf: await hashCPF('33640692047'),
         usu_data_nascimento: '1990-05-15',
         usu_login: 'silas',
         usu_senha: await bcrypt.hash('Je@12345', 10),
@@ -255,7 +256,7 @@ async function runSeed() {
         .values({
           usu_nome: `Usuário ${i + 1}`,
           usu_email: `usuario${i + 1}@exemplo.com`,
-          usu_cpf: generateCPF(),
+          usu_cpf: await hashCPF(generateCPF()),
           usu_data_nascimento: formatDate(
             new Date(
               1980 + Math.floor(Math.random() * 25),
@@ -295,7 +296,7 @@ async function runSeed() {
       .values({
         fun_nome: 'Atendente Santana',
         fun_email: 'atendente@santanadeparnaiba.sp.gov.br',
-        fun_cpf: '44444444444',
+        fun_cpf: await hashCPF('44444444444'),
         fun_data_nascimento: '1985-06-15',
         fun_login: 'atendente',
         fun_senha: await bcrypt.hash('Atendente@123', 10),
@@ -310,7 +311,7 @@ async function runSeed() {
       .values({
         fun_nome: 'João Silva',
         fun_email: 'joao.silva@santanadeparnaiba.sp.gov.br',
-        fun_cpf: '12345678901',
+        fun_cpf: await hashCPF('12345678901'),
         fun_data_nascimento: '1985-03-20',
         fun_login: 'joao.silva',
         fun_senha: await bcrypt.hash('Servidor@123', 10),
@@ -330,7 +331,7 @@ async function runSeed() {
         .values({
           fun_nome: `Servidor ${i + 1}`,
           fun_email: `servidor${i + 1}@santanadeparnaiba.sp.gov.br`,
-          fun_cpf: generateCPF(),
+          fun_cpf: await hashCPF(generateCPF()),
           fun_data_nascimento: formatDate(
             new Date(
               1980 + Math.floor(Math.random() * 20),

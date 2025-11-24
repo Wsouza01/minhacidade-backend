@@ -26,7 +26,6 @@ export const getFuncionariosRoute: FastifyPluginCallbackZod = (app) => {
             fun_id: schema.funcionarios.fun_id,
             fun_nome: schema.funcionarios.fun_nome,
             fun_email: schema.funcionarios.fun_email,
-            fun_cpf: schema.funcionarios.fun_cpf,
             fun_data_nascimento: schema.funcionarios.fun_data_nascimento,
             fun_matricula: schema.funcionarios.fun_matricula,
             fun_tipo: schema.funcionarios.fun_tipo,
