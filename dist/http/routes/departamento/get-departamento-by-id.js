@@ -1,36 +1,33 @@
-import { eq } from 'drizzle-orm'
-import { z } from 'zod'
-import { db } from '../../../db/index.js'
-import { departamentos } from '../../../db/schema/departamentos.js'
+import { eq } from 'drizzle-orm';
+import { z } from 'zod';
+import { db } from '../../../db/index.js';
+import { departamentos } from '../../../db/schema/departamentos.js';
 export const getDepartamentoByIdRoute = (app) => {
-  app.get(
-    '/departamentos/:id',
-    {
-      schema: {
-        params: z.object({
-          id: z.string().uuid(),
-        }),
-      },
-    },
-    async (request, reply) => {
-      try {
-        const { id } = request.params
-        const departamento = await db
-          .select()
-          .from(departamentos)
-          .where(eq(departamentos.dep_id, id))
-          .limit(1)
-        if (departamento.length === 0) {
-          return reply.status(404).send({
-            message: 'Departamento não encontrado',
-          })
+    app.get('/departamentos/:id', {
+        schema: {
+            params: z.object({
+                id: z.string().uuid(),
+            }),
+        },
+    }, async (request, reply) => {
+        try {
+            const { id } = request.params;
+            const departamento = await db
+                .select()
+                .from(departamentos)
+                .where(eq(departamentos.dep_id, id))
+                .limit(1);
+            if (departamento.length === 0) {
+                return reply.status(404).send({
+                    message: 'Departamento não encontrado',
+                });
+            }
+            console.log('📋 Departamento encontrado:', departamento[0]);
+            reply.send(departamento[0]);
         }
-        console.log('📋 Departamento encontrado:', departamento[0])
-        reply.send(departamento[0])
-      } catch (error) {
-        console.error('Erro ao buscar departamento:', error)
-        reply.status(500).send({ message: 'Erro interno do servidor' })
-      }
-    },
-  )
-}
+        catch (error) {
+            console.error('Erro ao buscar departamento:', error);
+            reply.status(500).send({ message: 'Erro interno do servidor' });
+        }
+    });
+};

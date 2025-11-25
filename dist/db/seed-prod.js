@@ -1,76 +1,79 @@
-/**
- * SEED PRODUÇÃO - Cria apenas o Admin Global padrão
- * Executar uma única vez ao inicializar o banco em produção
- */
-import 'dotenv/config'
-import bcrypt from 'bcrypt'
-import { db } from './index.js'
-import { administradores } from './schema/administradores.js'
-
-// ============================================================================
-// ADMIN GLOBAL PADRÃO
-// ============================================================================
-const ADMIN_GLOBAL_DEFAULT = {
-  login: 'AdminGlobal',
-  email: 'adminglobal@minhacidade.com',
-  senha: 'adminGlobal@123',
-  nome: 'Administrador Global',
-  cpf: '00000000000',
-  dataNascimento: '1990-01-01',
-}
-// ============================================================================
-// MAIN
-// ============================================================================
-async function seedProd() {
-  try {
-    console.log('🌱 Iniciando seed de PRODUÇÃO...')
-    console.log(`📅 ${new Date().toISOString()}`)
-    // 1. Verificar se já existe admin global
-    const existingAdmin = await db
-      .select()
-      .from(administradores)
-      .where((table) => {
-        // Buscar por login ou email
-        return undefined // Será implementado corretamente
-      })
-      .limit(1)
-    if (existingAdmin.length > 0) {
-      console.log('⚠️  Admin global já existe. Abortando seed.')
-      process.exit(0)
+import 'dotenv/config';
+import bcrypt from 'bcrypt';
+import { hashCPF } from '../utils/cpfHash.js';
+import { eq } from 'drizzle-orm';
+import { db } from './index.js';
+import { administradores } from './schema/administradores.js';
+import { cidades } from './schema/cidades.js';
+async function runSeed() {
+    try {
+        console.log('🌱 SEED DE PRODUÇÃO INICIADO...');
+        // Criar cidade padrão se não existir
+        const [cidadeExistente] = await db.select().from(cidades).limit(1);
+        let cidade = cidadeExistente;
+        if (!cidade) {
+            const [novaCidade] = await db
+                .insert(cidades)
+                .values({
+                cid_nome: 'Cidade Padrão',
+                cid_estado: 'SP',
+                cid_padrao: true,
+                cid_ativo: true,
+            })
+                .returning();
+            cidade = novaCidade;
+        }
+        if (!cidade) {
+            throw new Error('Não foi possível criar nem recuperar a cidade padrão.');
+        }
+        console.log('🏙️ Cidade padrão:', cidade.cid_nome);
+        // Verifica se admin global já existe
+        const [adminGlobal] = await db
+            .select()
+            .from(administradores)
+            .where(eq(administradores.adm_login, 'admin.global'))
+            .limit(1);
+        if (adminGlobal) {
+            if (adminGlobal.cid_id !== null) {
+                console.log('🔁 Admin global existe mas está vinculado a uma cidade. Atualizando para admin-global...');
+                await db
+                    .update(administradores)
+                    .set({
+                    cid_id: null,
+                    adm_nome: 'Administrador Global',
+                    adm_email: 'admin.global@minhacidade.com',
+                    adm_cpf: await hashCPF('00000000000'),
+                    adm_data_nascimento: '1975-01-01',
+                    adm_login: 'admin.global',
+                    adm_senha: await bcrypt.hash('AdminGlobal@123', 10),
+                    adm_ativo: true,
+                })
+                    .where(eq(administradores.adm_id, adminGlobal.adm_id));
+                console.log('✅ Admin global atualizado para acesso correto.');
+            }
+            else {
+                console.log('🔁 Admin global já existe e está configurado corretamente, ignorando seed.');
+            }
+            return;
+        }
+        console.log('👤 Criando admin global...');
+        await db.insert(administradores).values({
+            adm_nome: 'Administrador Global',
+            adm_email: 'admin.global@minhacidade.com',
+            adm_cpf: await hashCPF('00000000000'),
+            adm_data_nascimento: '1975-01-01',
+            adm_login: 'admin.global',
+            adm_senha: await bcrypt.hash('AdminGlobal@123', 10),
+            cid_id: null, // null => admin-global
+            adm_ativo: true,
+        });
+        console.log('✨ SEED PROD FINALIZADO!');
     }
-    // 2. Hash da senha
-    const senhaHash = await bcrypt.hash(ADMIN_GLOBAL_DEFAULT.senha, 10)
-    // 3. Criar admin global SEM cidade associada (admin de todos os sistemas)
-    const adminGlobal = await db
-      .insert(administradores)
-      .values({
-        adm_nome: ADMIN_GLOBAL_DEFAULT.nome,
-        adm_email: ADMIN_GLOBAL_DEFAULT.email,
-        adm_cpf: ADMIN_GLOBAL_DEFAULT.cpf,
-        adm_data_nascimento: ADMIN_GLOBAL_DEFAULT.dataNascimento,
-        adm_senha: senhaHash,
-        adm_login: ADMIN_GLOBAL_DEFAULT.login,
-        adm_ativo: true,
-        adm_tentativas_login: 0,
-        // cid_id: null (sem cidade = admin global)
-      })
-      .returning()
-    console.log('✅ Admin Global criado com sucesso!')
-    console.log(`
-╔════════════════════════════════════════════╗
-║      CREDENCIAIS ADMIN GLOBAL               ║
-╠════════════════════════════════════════════╣
-║ Login:    ${ADMIN_GLOBAL_DEFAULT.login.padEnd(26)} ║
-║ Email:    ${ADMIN_GLOBAL_DEFAULT.email.padEnd(26)} ║
-║ Senha:    ${ADMIN_GLOBAL_DEFAULT.senha.padEnd(26)} ║
-╚════════════════════════════════════════════╝
-		`)
-    console.log('✨ Seed de produção concluído!')
-    process.exit(0)
-  } catch (error) {
-    console.error('❌ Erro ao executar seed:', error)
-    process.exit(1)
-  }
+    catch (error) {
+        console.error('❌ Erro ao executar seed:', error);
+    }
+    finally {
+        process.exit();
+    }
 }
-// Executar
-seedProd()
+runSeed();

@@ -18,7 +18,6 @@ export const usuarios = pgTable("usuarios", {
 	usu_nome: text("usu_nome").notNull(),
 	usu_email: text("usu_email").notNull().unique(),
 	usu_cpf: text("usu_cpf").notNull().unique(),
-	usu_cpf_hash: text("usu_cpf_hash").notNull(),
 	usu_data_nascimento: date("usu_data_nascimento").notNull(),
 	usu_criado: timestamp("usu_criado").defaultNow().notNull(),
 	usu_login: text("usu_login").notNull().unique(),
