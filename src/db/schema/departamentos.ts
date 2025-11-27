@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { pgTable, text } from "drizzle-orm/pg-core";
+import { pgTable, text, boolean } from "drizzle-orm/pg-core";
 import { uuidv7 } from "uuidv7";
 import { cidades } from "./cidades.js";
 
