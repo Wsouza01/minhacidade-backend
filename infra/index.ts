@@ -10,8 +10,8 @@ const config = new pulumi.Config();
 const dbPassword = config.requireSecret("dbPassword");
 const jwtSecret = config.requireSecret("jwtSecret");
 const certificateArn = config.get("certificateArn"); // Optional - se vazio, usa apenas HTTP
-const runSeedOnBoot = config.getBoolean("runSeedOnBoot") ?? false;
-const seedScript = config.get("seedScript") ?? "dist/db/seed-prod.js";
+const runSeedOnBoot = config.getBoolean("runSeedOnBoot") ?? true;
+const seedScript = config.get("seedScript") ?? "dist/db/seed.js";
 
 // ============================================================================
 // ECR + DOCKER IMAGE
