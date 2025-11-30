@@ -18,14 +18,12 @@ export const putDepartamentosRoute: FastifyPluginCallbackZod = (app) => {
 					cidadeId: z.string().uuid(),
 					prioridade: z.enum(["Baixa", "Média", "Alta", "Urgente"]),
 					motivos: z.array(z.string()).optional().default([]),
-					ativo: z.boolean().optional().default(true),
 				}),
 			},
 		},
 		async (request, reply) => {
 			const { id } = request.params;
-			const { nome, descricao, cidadeId, prioridade, motivos, ativo } =
-				request.body;
+			const { nome, descricao, cidadeId, prioridade, motivos } = request.body;
 
 			try {
 				const departamentoExiste = await db
@@ -48,7 +46,6 @@ export const putDepartamentosRoute: FastifyPluginCallbackZod = (app) => {
 						cid_id: cidadeId,
 						dep_prioridade: prioridade,
 						dep_motivos: motivos ?? [],
-						dep_ativo: ativo ?? true,
 					})
 					.where(eq(schema.departamentos.dep_id, id));
 

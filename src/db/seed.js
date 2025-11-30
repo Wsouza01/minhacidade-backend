@@ -383,8 +383,8 @@ async function runSeed() {
 			const dataFechamento =
 				i % 4 === 0
 					? new Date(
-							dataAbertura.getTime() + Math.random() * 7 * 24 * 60 * 60 * 1000,
-						)
+						dataAbertura.getTime() + Math.random() * 7 * 24 * 60 * 60 * 1000,
+					)
 					: null;
 
 			const possiveisResps = funcsByCity[cidadePadrao.cid_id]; // Santana
@@ -393,9 +393,8 @@ async function runSeed() {
 			const [ch] = await db
 				.insert(chamados)
 				.values({
-					cha_descricao: `Chamado ${i + 1} do usuário Silas - ${
-						titulos[i % titulos.length]
-					}`,
+					cha_descricao: `Chamado ${i + 1} do usuário Silas - ${titulos[i % titulos.length]
+						}`,
 					cha_nome: `Chamado ${i + 1} - ${dep.dep_nome}`,
 					cha_data_abertura: dataAbertura,
 					cha_data_fechamento: dataFechamento,

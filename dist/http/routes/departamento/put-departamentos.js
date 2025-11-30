@@ -14,12 +14,11 @@ export const putDepartamentosRoute = (app) => {
                 cidadeId: z.string().uuid(),
                 prioridade: z.enum(["Baixa", "Média", "Alta", "Urgente"]),
                 motivos: z.array(z.string()).optional().default([]),
-                ativo: z.boolean().optional().default(true),
             }),
         },
     }, async (request, reply) => {
         const { id } = request.params;
-        const { nome, descricao, cidadeId, prioridade, motivos, ativo } = request.body;
+        const { nome, descricao, cidadeId, prioridade, motivos } = request.body;
         try {
             const departamentoExiste = await db
                 .select({ id: schema.departamentos.dep_id })
@@ -39,7 +38,6 @@ export const putDepartamentosRoute = (app) => {
                 cid_id: cidadeId,
                 dep_prioridade: prioridade,
                 dep_motivos: motivos ?? [],
-                dep_ativo: ativo ?? true,
             })
                 .where(eq(schema.departamentos.dep_id, id));
             return reply.send({ message: "Departamento atualizado com sucesso" });

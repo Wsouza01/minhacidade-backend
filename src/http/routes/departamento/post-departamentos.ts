@@ -17,20 +17,17 @@ export const postDepartamentosRoute: FastifyPluginCallbackZod = (app) => {
 						.optional()
 						.default("Média"),
 					motivos: z.array(z.string()).optional().default([]),
-					ativo: z.boolean().optional().default(true),
 				}),
 			},
 		},
 		async (request, reply) => {
-			const { nome, descricao, cidadeId, prioridade, motivos, ativo } =
-				request.body;
+			const { nome, descricao, cidadeId, prioridade, motivos } = request.body;
 			await db.insert(schema.departamentos).values({
 				dep_nome: nome,
 				dep_descricao: descricao,
 				cid_id: cidadeId,
 				dep_prioridade: prioridade,
 				dep_motivos: motivos,
-				dep_ativo: ativo,
 			});
 			reply.status(201).send({ message: "Departamento criado" });
 		},

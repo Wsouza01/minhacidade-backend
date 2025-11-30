@@ -17,12 +17,6 @@ export const departamentos = pgTable("departamentos", {
 	dep_prioridade: text("dep_prioridade").notNull().default("Média"),
 	// Motivos/tipos de demandas que o departamento atende
 	dep_motivos: text("dep_motivos").array().default([]),
-	// Status do departamento
-	dep_ativo: boolean("dep_ativo").notNull().default(true),
-	// Timestamp de criação
-	dep_criado_em: text("dep_criado_em")
-		.notNull()
-		.$defaultFn(() => new Date().toISOString()),
 });
 
 export const departamentosRelations = relations(departamentos, ({ one }) => ({

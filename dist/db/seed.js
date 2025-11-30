@@ -1,12 +1,13 @@
 import "dotenv/config";
 import bcrypt from "bcrypt";
-import { eq, and } from "drizzle-orm";
+import { eq, and, or } from "drizzle-orm";
 import { hashCPF } from "../utils/cpfHash.js";
 import { db } from "./index.js";
 import { administradores } from "./schema/administradores.js";
 import { categorias } from "./schema/categorias.js";
 import { cidades } from "./schema/cidades.js";
 import { departamentos } from "./schema/departamentos.js";
+import { chamados } from "./schema/chamados.js";
 import { usuarios } from "./schema/usuarios.js";
 const citySeeds = [
     {
@@ -115,6 +116,35 @@ const defaultUser = {
     birthDate: "1990-05-15",
     password: "Je@12345",
 };
+const chamadoSeeds = [
+    {
+        titulo: "Iluminação pública apagada",
+        descricao: "A praça central de Santana está sem iluminação adequada desde a semana passada.",
+        departamento: "Infraestrutura",
+        prioridade: "Alta",
+        categoria: "Urgente",
+        cep: "06543000",
+        numero: "150",
+    },
+    {
+        titulo: "Reparo de escola municipal",
+        descricao: "A cobertura da EMEF Luz do Amanhã está com infiltrações e precisa de manutenção.",
+        departamento: "Educação",
+        prioridade: "Média",
+        categoria: "Normal",
+        cep: "06543010",
+        numero: "250",
+    },
+    {
+        titulo: "Vacinação pendente",
+        descricao: "Paciente relata atraso na aplicação da segunda dose de vacina infantil no posto Cruzeiro.",
+        departamento: "Saúde",
+        prioridade: "Média",
+        categoria: "Normal",
+        cep: "06543020",
+        numero: "337",
+    },
+];
 async function ensureCities() {
     const cityMap = new Map();
     for (const seed of citySeeds) {
@@ -223,7 +253,7 @@ async function ensureAdmins(cityMap) {
 async function ensureDefaultUser(cityMap) {
     const padraoCity = cityMap.get("Santana de Parnaíba");
     if (!padraoCity) {
-        return;
+        return null;
     }
     const [existingUser] = await db
         .select()
@@ -255,13 +285,80 @@ async function ensureDefaultUser(cityMap) {
         usu_ativo: true,
     };
     if (existingUser) {
-        await db
+        const [updatedUser] = await db
             .update(usuarios)
             .set(payload)
-            .where(eq(usuarios.usu_id, existingUser.usu_id));
+            .where(eq(usuarios.usu_id, existingUser.usu_id))
+            .returning();
+        return {
+            userId: updatedUser?.usu_id ?? existingUser.usu_id,
+            cityId: padraoCity.cid_id,
+        };
+    }
+    const [createdUser] = await db.insert(usuarios).values(payload).returning();
+    return {
+        userId: createdUser.usu_id,
+        cityId: padraoCity.cid_id,
+    };
+}
+async function ensureDefaultUserChamados(userId, cityId) {
+    const [existingChamado] = await db
+        .select()
+        .from(chamados)
+        .where(eq(chamados.usu_id, userId))
+        .limit(1);
+    if (existingChamado) {
         return;
     }
-    await db.insert(usuarios).values(payload);
+    const departmentRows = await db
+        .select({
+        id: departamentos.dep_id,
+        name: departamentos.dep_nome,
+    })
+        .from(departamentos)
+        .where(eq(departamentos.cid_id, cityId));
+    if (departmentRows.length === 0) {
+        return;
+    }
+    const categoryRows = await db
+        .select({
+        id: categorias.cat_id,
+        name: categorias.cat_nome,
+    })
+        .from(categorias)
+        .where(or(eq(categorias.cat_nome, "Urgente"), eq(categorias.cat_nome, "Normal")));
+    const departmentMap = new Map(departmentRows.map((row) => [row.name, row]));
+    const categoryMap = new Map(categoryRows.map((row) => [row.name, row]));
+    for (const seed of chamadoSeeds) {
+        const department = departmentMap.get(seed.departamento);
+        const category = categoryMap.get(seed.categoria);
+        if (!department || !category) {
+            continue;
+        }
+        const [existing] = await db
+            .select()
+            .from(chamados)
+            .where(and(eq(chamados.usu_id, userId), eq(chamados.cha_titulo, seed.titulo)))
+            .limit(1);
+        if (existing) {
+            continue;
+        }
+        await db.insert(chamados).values({
+            cha_descricao: seed.descricao,
+            cha_nome: `Chamado - ${seed.titulo}`,
+            cha_prioridade: seed.prioridade,
+            cha_titulo: seed.titulo,
+            cha_cep: seed.cep,
+            cha_numero_endereco: seed.numero,
+            cha_departamento: department.id,
+            cat_id: category.id,
+            usu_id: userId,
+            cha_responsavel: null,
+            cha_status: seed.status ?? "Pendente",
+            cha_data_abertura: seed.dataAbertura ?? new Date(),
+            cha_data_fechamento: seed.dataFechamento ?? null,
+        });
+    }
 }
 async function runSeed() {
     try {
@@ -270,7 +367,10 @@ async function runSeed() {
         await ensureCategories();
         await ensureDepartments(cityMap);
         await ensureAdmins(cityMap);
-        await ensureDefaultUser(cityMap);
+        const defaultUserInfo = await ensureDefaultUser(cityMap);
+        if (defaultUserInfo) {
+            await ensureDefaultUserChamados(defaultUserInfo.userId, defaultUserInfo.cityId);
+        }
         console.log("✨ Seed finalizado!");
     }
     catch (error) {
