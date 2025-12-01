@@ -47,6 +47,59 @@ function randPick(list) {
 	return list[Math.floor(Math.random() * list.length)];
 }
 
+const encodeReasons = (reasons = []) =>
+	reasons.map((reason) =>
+		JSON.stringify({
+			description: reason.description,
+			priority: reason.priority,
+		}),
+	);
+
+const departmentConfigs = {
+	educacao: {
+		dep_prioridade: "Alta",
+		dep_motivos: encodeReasons([
+			{
+				description: "Infraestrutura escolar (telhados, salas, quadras)",
+				priority: "Alta",
+			},
+			{ description: "Transporte escolar", priority: "Média" },
+			{ description: "Materiais e merenda", priority: "Média" },
+		]),
+	},
+	saude: {
+		dep_prioridade: "Urgente",
+		dep_motivos: encodeReasons([
+			{ description: "Falta de medicamentos", priority: "Urgente" },
+			{ description: "Atendimento em unidades básicas", priority: "Alta" },
+			{ description: "Vigilância sanitária", priority: "Média" },
+		]),
+	},
+	infraestrutura: {
+		dep_prioridade: "Alta",
+		dep_motivos: encodeReasons([
+			{ description: "Iluminação pública", priority: "Média" },
+			{ description: "Pavimentação e buracos", priority: "Alta" },
+			{ description: "Limpeza urbana", priority: "Baixa" },
+		]),
+	},
+	seguranca: {
+		dep_prioridade: "Alta",
+		dep_motivos: encodeReasons([
+			{ description: "Patrulhamento preventivo", priority: "Alta" },
+			{ description: "Monitoramento por câmeras", priority: "Média" },
+		]),
+	},
+	meioAmbiente: {
+		dep_prioridade: "Média",
+		dep_motivos: encodeReasons([
+			{ description: "Coleta de resíduos", priority: "Média" },
+			{ description: "Descarte irregular", priority: "Alta" },
+			{ description: "Zeladoria de áreas verdes", priority: "Baixa" },
+		]),
+	},
+};
+
 // ------------------------------
 // Seed
 // ------------------------------
@@ -150,26 +203,31 @@ async function runSeed() {
 					dep_nome: "Educação",
 					dep_descricao: "Secretaria de Educação",
 					cid_id: cidadePadrao.cid_id,
+					...departmentConfigs.educacao,
 				},
 				{
 					dep_nome: "Saúde",
 					dep_descricao: "Secretaria de Saúde",
 					cid_id: cidadePadrao.cid_id,
+					...departmentConfigs.saude,
 				},
 				{
 					dep_nome: "Infraestrutura",
 					dep_descricao: "Secretaria de Obras e Urbanismo",
 					cid_id: cidadePadrao.cid_id,
+					...departmentConfigs.infraestrutura,
 				},
 				{
 					dep_nome: "Segurança",
 					dep_descricao: "Secretaria de Segurança",
 					cid_id: cidadePadrao.cid_id,
+					...departmentConfigs.seguranca,
 				},
 				{
 					dep_nome: "Meio Ambiente",
 					dep_descricao: "Secretaria de Meio Ambiente",
 					cid_id: cidadePadrao.cid_id,
+					...departmentConfigs.meioAmbiente,
 				},
 			])
 			.returning();
@@ -181,11 +239,13 @@ async function runSeed() {
 					dep_nome: "Educação",
 					dep_descricao: "Secretaria de Educação",
 					cid_id: cidadeBarueri.cid_id,
+					...departmentConfigs.educacao,
 				},
 				{
 					dep_nome: "Saúde",
 					dep_descricao: "Secretaria de Saúde",
 					cid_id: cidadeBarueri.cid_id,
+					...departmentConfigs.saude,
 				},
 			])
 			.returning();
@@ -197,11 +257,13 @@ async function runSeed() {
 					dep_nome: "Educação",
 					dep_descricao: "Secretaria de Educação",
 					cid_id: cidadeOsasco.cid_id,
+					...departmentConfigs.educacao,
 				},
 				{
 					dep_nome: "Saúde",
 					dep_descricao: "Secretaria de Saúde",
 					cid_id: cidadeOsasco.cid_id,
+					...departmentConfigs.saude,
 				},
 			])
 			.returning();
@@ -383,8 +445,8 @@ async function runSeed() {
 			const dataFechamento =
 				i % 4 === 0
 					? new Date(
-						dataAbertura.getTime() + Math.random() * 7 * 24 * 60 * 60 * 1000,
-					)
+							dataAbertura.getTime() + Math.random() * 7 * 24 * 60 * 60 * 1000,
+						)
 					: null;
 
 			const possiveisResps = funcsByCity[cidadePadrao.cid_id]; // Santana
@@ -393,8 +455,9 @@ async function runSeed() {
 			const [ch] = await db
 				.insert(chamados)
 				.values({
-					cha_descricao: `Chamado ${i + 1} do usuário Silas - ${titulos[i % titulos.length]
-						}`,
+					cha_descricao: `Chamado ${i + 1} do usuário Silas - ${
+						titulos[i % titulos.length]
+					}`,
 					cha_nome: `Chamado ${i + 1} - ${dep.dep_nome}`,
 					cha_data_abertura: dataAbertura,
 					cha_data_fechamento: dataFechamento,

@@ -10,8 +10,6 @@ cd infra
 # Senha do PostgreSQL
 pulumi config set --secret dbPassword "SuaSenhaSegura123!"
 
-# JWT Secret (gerar aleatório: openssl rand -base64 32)
-pulumi config set --secret jwtSecret "sua-chave-jwt-super-secreta"
 ```
 
 ### 2. Deploy
@@ -83,7 +81,7 @@ pulumi destroy
 - ✅ **ECS Fargate** (Auto-scaling 1-5 containers)
 - ✅ **Application Load Balancer** (HTTP:80 → :3333)
 - ✅ **Security Groups** (DB + ECS)
-- ✅ **Variáveis de Ambiente** (DATABASE_URL, JWT_SECRET, etc)
+- ✅ **Variáveis de Ambiente** (DATABASE_URL, etc)
 
 ## 🔐 Admin Global (criado pelo seed)
 

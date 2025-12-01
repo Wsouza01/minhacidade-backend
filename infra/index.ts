@@ -8,7 +8,6 @@ import * as pulumi from "@pulumi/pulumi";
 // ============================================================================
 const config = new pulumi.Config();
 const dbPassword = config.requireSecret("dbPassword");
-const jwtSecret = config.requireSecret("jwtSecret");
 const certificateArn = config.get("certificateArn"); // Optional - se vazio, usa apenas HTTP
 const runSeedOnBoot = config.getBoolean("runSeedOnBoot") ?? true;
 const seedScript = config.get("seedScript") ?? "dist/db/seed.js";
@@ -223,7 +222,6 @@ const app = new awsx.classic.ecs.FargateService("deploy-ecs-app", {
 					name: "DATABASE_URL",
 					value: pulumi.interpolate`postgresql://postgres:${dbPassword}@${db.endpoint}/minhacidade_backend`,
 				},
-				{ name: "JWT_SECRET", value: jwtSecret },
 				{ name: "PORT", value: "3333" },
 				{ name: "RUN_DB_SEED", value: runSeedOnBoot ? "true" : "false" },
 				{ name: "DB_SEED_FILE", value: seedScript },

@@ -15,19 +15,24 @@ export const putDepartamentosRoute: FastifyPluginCallbackZod = (app) => {
 				body: z.object({
 					nome: z.string().min(3, "Nome deve ter ao menos 3 caracteres"),
 					descricao: z.string().optional(),
-					cidadeId: z.string().uuid(),
+					cidadeId: z.string().uuid().optional(),
 					prioridade: z.enum(["Baixa", "Média", "Alta", "Urgente"]),
 					motivos: z.array(z.string()).optional().default([]),
+					adminId: z.string().uuid().optional(),
 				}),
 			},
 		},
 		async (request, reply) => {
 			const { id } = request.params;
-			const { nome, descricao, cidadeId, prioridade, motivos } = request.body;
+			const { nome, descricao, cidadeId, prioridade, motivos, adminId } =
+				request.body;
 
 			try {
 				const departamentoExiste = await db
-					.select({ id: schema.departamentos.dep_id })
+					.select({
+						id: schema.departamentos.dep_id,
+						cidadeId: schema.departamentos.cid_id,
+					})
 					.from(schema.departamentos)
 					.where(eq(schema.departamentos.dep_id, id))
 					.limit(1);
@@ -38,12 +43,50 @@ export const putDepartamentosRoute: FastifyPluginCallbackZod = (app) => {
 					});
 				}
 
+				let resolvedCidadeId = cidadeId ?? departamentoExiste[0].cidadeId;
+
+				if (adminId) {
+					const [admin] = await db
+						.select({
+							id: schema.administradores.adm_id,
+							cidadeId: schema.administradores.cid_id,
+						})
+						.from(schema.administradores)
+						.where(eq(schema.administradores.adm_id, adminId));
+
+					if (!admin) {
+						return reply
+							.status(400)
+							.send({ message: "Administrador não encontrado" });
+					}
+
+					if (admin.cidadeId) {
+						if (admin.cidadeId !== departamentoExiste[0].cidadeId) {
+							return reply.status(403).send({
+								message:
+									"Você não tem permissão para alterar departamentos de outra cidade",
+							});
+						}
+						resolvedCidadeId = admin.cidadeId;
+					} else if (!resolvedCidadeId) {
+						return reply.status(400).send({
+							message: "Cidade é obrigatória para administradores globais",
+						});
+					}
+				}
+
+				if (!resolvedCidadeId) {
+					return reply
+						.status(400)
+						.send({ message: "Cidade é obrigatória para o departamento" });
+				}
+
 				await db
 					.update(schema.departamentos)
 					.set({
 						dep_nome: nome,
 						dep_descricao: descricao,
-						cid_id: cidadeId,
+						cid_id: resolvedCidadeId,
 						dep_prioridade: prioridade,
 						dep_motivos: motivos ?? [],
 					})

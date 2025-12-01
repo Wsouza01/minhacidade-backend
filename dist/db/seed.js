@@ -19,53 +19,161 @@ const citySeeds = [
     { name: "Barueri", state: "SP", padrao: false, ativo: true },
     { name: "Osasco", state: "SP", padrao: false, ativo: true },
 ];
+const defaultDepartmentConfigs = {
+    Educação: {
+        priority: "Alta",
+        reasons: [
+            {
+                description: "Infraestrutura escolar (telhados, salas, quadras)",
+                priority: "Alta",
+            },
+            {
+                description: "Transporte escolar",
+                priority: "Média",
+            },
+            {
+                description: "Materiais e merenda",
+                priority: "Média",
+            },
+        ],
+    },
+    Saúde: {
+        priority: "Urgente",
+        reasons: [
+            {
+                description: "Falta de medicamentos",
+                priority: "Urgente",
+            },
+            {
+                description: "Atendimento em unidades básicas",
+                priority: "Alta",
+            },
+            {
+                description: "Vigilância sanitária",
+                priority: "Média",
+            },
+        ],
+    },
+    Infraestrutura: {
+        priority: "Alta",
+        reasons: [
+            {
+                description: "Iluminação pública",
+                priority: "Média",
+            },
+            {
+                description: "Pavimentação e buracos",
+                priority: "Alta",
+            },
+            {
+                description: "Limpeza urbana",
+                priority: "Baixa",
+            },
+        ],
+    },
+    Segurança: {
+        priority: "Alta",
+        reasons: [
+            {
+                description: "Patrulhamento preventivo",
+                priority: "Alta",
+            },
+            {
+                description: "Monitoramento por câmeras",
+                priority: "Média",
+            },
+        ],
+    },
+    "Meio Ambiente": {
+        priority: "Média",
+        reasons: [
+            {
+                description: "Coleta de resíduos",
+                priority: "Média",
+            },
+            {
+                description: "Descarte irregular",
+                priority: "Alta",
+            },
+            {
+                description: "Zeladoria de áreas verdes",
+                priority: "Baixa",
+            },
+        ],
+    },
+};
 const departmentSeeds = [
     {
         name: "Educação",
         description: "Secretaria de Educação",
         city: "Santana de Parnaíba",
+        ...defaultDepartmentConfigs["Educação"],
     },
     {
         name: "Saúde",
         description: "Secretaria de Saúde",
         city: "Santana de Parnaíba",
+        ...defaultDepartmentConfigs["Saúde"],
     },
     {
         name: "Infraestrutura",
         description: "Secretaria de Obras e Urbanismo",
         city: "Santana de Parnaíba",
+        ...defaultDepartmentConfigs["Infraestrutura"],
     },
     {
         name: "Segurança",
         description: "Secretaria de Segurança",
         city: "Santana de Parnaíba",
+        ...defaultDepartmentConfigs["Segurança"],
     },
     {
         name: "Meio Ambiente",
         description: "Secretaria de Meio Ambiente",
         city: "Santana de Parnaíba",
+        ...defaultDepartmentConfigs["Meio Ambiente"],
     },
     {
         name: "Educação",
         description: "Secretaria de Educação",
         city: "Barueri",
+        ...defaultDepartmentConfigs["Educação"],
     },
     {
         name: "Saúde",
         description: "Secretaria de Saúde",
         city: "Barueri",
+        ...defaultDepartmentConfigs["Saúde"],
     },
     {
         name: "Educação",
         description: "Secretaria de Educação",
         city: "Osasco",
+        ...defaultDepartmentConfigs["Educação"],
     },
     {
         name: "Saúde",
         description: "Secretaria de Saúde",
         city: "Osasco",
+        ...defaultDepartmentConfigs["Saúde"],
     },
 ];
+const DEFAULT_DEPARTMENT_PRIORITY = "Média";
+function serializeDepartmentReasons(reasons) {
+    return (reasons ?? []).map((reason) => JSON.stringify({
+        description: reason.description,
+        priority: reason.priority,
+    }));
+}
+function motivosChanged(current, next) {
+    const normalize = (list) => (list ?? []).slice().sort();
+    const currentNormalized = normalize(current);
+    const nextNormalized = normalize(next);
+    if (currentNormalized.length !== nextNormalized.length) {
+        return true;
+    }
+    return currentNormalized.some((value, index) => value !== nextNormalized[index]);
+}
 const categorySeeds = [
     { name: "Urgente", description: "Categoria para chamados urgentes" },
     { name: "Normal", description: "Categoria para chamados não urgentes" },
@@ -210,15 +318,32 @@ async function ensureDepartments(cityMap) {
             .from(departamentos)
             .where(and(eq(departamentos.dep_nome, seed.name), eq(departamentos.cid_id, city.cid_id)))
             .limit(1);
+        const desiredPriority = seed.priority ?? DEFAULT_DEPARTMENT_PRIORITY;
+        const desiredReasons = serializeDepartmentReasons(seed.reasons);
         if (existingDepartment) {
+            const needsUpdate = existingDepartment.cid_id !== city.cid_id ||
+                existingDepartment.dep_descricao !== seed.description ||
+                existingDepartment.dep_prioridade !== desiredPriority ||
+                motivosChanged(existingDepartment.dep_motivos, desiredReasons);
+            if (needsUpdate) {
+                await db
+                    .update(departamentos)
+                    .set({
+                    dep_descricao: seed.description,
+                    cid_id: city.cid_id,
+                    dep_prioridade: desiredPriority,
+                    dep_motivos: desiredReasons,
+                })
+                    .where(eq(departamentos.dep_id, existingDepartment.dep_id));
+            }
             continue;
         }
         await db.insert(departamentos).values({
             dep_nome: seed.name,
             dep_descricao: seed.description,
             cid_id: city.cid_id,
-            dep_prioridade: seed.priority ?? "Média",
-            dep_motivos: seed.reasons ?? [],
+            dep_prioridade: desiredPriority,
+            dep_motivos: desiredReasons,
         });
     }
 }

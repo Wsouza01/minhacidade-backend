@@ -18,12 +18,19 @@ type CitySeed = {
 	ativo: boolean;
 };
 
+type DepartmentPriority = "Baixa" | "Média" | "Alta" | "Urgente";
+
+type DepartmentReasonSeed = {
+	description: string;
+	priority: DepartmentPriority;
+};
+
 type DepartmentSeed = {
 	name: string;
 	description: string;
 	city: string;
-	priority?: string;
-	reasons?: string[];
+	priority?: DepartmentPriority;
+	reasons?: DepartmentReasonSeed[];
 };
 
 type AdminSeed = {
@@ -47,53 +54,181 @@ const citySeeds: CitySeed[] = [
 	{ name: "Osasco", state: "SP", padrao: false, ativo: true },
 ];
 
+const defaultDepartmentConfigs: Record<
+	string,
+	{
+		priority: DepartmentPriority;
+		reasons: DepartmentReasonSeed[];
+	}
+> = {
+	Educação: {
+		priority: "Alta",
+		reasons: [
+			{
+				description: "Infraestrutura escolar (telhados, salas, quadras)",
+				priority: "Alta",
+			},
+			{
+				description: "Transporte escolar",
+				priority: "Média",
+			},
+			{
+				description: "Materiais e merenda",
+				priority: "Média",
+			},
+		],
+	},
+	Saúde: {
+		priority: "Urgente",
+		reasons: [
+			{
+				description: "Falta de medicamentos",
+				priority: "Urgente",
+			},
+			{
+				description: "Atendimento em unidades básicas",
+				priority: "Alta",
+			},
+			{
+				description: "Vigilância sanitária",
+				priority: "Média",
+			},
+		],
+	},
+	Infraestrutura: {
+		priority: "Alta",
+		reasons: [
+			{
+				description: "Iluminação pública",
+				priority: "Média",
+			},
+			{
+				description: "Pavimentação e buracos",
+				priority: "Alta",
+			},
+			{
+				description: "Limpeza urbana",
+				priority: "Baixa",
+			},
+		],
+	},
+	Segurança: {
+		priority: "Alta",
+		reasons: [
+			{
+				description: "Patrulhamento preventivo",
+				priority: "Alta",
+			},
+			{
+				description: "Monitoramento por câmeras",
+				priority: "Média",
+			},
+		],
+	},
+	"Meio Ambiente": {
+		priority: "Média",
+		reasons: [
+			{
+				description: "Coleta de resíduos",
+				priority: "Média",
+			},
+			{
+				description: "Descarte irregular",
+				priority: "Alta",
+			},
+			{
+				description: "Zeladoria de áreas verdes",
+				priority: "Baixa",
+			},
+		],
+	},
+};
+
 const departmentSeeds: DepartmentSeed[] = [
 	{
 		name: "Educação",
 		description: "Secretaria de Educação",
 		city: "Santana de Parnaíba",
+		...defaultDepartmentConfigs["Educação"],
 	},
 	{
 		name: "Saúde",
 		description: "Secretaria de Saúde",
 		city: "Santana de Parnaíba",
+		...defaultDepartmentConfigs["Saúde"],
 	},
 	{
 		name: "Infraestrutura",
 		description: "Secretaria de Obras e Urbanismo",
 		city: "Santana de Parnaíba",
+		...defaultDepartmentConfigs["Infraestrutura"],
 	},
 	{
 		name: "Segurança",
 		description: "Secretaria de Segurança",
 		city: "Santana de Parnaíba",
+		...defaultDepartmentConfigs["Segurança"],
 	},
 	{
 		name: "Meio Ambiente",
 		description: "Secretaria de Meio Ambiente",
 		city: "Santana de Parnaíba",
+		...defaultDepartmentConfigs["Meio Ambiente"],
 	},
 	{
 		name: "Educação",
 		description: "Secretaria de Educação",
 		city: "Barueri",
+		...defaultDepartmentConfigs["Educação"],
 	},
 	{
 		name: "Saúde",
 		description: "Secretaria de Saúde",
 		city: "Barueri",
+		...defaultDepartmentConfigs["Saúde"],
 	},
 	{
 		name: "Educação",
 		description: "Secretaria de Educação",
 		city: "Osasco",
+		...defaultDepartmentConfigs["Educação"],
 	},
 	{
 		name: "Saúde",
 		description: "Secretaria de Saúde",
 		city: "Osasco",
+		...defaultDepartmentConfigs["Saúde"],
 	},
 ];
+
+const DEFAULT_DEPARTMENT_PRIORITY: DepartmentPriority = "Média";
+
+function serializeDepartmentReasons(
+	reasons?: DepartmentReasonSeed[],
+): string[] {
+	return (reasons ?? []).map((reason) =>
+		JSON.stringify({
+			description: reason.description,
+			priority: reason.priority,
+		}),
+	);
+}
+
+function motivosChanged(current: string[] | null | undefined, next: string[]) {
+	const normalize = (list: string[] | null | undefined) =>
+		(list ?? []).slice().sort();
+
+	const currentNormalized = normalize(current);
+	const nextNormalized = normalize(next);
+
+	if (currentNormalized.length !== nextNormalized.length) {
+		return true;
+	}
+
+	return currentNormalized.some(
+		(value, index) => value !== nextNormalized[index],
+	);
+}
 
 const categorySeeds = [
 	{ name: "Urgente", description: "Categoria para chamados urgentes" },
@@ -279,7 +414,27 @@ async function ensureDepartments(
 			)
 			.limit(1);
 
+		const desiredPriority = seed.priority ?? DEFAULT_DEPARTMENT_PRIORITY;
+		const desiredReasons = serializeDepartmentReasons(seed.reasons);
+
 		if (existingDepartment) {
+			const needsUpdate =
+				existingDepartment.cid_id !== city.cid_id ||
+				existingDepartment.dep_descricao !== seed.description ||
+				existingDepartment.dep_prioridade !== desiredPriority ||
+				motivosChanged(existingDepartment.dep_motivos, desiredReasons);
+
+			if (needsUpdate) {
+				await db
+					.update(departamentos)
+					.set({
+						dep_descricao: seed.description,
+						cid_id: city.cid_id,
+						dep_prioridade: desiredPriority,
+						dep_motivos: desiredReasons,
+					})
+					.where(eq(departamentos.dep_id, existingDepartment.dep_id));
+			}
 			continue;
 		}
 
@@ -287,8 +442,8 @@ async function ensureDepartments(
 			dep_nome: seed.name,
 			dep_descricao: seed.description,
 			cid_id: city.cid_id,
-			dep_prioridade: seed.priority ?? "Média",
-			dep_motivos: seed.reasons ?? [],
+			dep_prioridade: desiredPriority,
+			dep_motivos: desiredReasons,
 		});
 	}
 }

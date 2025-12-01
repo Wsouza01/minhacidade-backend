@@ -7,7 +7,6 @@ import ScalarApiReference from "@scalar/fastify-api-reference";
 import { fastify } from "fastify";
 import { serializerCompiler, validatorCompiler, } from "fastify-type-provider-zod";
 import { env } from "./env.js";
-import { jwtPlugin } from "./http/plugins/jwt.js";
 // ================================================================
 // 📦 Rotas Importadas
 // ================================================================
@@ -100,7 +99,6 @@ app.register(fastifyStatic, {
 });
 app.setSerializerCompiler(serializerCompiler);
 app.setValidatorCompiler(validatorCompiler);
-app.register(jwtPlugin);
 // ---------------------------------------------------------------
 // 📘 SWAGGER / OPENAPI CONFIG
 // ---------------------------------------------------------------

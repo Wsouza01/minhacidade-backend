@@ -9,7 +9,6 @@ config:
     value:
       pulumi:template: aws-typescript
   aws-node-infra:dbPassword: YourSecurePassword123!
-  aws-node-infra:jwtSecret: minha-cidade-jwt-secret-2025
   # Domínio customizado para CloudFront (opcional)
   # Se não usar, CloudFront gerará um domínio automático
   aws-node-infra:domainName: "api.minhacidade.com.br"

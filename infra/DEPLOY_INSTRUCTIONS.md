@@ -35,7 +35,6 @@ nano Pulumi.yaml
 
 # Atualizar:
 # - aws-node-infra:dbPassword: "SenhaSegura123!@#"
-# - aws-node-infra:jwtSecret: "seu-jwt-secret-aleatorio"
 ```
 
 ### 2️⃣ Deploy da Infraestrutura Backend
@@ -242,7 +241,6 @@ aws cloudfront create-invalidation \
 | Variável | Tipo | Descrição |
 |----------|------|-----------|
 | `dbPassword` | secret | Senha PostgreSQL |
-| `jwtSecret` | secret | Chave JWT |
 | `domainName` | string | Domínio customizado (opcional) |
 | `certificateArn` | string | ACM Cert ARN (opcional) |
 

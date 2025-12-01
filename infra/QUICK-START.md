@@ -4,7 +4,6 @@
 
 ```bash
 pulumi config set --secret dbPassword "SuaSenhaSegura123!"
-pulumi config set --secret jwtSecret "$(openssl rand -base64 32)"
 ```
 
 ## 2️⃣ Deploy Tudo

@@ -1,18 +1,18 @@
-import bcrypt from 'bcrypt';
-import { eq } from 'drizzle-orm';
-import { z } from 'zod';
-import { db } from '../../../db/index.js';
-import { usuarios } from '../../../db/schema/usuarios.js';
+import bcrypt from "bcrypt";
+import { eq } from "drizzle-orm";
+import { z } from "zod";
+import { db } from "../../../db/index.js";
+import { usuarios } from "../../../db/schema/usuarios.js";
 // Definindo as validações do esquema
 const alterarSenhaParamsSchema = z.object({
-    usuarioId: z.string().uuid(), // O ID do usuário vem do token JWT ou sessão
+    usuarioId: z.string().uuid(), // O ID do usuário vem da sessão
 });
 const alterarSenhaBodySchema = z.object({
-    senhaAtual: z.string().min(1, 'Senha atual é obrigatória'),
-    novaSenha: z.string().min(6, 'Nova senha deve ter pelo menos 6 caracteres'),
+    senhaAtual: z.string().min(1, "Senha atual é obrigatória"),
+    novaSenha: z.string().min(6, "Nova senha deve ter pelo menos 6 caracteres"),
 });
 export const alterarSenhaRoute = (app) => {
-    app.put('/usuarios/:usuarioId/alterar-senha', // A rota para alterar a senha
+    app.put("/usuarios/:usuarioId/alterar-senha", // A rota para alterar a senha
     {
         schema: {
             params: alterarSenhaParamsSchema, // Validação do ID do usuário
@@ -33,7 +33,7 @@ export const alterarSenhaRoute = (app) => {
                 .limit(1);
             if (usuario.length === 0) {
                 return reply.status(404).send({
-                    message: 'Usuário não encontrado',
+                    message: "Usuário não encontrado",
                 });
             }
             const user = usuario[0];
@@ -41,14 +41,14 @@ export const alterarSenhaRoute = (app) => {
             const senhaValida = await bcrypt.compare(senhaAtual, user.usu_senha);
             if (!senhaValida) {
                 return reply.status(400).send({
-                    message: 'Senha atual incorreta',
+                    message: "Senha atual incorreta",
                 });
             }
             // Verificar se a nova senha é diferente da atual
             const mesmaSenha = await bcrypt.compare(novaSenha, user.usu_senha);
             if (mesmaSenha) {
                 return reply.status(400).send({
-                    message: 'A nova senha deve ser diferente da senha atual',
+                    message: "A nova senha deve ser diferente da senha atual",
                 });
             }
             // Criptografar a nova senha
@@ -61,13 +61,13 @@ export const alterarSenhaRoute = (app) => {
             })
                 .where(eq(usuarios.usu_id, usuarioId)); // Verifica pelo ID do usuário
             return reply.send({
-                message: 'Senha alterada com sucesso', // Resposta positiva
+                message: "Senha alterada com sucesso", // Resposta positiva
             });
         }
         catch (error) {
-            console.error('Erro ao alterar senha:', error);
+            console.error("Erro ao alterar senha:", error);
             return reply.status(500).send({
-                message: 'Erro interno no servidor',
+                message: "Erro interno no servidor",
             });
         }
     });
