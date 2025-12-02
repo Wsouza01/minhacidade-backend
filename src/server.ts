@@ -83,7 +83,7 @@ const app = fastify({
 	connectionTimeout: 120_000,
 	keepAliveTimeout: 120_000,
 	requestTimeout: 120_000,
-	bodyLimit: 15 * 1024 * 1024,
+	bodyLimit: 30 * 1024 * 1024,
 }).withTypeProvider<ZodTypeProvider>();
 
 // ---------------------------------------------------------------
@@ -96,7 +96,7 @@ app.register(fastifyCors, {
 	credentials: true,
 });
 app.register(multipart, {
-	limits: { fileSize: 15 * 1024 * 1024, files: 5 },
+	limits: { fileSize: 30 * 1024 * 1024, files: 5 },
 	attachFieldsToBody: false,
 });
 app.register(fastifyStatic, {
