@@ -80,21 +80,22 @@ export const postEncerrarChamado: FastifyPluginAsyncZod = async (app) => {
 					eta_data_fim: dataEncerramento,
 				});
 
-				// Notificar munícipe (solicitante)
+				// Notificar munícipe (solicitante) usando SQL direto para evitar defaults
 				if (chamado.usu_id) {
-					await db.insert(notificacoes).values({
-						not_id: randomUUID(),
-						not_titulo: "Chamado encerrado",
-						not_mensagem: observacaoFinal
-							? `Seu chamado foi encerrado. ${observacaoFinal}`
-							: "Seu chamado foi encerrado pela equipe de atendimento.",
-						not_tipo: "success",
-						not_lida: false,
-						not_data: new Date(),
-						not_link: `/chamado/${id}`,
-						cha_id: id,
-						usu_id: chamado.usu_id,
-					});
+					const notId = randomUUID();
+					const mensagem = observacaoFinal
+						? `Seu chamado foi encerrado. ${observacaoFinal}`
+						: "Seu chamado foi encerrado pela equipe de atendimento.";
+
+					await db.execute(sql`
+						INSERT INTO notificacao (
+							not_id, not_titulo, not_mensagem, not_tipo,
+							not_lida, not_data, not_link, cha_id, usu_id
+						) VALUES (
+							${notId}, 'Chamado encerrado', ${mensagem}, 'success',
+							false, NOW(), ${`/chamado/${id}`}, ${id}, ${chamado.usu_id}
+						)
+					`);
 				}
 
 				return reply.status(200).send({
