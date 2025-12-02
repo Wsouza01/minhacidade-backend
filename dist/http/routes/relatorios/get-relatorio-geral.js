@@ -98,13 +98,40 @@ export async function getRelatorioGeralRoute(app) {
                 .select({ count: sql `count(*)::int` })
                 .from(categorias);
             // -------------------------------------------------------------
+            // 🔄 Lista base de chamados (para consolidar métricas em JS)
+            // -------------------------------------------------------------
+            const chamadosList = await db
+                .select({
+                id: chamados.cha_id,
+                status: chamados.cha_status,
+                dataAbertura: chamados.cha_data_abertura,
+                dataFechamento: chamados.cha_data_fechamento,
+                responsavel: chamados.cha_responsavel,
+                prioridade: chamados.cha_prioridade,
+                depId: departamentos.dep_id,
+                depNome: departamentos.dep_nome,
+                catNome: categorias.cat_nome,
+            })
+                .from(chamados)
+                .leftJoin(departamentos, eq(chamados.cha_departamento, departamentos.dep_id))
+                .leftJoin(categorias, eq(chamados.cat_id, categorias.cat_id))
+                .where(whereFilters ?? sql `true`);
+            const totalChamadosJs = chamadosList.length;
+            // -------------------------------------------------------------
             // 📈 Chamados por Status
             // -------------------------------------------------------------
-            const chamadosPorStatus = await queryChamadosComFiltro(db.select({
-                status: chamados.cha_status,
-                quantidade: sql `count(*)::int`,
-            })).groupBy(chamados.cha_status);
-            const totalParaPercentual = Number(totalChamados[0]?.count ?? 0);
+            const statusMap = {};
+            chamadosList.forEach((c) => {
+                const key = c.status || "Indefinido";
+                statusMap[key] = (statusMap[key] || 0) + 1;
+            });
+            const chamadosPorStatus = Object.entries(statusMap).map(([status, quantidade]) => ({
+                status,
+                quantidade,
+            }));
+            const totalParaPercentual = totalChamadosJs > 0
+                ? totalChamadosJs
+                : Number(totalChamados[0]?.count ?? 0);
             const statusComPercentual = chamadosPorStatus.map((item) => ({
                 status: item.status,
                 quantidade: Number(item.quantidade ?? 0),
@@ -116,10 +143,12 @@ export async function getRelatorioGeralRoute(app) {
             // -------------------------------------------------------------
             // 🚦 Chamados por Prioridade
             // -------------------------------------------------------------
-            const chamadosPorPrioridade = await queryChamadosComFiltro(db.select({
-                prioridade: chamados.cha_prioridade,
-                quantidade: sql `count(*)::int`,
-            })).groupBy(chamados.cha_prioridade);
+            const prioridadeMap = {};
+            chamadosList.forEach((c) => {
+                const key = c.prioridade || "Indefinida";
+                prioridadeMap[key] = (prioridadeMap[key] || 0) + 1;
+            });
+            const chamadosPorPrioridade = Object.entries(prioridadeMap).map(([prioridade, quantidade]) => ({ prioridade, quantidade }));
             const prioridadeComPercentual = chamadosPorPrioridade.map((item) => ({
                 prioridade: item.prioridade,
                 quantidade: Number(item.quantidade ?? 0),
@@ -131,72 +160,83 @@ export async function getRelatorioGeralRoute(app) {
             // -------------------------------------------------------------
             // 🏢 Chamados por Departamento
             // -------------------------------------------------------------
-            const chamadosPorDepartamentoBase = db
-                .select({
-                departamento: departamentos.dep_nome,
-                quantidade: sql `count(*)::int`,
-                resolvidos: sql `count(*) filter (where ${chamados.cha_status} = 'Resolvido')::int`,
-                pendentes: sql `count(*) filter (where ${chamados.cha_status} = 'Pendente')::int`,
-                emAndamento: sql `count(*) filter (where ${chamados.cha_status} = 'Em Andamento')::int`,
-                tempoMedioResolucao: sql `
-              avg(
-                extract(epoch from (${chamados.cha_data_fechamento} - ${chamados.cha_data_abertura})) / 3600
-              )
-            `,
-            })
-                .from(chamados)
-                .innerJoin(departamentos, eq(chamados.cha_departamento, departamentos.dep_id));
-            const chamadosPorDepartamento = await (whereFilters
-                ? chamadosPorDepartamentoBase.where(whereFilters)
-                : chamadosPorDepartamentoBase).groupBy(departamentos.dep_nome);
+            const depMap = {};
+            chamadosList.forEach((c) => {
+                const depKey = c.depNome || "Sem departamento";
+                if (!depMap[depKey]) {
+                    depMap[depKey] = {
+                        departamento: depKey,
+                        quantidade: 0,
+                        resolvidos: 0,
+                        pendentes: 0,
+                        emAndamento: 0,
+                        tempos: [],
+                    };
+                }
+                const dep = depMap[depKey];
+                dep.quantidade += 1;
+                const resolvido = c.dataFechamento !== null;
+                const pendente = c.dataFechamento === null && c.responsavel === null;
+                const emAndamento = c.dataFechamento === null && c.responsavel !== null;
+                if (resolvido) {
+                    dep.resolvidos += 1;
+                    const diff = (new Date(c.dataFechamento).getTime() -
+                        new Date(c.dataAbertura).getTime()) /
+                        3_600_000;
+                    if (!Number.isNaN(diff))
+                        dep.tempos.push(diff);
+                }
+                else if (emAndamento) {
+                    dep.emAndamento += 1;
+                }
+                else if (pendente) {
+                    dep.pendentes += 1;
+                }
+            });
+            const chamadosPorDepartamento = Object.values(depMap).map((dep) => {
+                const tempoMedioResolucao = dep.tempos.length > 0
+                    ? dep.tempos.reduce((a, b) => a + b, 0) / dep.tempos.length
+                    : null;
+                return {
+                    departamento: dep.departamento,
+                    quantidade: dep.quantidade,
+                    resolvidos: dep.resolvidos,
+                    pendentes: dep.pendentes,
+                    emAndamento: dep.emAndamento,
+                    tempoMedioResolucao,
+                };
+            });
             // -------------------------------------------------------------
             // 🗂️ Chamados por Categoria
             // -------------------------------------------------------------
-            const chamadosCategBase = db
-                .select({
-                categoria: categorias.cat_nome,
-                quantidade: sql `count(*)::int`,
-            })
-                .from(chamados)
-                .leftJoin(departamentos, eq(chamados.cha_departamento, departamentos.dep_id))
-                .innerJoin(categorias, eq(chamados.cat_id, categorias.cat_id));
-            const chamadosPorCategoria = await (whereFilters
-                ? chamadosCategBase.where(whereFilters)
-                : chamadosCategBase)
-                .groupBy(categorias.cat_nome)
-                .limit(10);
+            const catMap = {};
+            chamadosList.forEach((c) => {
+                const key = c.catNome || "Sem categoria";
+                catMap[key] = (catMap[key] || 0) + 1;
+            });
+            const chamadosPorCategoria = Object.entries(catMap)
+                .map(([categoria, quantidade]) => ({ categoria, quantidade }))
+                .slice(0, 10);
             // -------------------------------------------------------------
             // ⏱️ Tempo Médio de Resolução
             // -------------------------------------------------------------
-            let whereTempoMedio = eq(chamados.cha_status, "Resolvido");
-            whereTempoMedio = whereFilters
-                ? and(whereTempoMedio, whereFilters)
-                : whereTempoMedio;
-            const tempoMedioQry = db
-                .select({
-                tempoMedio: sql `
-              avg(
-                extract(epoch from (${chamados.cha_data_fechamento} - ${chamados.cha_data_abertura}))
-              )
-            `,
-            })
-                .from(chamados)
-                .leftJoin(departamentos, eq(chamados.cha_departamento, departamentos.dep_id))
-                .where(whereTempoMedio);
-            const tempoMedioQuery = await tempoMedioQry;
+            const resolvidosList = chamadosList.filter((c) => c.dataFechamento !== null);
+            const temposMs = resolvidosList
+                .map((c) => new Date(c.dataFechamento).getTime() -
+                new Date(c.dataAbertura).getTime())
+                .filter((diff) => !Number.isNaN(diff) && diff >= 0);
             let tempoMedioResolucao = null;
-            if (tempoMedioQuery[0]?.tempoMedio) {
-                const segundos = Number(tempoMedioQuery[0].tempoMedio);
-                const dias = Math.floor(segundos / 86_400);
-                const horas = Math.floor((segundos % 86_400) / 3600);
-                const minutos = Math.floor((segundos % 3600) / 60);
+            if (temposMs.length > 0) {
+                const mediaSegundos = temposMs.reduce((a, b) => a + b, 0) / temposMs.length / 1000;
+                const dias = Math.floor(mediaSegundos / 86_400);
+                const horas = Math.floor((mediaSegundos % 86_400) / 3600);
+                const minutos = Math.floor((mediaSegundos % 3600) / 60);
                 tempoMedioResolucao = { dias, horas, minutos };
             }
             // -------------------------------------------------------------
             // 📊 Taxa de Resolução
             // -------------------------------------------------------------
-            const resolvidos = Number(chamadosPorStatus.find((s) => s.status === "Resolvido")
-                ?.quantidade ?? 0);
+            const resolvidos = resolvidosList.length;
             const taxaResolucao = totalParaPercentual > 0
                 ? Number(((resolvidos / totalParaPercentual) * 100).toFixed(2))
                 : 0;
