@@ -230,9 +230,27 @@ function motivosChanged(current: string[] | null | undefined, next: string[]) {
 	);
 }
 
+// CATEGORIAS POR TIPO (não confundir com prioridade!)
+// Prioridade indica URGÊNCIA: Urgente, Alta, Média, Baixa
+// Categoria indica TIPO de solicitação
 const categorySeeds = [
-	{ name: "Urgente", description: "Categoria para chamados urgentes" },
-	{ name: "Normal", description: "Categoria para chamados não urgentes" },
+	{
+		name: "Infraestrutura",
+		description: "Obras, pavimentação, iluminação pública",
+	},
+	{
+		name: "Limpeza Urbana",
+		description: "Coleta de lixo, varrição, descarte irregular",
+	},
+	{
+		name: "Saúde",
+		description: "Unidades básicas, medicamentos, vigilância sanitária",
+	},
+	{ name: "Educação", description: "Escolas, transporte escolar, materiais" },
+	{ name: "Segurança", description: "Patrulhamento, câmeras, iluminação" },
+	{ name: "Meio Ambiente", description: "Áreas verdes, descarte, arborização" },
+	{ name: "Transporte", description: "Vias, sinalização, transporte público" },
+	{ name: "Assistência Social", description: "Programas sociais, auxílios" },
 ];
 
 const adminSeeds: AdminSeed[] = [
@@ -303,7 +321,7 @@ const chamadoSeeds: ChamadoSeed[] = [
 			"A praça central de Santana está sem iluminação adequada desde a semana passada.",
 		departamento: "Infraestrutura",
 		prioridade: "Alta",
-		categoria: "Urgente",
+		categoria: "Infraestrutura", // TIPO: Infraestrutura | URGÊNCIA: Alta
 		cep: "06543000",
 		numero: "150",
 	},
@@ -313,7 +331,7 @@ const chamadoSeeds: ChamadoSeed[] = [
 			"A cobertura da EMEF Luz do Amanhã está com infiltrações e precisa de manutenção.",
 		departamento: "Educação",
 		prioridade: "Média",
-		categoria: "Normal",
+		categoria: "Educação", // TIPO: Educação | URGÊNCIA: Média
 		cep: "06543010",
 		numero: "250",
 	},
@@ -323,7 +341,7 @@ const chamadoSeeds: ChamadoSeed[] = [
 			"Paciente relata atraso na aplicação da segunda dose de vacina infantil no posto Cruzeiro.",
 		departamento: "Saúde",
 		prioridade: "Média",
-		categoria: "Normal",
+		categoria: "Saúde", // TIPO: Saúde | URGÊNCIA: Média
 		cep: "06543020",
 		numero: "337",
 	},
@@ -568,15 +586,13 @@ async function ensureDefaultUserChamados(userId: string, cityId: string) {
 		return;
 	}
 
+	// Buscar todas as categorias disponíveis
 	const categoryRows = await db
 		.select({
 			id: categorias.cat_id,
 			name: categorias.cat_nome,
 		})
-		.from(categorias)
-		.where(
-			or(eq(categorias.cat_nome, "Urgente"), eq(categorias.cat_nome, "Normal")),
-		);
+		.from(categorias);
 
 	const departmentMap = new Map(departmentRows.map((row) => [row.name, row]));
 	const categoryMap = new Map(categoryRows.map((row) => [row.name, row]));
