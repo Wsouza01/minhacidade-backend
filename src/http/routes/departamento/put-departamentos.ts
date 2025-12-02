@@ -16,7 +16,7 @@ export const putDepartamentosRoute: FastifyPluginCallbackZod = (app) => {
 					nome: z.string().min(3, "Nome deve ter ao menos 3 caracteres"),
 					descricao: z.string().optional(),
 					cidadeId: z.string().uuid().optional(),
-					prioridade: z.enum(["Baixa", "Média", "Alta", "Urgente"]),
+					prioridade: z.enum(["Baixa", "Média", "Alta", "Urgente"]).optional().default("Média"),
 					motivos: z.array(z.string()).optional().default([]),
 					adminId: z.string().uuid().optional(),
 				}),

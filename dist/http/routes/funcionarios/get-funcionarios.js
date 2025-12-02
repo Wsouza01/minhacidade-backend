@@ -1,12 +1,12 @@
-import { eq } from 'drizzle-orm';
-import { z } from 'zod';
-import { db } from '../../../db/index.js';
-import { schema } from '../../../db/schema/index.js';
+import { eq } from "drizzle-orm";
+import { z } from "zod";
+import { db } from "../../../db/index.js";
+import { schema } from "../../../db/schema/index.js";
 const getFuncionariosQuerySchema = z.object({
     cidadeId: z.string().optional(),
 });
 export const getFuncionariosRoute = (app) => {
-    app.get('/funcionarios', {
+    app.get("/funcionarios", {
         schema: {
             querystring: getFuncionariosQuerySchema,
         },
@@ -14,7 +14,7 @@ export const getFuncionariosRoute = (app) => {
         try {
             const { cidadeId } = request.query;
             // Busca todos os funcionários com joins para departamento e cidade
-            const query = db
+            const baseQuery = db
                 .select({
                 fun_id: schema.funcionarios.fun_id,
                 fun_nome: schema.funcionarios.fun_nome,
@@ -37,20 +37,20 @@ export const getFuncionariosRoute = (app) => {
                 .leftJoin(schema.departamentos, eq(schema.funcionarios.dep_id, schema.departamentos.dep_id))
                 .leftJoin(schema.cidades, eq(schema.funcionarios.cid_id, schema.cidades.cid_id));
             // Filtrar por cidade se cidadeId foi fornecido
-            if (cidadeId) {
-                const result = query.where(eq(schema.funcionarios.cid_id, cidadeId));
-            }
+            const query = cidadeId
+                ? baseQuery.where(eq(schema.funcionarios.cid_id, cidadeId))
+                : baseQuery;
             const results = await query;
             reply.send(results);
         }
         catch (error) {
-            console.error('Erro ao buscar funcionários:', error);
+            console.error("Erro ao buscar funcionários:", error);
             reply.code(500).send({
                 statusCode: 500,
-                error: 'Internal Server Error',
+                error: "Internal Server Error",
                 message: error instanceof Error
                     ? error.message
-                    : 'Erro ao buscar funcionários',
+                    : "Erro ao buscar funcionários",
             });
         }
     });

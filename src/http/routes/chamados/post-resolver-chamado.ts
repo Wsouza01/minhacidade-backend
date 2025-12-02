@@ -19,7 +19,7 @@ export const postResolverChamado: FastifyPluginAsyncZod = async (app) => {
         body: z.object({
           servidorId: z.string().uuid(),
           resolvido: z.boolean(),
-          observacao: z.string(),
+          observacao: z.string().optional().default(''),
         }),
       },
     },

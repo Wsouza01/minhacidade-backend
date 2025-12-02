@@ -3,6 +3,7 @@
 # ===================================================================
 FROM node:24-alpine AS base
 RUN corepack enable pnpm
+ENV PNPM_STORE_DIR=/tmp/pnpm-store
 
 # ===================================================================
 # Build Stage
@@ -11,7 +12,7 @@ FROM base AS builder
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --store-dir /tmp/pnpm-store
 
 COPY . .
 
@@ -32,7 +33,8 @@ ENV IS_DOCKER=true
 
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+# Reaproveita node_modules já resolvidos no build (evita erro de chmod no cache do buildkit)
+COPY --from=builder /app/node_modules ./node_modules
 
 # Copia dist
 COPY --from=builder /app/dist ./dist

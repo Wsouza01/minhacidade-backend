@@ -15,7 +15,7 @@ export const postResolverChamado = async (app) => {
             body: z.object({
                 servidorId: z.string().uuid(),
                 resolvido: z.boolean(),
-                observacao: z.string(),
+                observacao: z.string().optional().default(''),
             }),
         },
     }, async (req, reply) => {

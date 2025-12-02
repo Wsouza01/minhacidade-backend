@@ -1,25 +1,58 @@
-import { eq } from 'drizzle-orm';
-import { z } from 'zod';
-import { db } from '../../../db/index.js';
-import { anexos } from '../../../db/schema/anexos.js';
-import { categorias } from '../../../db/schema/categorias.js';
-import { chamados } from '../../../db/schema/chamados.js';
-import { departamentos } from '../../../db/schema/departamentos.js';
-import { etapas } from '../../../db/schema/etapas.js';
-import { usuarios } from '../../../db/schema/usuarios.js';
-import { env } from '../../../env.js';
+import { eq } from "drizzle-orm";
+import { z } from "zod";
+import { db } from "../../../db/index.js";
+import { anexos } from "../../../db/schema/anexos.js";
+import { categorias } from "../../../db/schema/categorias.js";
+import { chamados } from "../../../db/schema/chamados.js";
+import { departamentos } from "../../../db/schema/departamentos.js";
+import { etapas } from "../../../db/schema/etapas.js";
+import { usuarios } from "../../../db/schema/usuarios.js";
+import { env } from "../../../env.js";
+// Helper para buscar endereço completo via ViaCEP
+async function fetchEnderecoCompleto(cep) {
+    if (!cep) {
+        console.log("[VIACEP] CEP não fornecido");
+        return null;
+    }
+    try {
+        const cepLimpo = cep.replace(/\D/g, "");
+        if (cepLimpo.length !== 8) {
+            console.log("[VIACEP] CEP inválido:", cep);
+            return null;
+        }
+        console.log("[VIACEP] Buscando CEP:", cepLimpo);
+        const response = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
+        if (!response.ok) {
+            console.log("[VIACEP] Response não OK:", response.status);
+            return null;
+        }
+        const data = (await response.json());
+        console.log("[VIACEP] Dados recebidos:", data);
+        if (data.erro) {
+            console.log("[VIACEP] CEP não encontrado");
+            return null;
+        }
+        const endereco = `${data.logradouro || ""}, ${data.bairro || ""}, ${data.localidade || ""} - ${data.uf || ""}`;
+        console.log("[VIACEP] Endereço montado:", endereco);
+        return endereco.trim();
+    }
+    catch (error) {
+        console.error("[VIACEP] Erro ao buscar CEP:", error);
+        return null;
+    }
+}
 const getChamadoByIdParamsSchema = z.object({
     id: z.string().uuid(),
 });
 export const getChamadoByIdFinalRoute = (app) => {
-    app.get('/chamados/:id', {
+    app.get("/chamados/:id", {
         schema: {
             params: getChamadoByIdParamsSchema,
         },
     }, async (request, reply) => {
         try {
             const { id } = request.params;
-            console.log('🔍 Buscando chamado ID:', id);
+            console.log("🔍 Buscando chamado ID:", id);
             // Busca básica do chamado
             const chamadoBase = await db
                 .select()
@@ -27,24 +60,24 @@ export const getChamadoByIdFinalRoute = (app) => {
                 .where(eq(chamados.cha_id, id))
                 .limit(1);
             if (chamadoBase.length === 0) {
-                return reply.status(404).send({ message: 'Chamado não encontrado' });
+                return reply.status(404).send({ message: "Chamado não encontrado" });
             }
             const chamado = chamadoBase[0];
-            console.log('✅ Chamado encontrado:', chamado.cha_titulo);
-            console.log('📋 Departamento ID:', chamado.cha_departamento);
-            console.log('👤 Usuário ID:', chamado.usu_id);
+            console.log("✅ Chamado encontrado:", chamado.cha_titulo);
+            console.log("📋 Departamento ID:", chamado.cha_departamento);
+            console.log("👤 Usuário ID:", chamado.usu_id);
             // Buscar informações relacionadas de forma segura
             const [departamento, categoria, usuario, anexosList, etapasList] = await Promise.allSettled([
                 // Departamento
                 chamado.cha_departamento
                     ? (async () => {
-                        console.log('🔍 Buscando departamento com ID:', chamado.cha_departamento);
+                        console.log("🔍 Buscando departamento com ID:", chamado.cha_departamento);
                         const result = await db
                             .select({ dep_nome: departamentos.dep_nome })
                             .from(departamentos)
                             .where(eq(departamentos.dep_id, chamado.cha_departamento))
                             .limit(1);
-                        console.log('📊 Resultado da busca de departamento:', result);
+                        console.log("📊 Resultado da busca de departamento:", result);
                         return result;
                     })()
                     : Promise.resolve([]),
@@ -60,7 +93,7 @@ export const getChamadoByIdFinalRoute = (app) => {
                 chamado.usu_id
                     ? (async () => {
                         try {
-                            console.log('🔍 Buscando usuário com ID:', chamado.usu_id);
+                            console.log("🔍 Buscando usuário com ID:", chamado.usu_id);
                             const result = await db
                                 .select({
                                 usu_nome: usuarios.usu_nome,
@@ -70,11 +103,11 @@ export const getChamadoByIdFinalRoute = (app) => {
                                 .from(usuarios)
                                 .where(eq(usuarios.usu_id, chamado.usu_id))
                                 .limit(1);
-                            console.log('📊 Resultado da busca de usuário:', result);
+                            console.log("📊 Resultado da busca de usuário:", result);
                             return result;
                         }
                         catch (err) {
-                            console.error('❌ Erro ao buscar usuário:', err);
+                            console.error("❌ Erro ao buscar usuário:", err);
                             return [];
                         }
                     })()
@@ -102,20 +135,41 @@ export const getChamadoByIdFinalRoute = (app) => {
                     .orderBy(etapas.eta_data_inicio),
             ]);
             // Extrair resultados de forma segura
-            const depData = departamento.status === 'fulfilled' && departamento.value.length > 0
+            const depData = departamento.status === "fulfilled" && departamento.value.length > 0
                 ? departamento.value[0]
                 : null;
-            const catData = categoria.status === 'fulfilled' && categoria.value.length > 0
+            const catData = categoria.status === "fulfilled" && categoria.value.length > 0
                 ? categoria.value[0]
                 : null;
-            const usuData = usuario.status === 'fulfilled' && usuario.value.length > 0
+            const usuData = usuario.status === "fulfilled" && usuario.value.length > 0
                 ? usuario.value[0]
                 : null;
-            const anexosData = anexosList.status === 'fulfilled' ? anexosList.value : [];
-            const etapasData = etapasList.status === 'fulfilled' ? etapasList.value : [];
-            console.log('🏢 Departamento encontrado:', depData?.dep_nome || 'Nenhum');
-            console.log('👤 Usuário encontrado:', usuData?.usu_nome || 'Nenhum');
-            console.log('📂 Categoria encontrada:', catData?.cat_nome || 'Nenhum');
+            const anexosData = anexosList.status === "fulfilled" ? anexosList.value : [];
+            const etapasData = etapasList.status === "fulfilled" ? etapasList.value : [];
+            console.log("🏢 Departamento encontrado:", depData?.dep_nome || "Nenhum");
+            console.log("👤 Usuário encontrado:", usuData?.usu_nome || "Nenhum");
+            console.log("📂 Categoria encontrada:", catData?.cat_nome || "Nenhum");
+            // Buscar endereço completo via ViaCEP
+            const enderecoCompleto = await fetchEnderecoCompleto(chamado.cha_cep);
+            let enderecoFinal = "Não informado";
+            if (enderecoCompleto) {
+                // Se conseguiu buscar no ViaCEP
+                enderecoFinal = enderecoCompleto;
+                if (chamado.cha_numero_endereco) {
+                    enderecoFinal += `, Nº ${chamado.cha_numero_endereco}`;
+                }
+                if (chamado.cha_cep) {
+                    enderecoFinal += `, CEP: ${chamado.cha_cep}`;
+                }
+            }
+            else if (chamado.cha_numero_endereco && chamado.cha_cep) {
+                // Fallback se ViaCEP falhar
+                enderecoFinal = `Nº ${chamado.cha_numero_endereco}, CEP: ${chamado.cha_cep}`;
+            }
+            else if (chamado.cha_cep) {
+                enderecoFinal = `CEP: ${chamado.cha_cep}`;
+            }
+            console.log("[ENDERECO] Endereço final:", enderecoFinal);
             // Montar resposta final
             const response = {
                 ...chamado,
@@ -138,27 +192,25 @@ export const getChamadoByIdFinalRoute = (app) => {
                 etapas: etapasData,
                 // Determinar status baseado nos dados
                 status: chamado.cha_data_fechamento
-                    ? 'resolvido'
+                    ? "resolvido"
                     : chamado.cha_responsavel
-                        ? 'em_andamento'
-                        : 'pendente',
-                // Formatação de endereço
-                endereco_completo: chamado.cha_cep && chamado.cha_numero_endereco
-                    ? `${chamado.cha_numero_endereco}, CEP: ${chamado.cha_cep}`
-                    : chamado.cha_cep || 'Não informado',
+                        ? "em_andamento"
+                        : "pendente",
+                // Formatação de endereço completo com ViaCEP
+                endereco_completo: enderecoFinal,
             };
-            console.log('✅ Resposta montada com sucesso');
+            console.log("✅ Resposta montada com sucesso");
             reply.send(response);
         }
         catch (err) {
-            console.error('❌ Erro detalhado ao buscar chamado:', err);
-            console.error('Stack trace:', err instanceof Error ? err.stack : 'No stack trace');
+            console.error("❌ Erro detalhado ao buscar chamado:", err);
+            console.error("Stack trace:", err instanceof Error ? err.stack : "No stack trace");
             reply.status(500).send({
-                message: 'Erro ao buscar chamado',
-                error: env.NODE_ENV === 'development'
+                message: "Erro ao buscar chamado",
+                error: env.NODE_ENV === "development"
                     ? err instanceof Error
                         ? err.message
-                        : 'Erro desconhecido'
+                        : "Erro desconhecido"
                     : undefined,
             });
         }
