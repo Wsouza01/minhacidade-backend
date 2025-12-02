@@ -45,22 +45,22 @@ export const getStatsRoute: FastifyPluginAsyncZod = async (app) => {
 
 				const allChamados = await query;
 
-				// Calculate stats manually usando cha_status
+				// Calculate stats manually matching frontend logic
 				const stats = {
 					total: allChamados.length,
-					resolvidos: allChamados.filter(
-						(c) => c.cha_status === "Resolvido" || c.cha_status === "Encerrado",
-					).length,
-					pendentes: allChamados.filter((c) => c.cha_status === "Pendente")
+					resolvidos: allChamados.filter((c) => c.cha_data_fechamento !== null)
 						.length,
+					pendentes: allChamados.filter(
+						(c) =>
+							c.cha_data_fechamento === null && c.cha_responsavel === null,
+					).length,
 					emAndamento: allChamados.filter(
-						(c) => c.cha_status === "Aberto" || c.cha_status === "Em Andamento",
+						(c) =>
+							c.cha_data_fechamento === null && c.cha_responsavel !== null,
 					).length,
 					prioridadeAlta: allChamados.filter(
 						(c) =>
-							c.cha_prioridade === "Alta" &&
-							c.cha_status !== "Resolvido" &&
-							c.cha_status !== "Encerrado",
+							c.cha_prioridade === "Alta" && c.cha_data_fechamento === null,
 					).length,
 				};
 

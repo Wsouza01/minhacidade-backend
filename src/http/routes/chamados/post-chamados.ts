@@ -26,6 +26,7 @@ export const postChamadosRoute: FastifyPluginCallbackZod = (app) => {
           prioridade: z.string(),
           usuario_id: z.string().uuid().optional(),
           categoria_nome: z.string().optional(),
+          cat_id: z.string().uuid().optional(),
           departamento_id: z.string().uuid(),
           motivo: z.string().optional(),
           anonimo: z.boolean().optional(),
@@ -37,9 +38,10 @@ export const postChamadosRoute: FastifyPluginCallbackZod = (app) => {
         const body = request.body
         console.log('📥 Recebendo chamado:', body)
 
-        // Buscar categoria pelo nome se fornecida
-        let categoria_id = null
-        if (body.categoria_nome) {
+        // Buscar categoria
+        let categoria_id = body.cat_id || null
+
+        if (!categoria_id && body.categoria_nome) {
           const categoria = await db
             .select()
             .from(categorias)

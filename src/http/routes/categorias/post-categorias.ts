@@ -17,6 +17,7 @@ export const postCategoriasRoute: FastifyPluginCallbackZod = (app) => {
     },
     async (request, reply) => {
       const { nome, descricao } = request.body
+
       await db.insert(categorias).values({
         cat_nome: nome,
         cat_descricao: descricao,
